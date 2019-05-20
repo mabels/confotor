@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 
 // import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
@@ -126,11 +127,70 @@ class Tickets {
   }
 }
 
+class FoundTicket {
+  final Tickets tickets;
+  final Ticket ticket;
+  FoundTicket({Tickets tickets, Ticket ticket}):
+    tickets = tickets, ticket = ticket;
+}
+
+const List<FoundTicket> emptyFoundTicket = [];
+class FoundTickets extends ConfotorMsg {
+  final List<FoundTicket> tickets;
+  FoundTickets({List<FoundTicket> tickets = emptyFoundTicket}): tickets = tickets;
+  get hasFound {
+    return tickets.isNotEmpty;
+  }
+}
+
+const List<FoundTickets> emptyFoundTickets = [];
+class ActiveFoundTickets extends ConfotorMsg {
+  final List<FoundTickets> active;
+  ActiveFoundTickets({List<FoundTickets> active = emptyFoundTickets}): active = List.from(active);
+}
+
 class TicketsAgent {
   final ConfotorAppState appState;
   final Map<String, Tickets> tickets = new Map();
+  final List<FoundTickets> active = new List();
 
   TicketsAgent({ConfotorAppState appState}) : appState = appState;
+
+  FoundTickets findTickets(String slug) {
+    final ret = FoundTickets();
+    print("findTickets:${tickets.values.length}:${slug}");
+    tickets.values.forEach((tickets) {
+      final found = tickets.tickets.values.firstWhere((ticket) => ticket.slug == slug);
+      if (found != null) {
+        print("findTickets:Found:${found.slug}:${slug}");
+        ret.tickets.add(FoundTicket(tickets: tickets, ticket: found));
+      }
+    });
+    if (ret.hasFound) {
+      final ref = ret.tickets.first;
+      tickets.values.forEach((tickets) {
+        if (tickets != ref.tickets) {
+          tickets.tickets.values.forEach((ticket) {
+            if (ticket.registration_reference == ref.ticket.registration_reference) {
+              ret.tickets.add(FoundTicket(tickets: tickets, ticket: ticket));
+              return;
+            }
+            if (ticket.email == ref.ticket.email) {
+              if (ticket.company_name == ref.ticket.company_name) {
+                if (ticket.first_name == ref.ticket.first_name) {
+                  if (ticket.last_name == ref.ticket.last_name) {
+                    ret.tickets.add(FoundTicket(tickets: tickets, ticket: ticket));
+                  }
+                }
+              }
+              return;
+            }
+          });
+        }
+      });
+    }
+    return ret;
+  }
 
   start() {
     this.appState.bus.stream.listen((msg) {
@@ -139,8 +199,24 @@ class TicketsAgent {
           if (i.ticketsStatus == CheckInListItemTicketsStatus.Initial &&
               !tickets.containsKey(i.url)) {
             Tickets.fetch(appState: appState, item: i);
+          } else {
+            tickets.clear();
+            tickets[i.url] = new Tickets(appState: appState, item: i);
           }
         });
+      }
+      if (msg is TicketScanBarcodeMsg) {
+        TicketScanBarcodeMsg tsmsg = msg;
+        final found = findTickets(tsmsg.barcode);
+        this.appState.bus.add(found);
+        print('TicketScanBarcodeMsg:$found');
+      }
+      if (msg is FoundTickets) {
+        this.active.insert(0, msg);
+        for(var i = 5; i < active.length; i++) {
+          this.active.removeAt(5);
+        }
+        this.appState.bus.add(ActiveFoundTickets(active: active), persist: true);
       }
     });
   }

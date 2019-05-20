@@ -26,9 +26,9 @@ class CheckInListItemError extends CheckInListMsg {
   CheckInListItemError({dynamic error}) : error = error;
 }
 
-class CheckInListItemRemove extends CheckInListMsg {
-  final CheckInListItem item;
-  CheckInListItemRemove({CheckInListItem item}) : item = item;
+class CheckInListsRemove extends CheckInListMsg {
+  final List<CheckInListItem> items;
+  CheckInListsRemove({List<CheckInListItem> items}) : items = items;
 }
 
 const List<CheckInListItem> empty = [];
@@ -207,7 +207,7 @@ class CheckInListAgent {
       } else if (msg is CheckInListScanMsg) {
         print('Scan some where Error');
       } else if (msg is CheckInListItem ||
-          msg is CheckInListItemRemove ||
+          msg is CheckInListsRemove ||
           msg is TicketsCompleteMsg ||
           msg is ClickInListsRefresh) {
         if (msg is ClickInListsRefresh) {
@@ -244,18 +244,22 @@ class CheckInListAgent {
           } else {
             this.checkInLists.add(msg);
           }
-        } else if (msg is CheckInListItemRemove) {
-          final idx = this.checkInLists.indexWhere((i) {
-            return i.url == msg.item.url;
+        } else if (msg is CheckInListsRemove) {
+          msg.items.forEach((item) {
+            final idx = this.checkInLists.indexWhere((i) {
+              return i.url == item.url;
+            });
+            if (idx >= 0) {
+              this.checkInLists.removeAt(idx);
+            }
           });
-          if (idx >= 0) {
-            this.checkInLists.removeAt(idx);
-          }
         }
         print('CheckItemLists:${this.checkInLists.length}');
         writeLists(this.checkInLists)
             .then((lists) =>
-                this.appState.bus.add(new CheckInListsMsg(lists: lists)))
+                this.appState.bus.add(new CheckInListsMsg(lists: lists),
+                  persist: true
+                ))
             .catchError((e) {
           print('Error:$e');
           this.appState.bus.add(new CheckInListItemError(error: e));

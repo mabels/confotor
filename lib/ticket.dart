@@ -1,4 +1,9 @@
 
+import 'package:barcode_scan/barcode_scan.dart';
+
+import 'confotor-app.dart';
+import 'confotor-msg.dart';
+
 class Ticket {
   int id;
   String slug;
@@ -39,4 +44,25 @@ class Ticket {
     "updated_at": updated_at,
   };
 
+}
+
+class TicketScanMsg extends ConfotorMsg {}
+
+class TicketScanBarcodeMsg extends TicketScanMsg {
+  final String barcode;
+  TicketScanBarcodeMsg({String barcode}) : barcode = barcode;
+}
+
+class TicketScanUnknownExceptionMsg extends TicketScanMsg {
+  final dynamic exception;
+  TicketScanUnknownExceptionMsg({dynamic exception})
+      : exception = exception;
+}
+
+ticketScan({ConfotorBus bus}) {
+  BarcodeScanner.scan().then((barcode) {
+    bus.add(new TicketScanBarcodeMsg(barcode: barcode));
+  }).catchError((e) {
+    bus.add(new TicketScanUnknownExceptionMsg(exception: e));
+  });
 }

@@ -22,15 +22,31 @@ class ConfotorApp extends StatefulWidget {
 
 class ConfotorBus {
   StreamController<ConfotorMsg> bus = new StreamController();
-  Stream<ConfotorMsg> stream;
+  Stream<ConfotorMsg> _stream;
+  Map<String, ConfotorMsg> persistMsgs = new Map();
 
   ConfotorBus() {
     print('Switch BroadcastStream');
-    this.stream = this.bus.stream.asBroadcastStream();
+    this._stream = this.bus.stream.asBroadcastStream();
   }
 
-  add(ConfotorMsg msg) {
+  add(ConfotorMsg msg, { bool persist = false }) {
+    if (persist) {
+      persistMsgs[msg.runtimeType.toString()] = msg;
+    }
     this.bus.add(msg);
+  }
+
+  Stream<ConfotorMsg> get stream {
+    StreamController<ConfotorMsg> ctl;
+    ctl = StreamController(onListen: () {
+      this.persistMsgs.values.forEach((msg) => ctl.add(msg));
+    });
+    this._stream.listen((msg) => ctl.add(msg),
+      onDone: () => ctl.close(),
+      onError: (e) => ctl.addError(e),
+    );
+    return ctl.stream.asBroadcastStream();
   }
 
   listen(void onData(ConfotorMsg event)) {
@@ -58,14 +74,14 @@ class ConfotorAppState extends State<ConfotorApp> {
   ConfotorBus bus;
   CheckInListAgent checkInListAgent;
   TicketsAgent ticketsAgent;
-  Drawer drawer;
+  // Drawer drawer;
   @override
   initState() {
     super.initState();
     this.bus = new ConfotorBus();
     this.checkInListAgent = new CheckInListAgent(appState: this).start();
     this.ticketsAgent = new TicketsAgent(appState: this).start();
-    this.drawer = confotorDrawer(appState: this);
+    // this.drawer = confotorDrawer(appState: this);
   }
 
   @override
