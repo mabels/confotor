@@ -23,21 +23,32 @@ class TicketsMsg {
   }
 }
 
-class TicketsCompleteMsg extends ConfotorMsg {
-  final String url;
+// class TicketsCompleteMsg extends ConfotorMsg {
+//   TicketsCompleteMsg(
+//       {CheckInListItem checkInListItem, Map<int, Ticket> tickets, String url})
+//       : checkInListItem = checkInListItem,
+//         tickets = tickets,
+//         url = url;
+// }
+
+class TicketsPageMsg extends ConfotorMsg {
+  final String transaction;
   final CheckInListItem checkInListItem;
   final Map<int, Ticket> tickets;
-  TicketsCompleteMsg(
-      {CheckInListItem checkInListItem, Map<int, Ticket> tickets, String url})
-      : checkInListItem = checkInListItem,
-        tickets = tickets,
-        url = url;
-}
-
-class TicketsPageMsg extends TicketsCompleteMsg {
-  TicketsPageMsg(
-      {CheckInListItem checkInListItem, Map<int, Ticket> tickets, String url})
-      : super(checkInListItem: checkInListItem, tickets: tickets, url: url);
+  final int page;
+  final bool completed;
+  TicketsPageMsg({
+    final String transaction,
+    final CheckInListItem checkInListItem,
+    final Map<int, Ticket> tickets,
+    final int page,
+    final bool completed
+    }) :
+      transaction = transaction,
+      checkInListItem = checkInListItem,
+      tickets = tickets,
+      page = page,
+      completed = completed;
 }
 
 class TicketsError extends ConfotorMsg {
@@ -56,45 +67,24 @@ class TicketsError extends ConfotorMsg {
         error = error;
 }
 
-class Tickets {
-  String transaction;
-  CheckInListItem checkInListItem;
-  ConfotorAppState appState;
-  Map<int, Ticket> tickets = new Map();
+class TicketsPages {
+  final ConfotorAppState appState;
+  final String transaction;
+  final CheckInListItem checkInListItem;
+  // final Map<int, Ticket> tickets = new Map();
 
-  // getPages(int page) {
-  //   this.getPage(page).then((next) {
-  //     this.appState.bus.add(TicketsMsg(
-  //         status: TicketsStatus.Page,
-  //         page: page,
-  //         totalTickets: tickets.length));
-  //     if (next == TicketsStatus.Page) {
-  //       getPages(page + 1);
-  //     } else {
-  //       this.appState.bus.add(
-  //           TicketsMsg(status: next, page: page, totalTickets: tickets.length));
-  //     }
-  //   });
-  // }
-
-  static Tickets fetch({ConfotorAppState appState, CheckInListItem item}) {
-    var tickets = new Tickets(appState: appState, item: item);
-    tickets.getPage(0);
+  static TicketsPages fetch({ConfotorAppState appState, CheckInListItem item}) {
+    var tickets = new TicketsPages(appState: appState, item: item);
+    tickets.getPages(0);
     return tickets;
   }
 
-  Tickets({ConfotorAppState appState, CheckInListItem item}) {
-    this.transaction = appState.uuid.v4();
-    this.appState = appState;
-    this.checkInListItem = item;
-  }
+  TicketsPages({ConfotorAppState appState, CheckInListItem item})
+    : transaction = appState.uuid.v4(),
+      appState = appState,
+      checkInListItem = item;
 
-  // setStatus(FetchStatus status) {
-  //   print(sprintf("TicketState:%s:%d", [status, this.tickets.length]));
-  //   this.status = status;
-  // }
-
-  getPage(int page) {
+  getPages(int page) {
     final url = this.checkInListItem.ticketsUrl(page);
     print("getPage:$url");
     http.get(url).then((response) {
@@ -105,16 +95,15 @@ class Tickets {
           Ticket ticket = Ticket.create(f);
           tickets[ticket.id] = ticket;
         });
-        this.tickets.addAll(tickets);
+        // this.tickets.addAll(tickets);
         this.appState.bus.add(new TicketsPageMsg(
-            url: url, checkInListItem: this.checkInListItem, tickets: tickets));
-        if (page >= this.checkInListItem.total_pages) {
-          this.appState.bus.add(new TicketsCompleteMsg(
-              url: url,
-              checkInListItem: this.checkInListItem,
-              tickets: this.tickets));
-        } else {
-          getPage(page + 1);
+            transaction: transaction,
+            checkInListItem: this.checkInListItem,
+            tickets: tickets,
+            page: page,
+            completed: page >= this.checkInListItem.total_pages));
+        if (page < this.checkInListItem.total_pages) {
+          getPages(page + 1);
         }
       } else {
         this.appState.bus.add(new TicketsError(
@@ -128,58 +117,69 @@ class Tickets {
 }
 
 class FoundTicket {
-  final Tickets tickets;
+  final CheckInListItem checkInListItem;
   final Ticket ticket;
-  FoundTicket({Tickets tickets, Ticket ticket}):
-    tickets = tickets, ticket = ticket;
+  FoundTicket({CheckInListItem checkInListItem, Ticket ticket}):
+    checkInListItem = checkInListItem, ticket = ticket;
 }
 
-const List<FoundTicket> emptyFoundTicket = [];
 class FoundTickets extends ConfotorMsg {
   final List<FoundTicket> tickets;
-  FoundTickets({List<FoundTicket> tickets = emptyFoundTicket}): tickets = tickets;
+  FoundTickets({List<FoundTicket> tickets}): tickets = tickets;
   get hasFound {
     return tickets.isNotEmpty;
+  }
+  get slug {
+    return hasFound ? tickets.first.ticket.slug : "Not Found";
+  }
+  get name {
+    return hasFound ? "${tickets.first.ticket.first_name} ${tickets.first.ticket.last_name}" : "John Doe";
   }
 }
 
 const List<FoundTickets> emptyFoundTickets = [];
-class ActiveFoundTickets extends ConfotorMsg {
-  final List<FoundTickets> active;
-  ActiveFoundTickets({List<FoundTickets> active = emptyFoundTickets}): active = List.from(active);
+class LastFoundTickets extends ConfotorMsg {
+  final List<FoundTickets> last;
+  LastFoundTickets({List<FoundTickets> last = emptyFoundTickets}): last = List.from(last);
 }
 
 class TicketsAgent {
   final ConfotorAppState appState;
-  final Map<String, Tickets> tickets = new Map();
-  final List<FoundTickets> active = new List();
+  final List<CheckInListItem> checkInLists = [];
+  // final Map<String, Tickets> tickets = new Map();
+  final List<FoundTickets> lastFoundTickets = new List();
 
   TicketsAgent({ConfotorAppState appState}) : appState = appState;
 
   FoundTickets findTickets(String slug) {
-    final ret = FoundTickets();
-    print("findTickets:${tickets.values.length}:${slug}");
-    tickets.values.forEach((tickets) {
-      final found = tickets.tickets.values.firstWhere((ticket) => ticket.slug == slug);
+    final List<FoundTicket> ret = [];
+    checkInLists.firstWhere((item) {
+      print('findTickets:${item.url}:${item.ticketsCount}:$slug');
+      final found = item.tickets.firstWhere((ticket) {
+        print('findTickets:${item.url}:${item.ticketsCount}:$slug:${ticket.slug}');
+        return ticket.slug == slug;
+      }, orElse: () => null);
+      print('findTickets:NEXT:${item.url}:${item.ticketsCount}:$slug:$found');
       if (found != null) {
         print("findTickets:Found:${found.slug}:${slug}");
-        ret.tickets.add(FoundTicket(tickets: tickets, ticket: found));
+        ret.add(FoundTicket(checkInListItem: item, ticket: found));
       }
+      return found != null;
     });
-    if (ret.hasFound) {
-      final ref = ret.tickets.first;
-      tickets.values.forEach((tickets) {
-        if (tickets != ref.tickets) {
-          tickets.tickets.values.forEach((ticket) {
+    if (ret.isNotEmpty) {
+      final ref = ret.first;
+      checkInLists.forEach((item) {
+        if (item != ref.checkInListItem) {
+          item.tickets.forEach((ticket) {
             if (ticket.registration_reference == ref.ticket.registration_reference) {
-              ret.tickets.add(FoundTicket(tickets: tickets, ticket: ticket));
+              ret.add(FoundTicket(checkInListItem: item, ticket: ticket));
               return;
             }
             if (ticket.email == ref.ticket.email) {
               if (ticket.company_name == ref.ticket.company_name) {
                 if (ticket.first_name == ref.ticket.first_name) {
                   if (ticket.last_name == ref.ticket.last_name) {
-                    ret.tickets.add(FoundTicket(tickets: tickets, ticket: ticket));
+                    ret.add(FoundTicket(checkInListItem: item, ticket: ticket));
                   }
                 }
               }
@@ -189,20 +189,20 @@ class TicketsAgent {
         }
       });
     }
-    return ret;
+    return FoundTickets(tickets: ret);
   }
 
   start() {
     this.appState.bus.stream.listen((msg) {
       if (msg is CheckInListsMsg) {
         msg.lists.forEach((i) {
-          if (i.ticketsStatus == CheckInListItemTicketsStatus.Initial &&
-              !tickets.containsKey(i.url)) {
-            Tickets.fetch(appState: appState, item: i);
-          } else {
-            tickets.clear();
-            tickets[i.url] = new Tickets(appState: appState, item: i);
+          if (i.ticketsStatus == CheckInListItemTicketsStatus.Initial) {
+            TicketsPages.fetch(appState: appState, item: i);
           }
+        });
+        checkInLists.clear();
+        msg.lists.where((i) => i.ticketsStatus == CheckInListItemTicketsStatus.Fetched).forEach((item) {
+          checkInLists.add(item);
         });
       }
       if (msg is TicketScanBarcodeMsg) {
@@ -211,12 +211,13 @@ class TicketsAgent {
         this.appState.bus.add(found);
         print('TicketScanBarcodeMsg:$found');
       }
+
       if (msg is FoundTickets) {
-        this.active.insert(0, msg);
-        for(var i = 5; i < active.length; i++) {
-          this.active.removeAt(5);
+        this.lastFoundTickets.insert(0, msg);
+        for(var i = 5; i < lastFoundTickets.length; i++) {
+          lastFoundTickets.removeAt(5);
         }
-        this.appState.bus.add(ActiveFoundTickets(active: active), persist: true);
+        this.appState.bus.add(LastFoundTickets(last: lastFoundTickets), persist: true);
       }
     });
   }

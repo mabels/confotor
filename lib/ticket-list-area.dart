@@ -15,15 +15,15 @@ class TicketListArea extends StatefulWidget {
 }
 
 class TicketListAreaState extends State<TicketListArea> {
-  ActiveFoundTickets activeFoundTickets;
+  LastFoundTickets lastFoundTickets;
 
   TicketListAreaState({ConfotorAppState appState}) {
     print('TicketListAreaState:TicketListAreaState');
     appState.bus.stream.listen((msg) {
       print('TicketListAreaState:${msg.runtimeType.toString()}');
-      if (msg is ActiveFoundTickets) {
+      if (msg is LastFoundTickets) {
         setState(() {
-          this.activeFoundTickets = msg;
+          this.lastFoundTickets = msg;
         });
       }
     });
@@ -31,27 +31,22 @@ class TicketListAreaState extends State<TicketListArea> {
 
   @override
   Widget build(BuildContext context) {
-    print('Build:${activeFoundTickets}');
-    if (activeFoundTickets == null) {
+    print('Build:${lastFoundTickets}');
+    if (lastFoundTickets == null) {
       return ListView(children: <Widget>[]);
     } else {
-      print('Build:${activeFoundTickets.active.length}');
+      print('Build:${lastFoundTickets.last.length}');
       return ListView(
-          children: activeFoundTickets.active
+          children: lastFoundTickets.last
               .map((foundTickets) {
-                print('Build:X:${activeFoundTickets.active.length}:${foundTickets.tickets.length}');
-                return foundTickets.tickets.map((foundTicket) {
-                  print('Build:Y:${activeFoundTickets.active.length}:${foundTicket.ticket.slug}');
-                  return ListTile(
-                      key: Key(foundTicket.ticket.slug),
-                      title: Text(
-                          "${foundTicket.ticket.first_name} ${foundTicket.ticket.last_name}"),
-                      subtitle: Text(
-                          "${foundTicket.tickets.checkInListItem.event_title}:${foundTicket.ticket.email}"));
-                }).toList();
-              })
-              .expand((i) => i)
-              .toList());
+                return ListTile(
+                      key: Key(foundTickets.slug),
+                      title: Text(foundTickets.name),
+                      subtitle: Text(foundTickets.tickets.map((foundTicket) {
+                        return foundTicket.checkInListItem.shortEventTitle;
+                      }).join("/"))
+                );
+              }).toList());
     }
   }
 }

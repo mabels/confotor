@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' as prefix0;
 import './confotor-app.dart';
 import './check-in-list.dart';
-import 'confotor-msg.dart';
+// import 'confotor-msg.dart';
 
 List<Widget> staticDrawer({ConfotorAppState appState}) {
   return [
@@ -10,17 +10,8 @@ List<Widget> staticDrawer({ConfotorAppState appState}) {
         key: Key('AddCheckInList'),
         title: Text('Add Check-In List'),
         onTap: () {
-          // Navigator.of(appState.context).pop();
           checkInListScan(bus: appState.bus);
-          // Navigator.of(context).push(MaterialPageRoute(
-          //   builder: (BuildContext context) => ScanScreen()));
-        }),
-    // ListTile(
-    //     key: Key('Refresh Tickets'),
-    //     title: Text('Refresh Tickets'),
-    //     onTap: () {
-    //       appState.bus.add(new ClickInListsRefresh());
-    //     })
+        })
   ];
 }
 
@@ -38,7 +29,7 @@ refreshSection({
         }));
          lists.forEach((item) => children.add(ListTile(
           key: Key(item.event_title),
-          title: Text("${item.event_title}(${item.tickets.length})"),
+          title: Text("${item.event_title}(${item.ticketsCount})"),
           onTap: () {
             appState.bus.add(new ClickInListsRefresh(items: [item]));
           })));
@@ -66,7 +57,7 @@ removeSection({
         }));
         lists.forEach((item) => children.add(ListTile(
           key: Key(item.event_title),
-          title: Text("${item.event_title}(${item.tickets.length})"),
+          title: Text("${item.event_title}(${item.ticketsCount})"),
           onLongPress: () {
             appState.bus.add(new CheckInListsRemove(items: [item]));
           })));

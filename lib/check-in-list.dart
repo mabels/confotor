@@ -74,7 +74,15 @@ class CheckInListItem extends CheckInListMsg {
   int total_entries;
   CheckInListItemTicketsStatus ticketsStatus =
       CheckInListItemTicketsStatus.Initial;
-  final Map<int, Ticket> tickets = new Map();
+  final Map<int, Ticket> _tickets = new Map();
+
+  get ticketsCount {
+    return _tickets.length;
+  }
+
+  Iterable<Ticket> get tickets {
+    return _tickets.values;
+  }
 
   static Future<CheckInListItem> fetch(String url) async {
     var response = await http.get(url);
@@ -102,10 +110,14 @@ class CheckInListItem extends CheckInListMsg {
     }
     ticketsList.forEach((jsonTicket) {
       Ticket ticket = Ticket.create(jsonTicket);
-      checkInList.tickets[ticket.id] = ticket;
+      checkInList._tickets[ticket.id] = ticket;
     });
     checkInList.ticketsStatus = ticketsStatusFromJson(json['ticketsStatus']);
     return checkInList;
+  }
+
+  get shortEventTitle {
+    return event_title.split(" ").first;
   }
 
   static CheckInListItemTicketsStatus ticketsStatusFromJson(String ts) {
@@ -138,7 +150,7 @@ class CheckInListItem extends CheckInListMsg {
         "total_pages": total_pages,
         "total_entries": total_entries,
         "ticketsStatus": jsonTicketStatus,
-        "tickets": tickets.values.toList()
+        "tickets": _tickets.values.toList()
       };
 
   String ticketsUrl(int page) {
@@ -157,6 +169,7 @@ Future<String> getLocalPath() async {
 class CheckInListAgent {
   final ConfotorAppState appState;
   final List<CheckInListItem> checkInLists = new List();
+  final Map<String, Map<int, Ticket>> ticketsPageTransactions = new Map();
 
   CheckInListAgent({ConfotorAppState appState}) : appState = appState;
 
@@ -208,32 +221,35 @@ class CheckInListAgent {
         print('Scan some where Error');
       } else if (msg is CheckInListItem ||
           msg is CheckInListsRemove ||
-          msg is TicketsCompleteMsg ||
+          msg is TicketsPageMsg ||
           msg is ClickInListsRefresh) {
         if (msg is ClickInListsRefresh) {
           this.checkInLists.forEach((checkInList) {
             final idx = msg.items.indexWhere((i) => i.url == checkInList.url);
             if (idx >= 0 || msg.items.isEmpty) {
               checkInList.ticketsStatus = CheckInListItemTicketsStatus.Initial;
-              checkInList.tickets.clear();
+              checkInList._tickets.clear();
             }
           });
-        } else if (msg is TicketsCompleteMsg) {
-          final idx = this.checkInLists.indexWhere((i) {
-            return i.url == msg.checkInListItem.url;
-          });
-          print('CheckInList:${msg}:${msg.tickets.length}:$idx');
-          if (idx >= 0) {
-            this.checkInLists[idx].tickets.clear();
-            this.checkInLists[idx].tickets.addAll(msg.tickets);
-            this.checkInLists[idx].ticketsStatus =
+        } else if (msg is TicketsPageMsg) {
+          var tickets = ticketsPageTransactions[msg.transaction];
+          if (tickets == null) {
+            ticketsPageTransactions[msg.transaction] = tickets = new Map();
+          }
+          tickets.addAll(msg.tickets);
+          if (msg.completed) {
+            ticketsPageTransactions.remove(msg.transaction);
+            final idx = this.checkInLists.indexWhere((i) {
+              return i.url == msg.checkInListItem.url;
+            });
+            if (idx >= 0) {
+              this.checkInLists[idx]._tickets.clear();
+              this.checkInLists[idx]._tickets.addAll(tickets);
+              this.checkInLists[idx].ticketsStatus =
                 CheckInListItemTicketsStatus.Fetched;
-            print('CheckInList:${msg}:${msg.tickets.length}:$idx:PRE');
-            // this
-            //     .appState
-            //     .bus
-            //     .add(new CheckInListsMsg(lists: this.checkInLists));
-            // print('CheckInList:${msg}:${msg.tickets.length}:$idx:POST');
+            }
+          } else {
+            return; // don't write incomplete
           }
         } else if (msg is CheckInListItem) {
           final idx = this.checkInLists.indexWhere((i) {

@@ -69,25 +69,42 @@ class ConfotorMainScreen extends StatelessWidget {
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              height: 120.0,
+          // slivers: [
+
+        // SliverStickyFooter(
+        //   child: Center(
+        //     child: RaisedButton(
+        //       onPressed: () {},
+        //       child: Text('Fixed under list button'),
+        //     ),
+        //   ),
+        // ),
+        // SliverFillRemaining(
+        //   child: Container(
+        //     color: Colors.yellow,
+        //     child: Center(
+        //       child: Text('below space'),
+        //     ),
+        //   ),
+        // ),
+            children: [Container(
+              height: 60.0,
               color: Colors.blue[50],
               alignment: Alignment.topCenter,
               child: ActionArea(appState: appState)
               ),
             Container(
-              height: 120.0,
+              height: 300.0,
               color: Colors.red[50],
               alignment: Alignment.topCenter,
               child: TicketListArea(appState: appState)
             ),
             Container(
-              height: 120.0,
+              height: 40.0,
               color: Colors.green[50],
               alignment: Alignment.bottomCenter,
               child: logArea(appState: appState)
-            ),
+              ),
             /*
                 actionArea(appState: appState),
                 ticketListArea(appState: appState),
