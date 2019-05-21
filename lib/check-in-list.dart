@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:convert' as Convert;
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:barcode_scan/barcode_scan.dart';
@@ -12,6 +12,7 @@ import './confotor-app.dart';
 import './ticket.dart';
 import './tickets.dart';
 
+import 'check-in-agent.dart';
 import 'confotor-msg.dart';
 
 class CheckInListMsg extends ConfotorMsg {}
@@ -21,7 +22,7 @@ class CheckInListsMsg extends CheckInListMsg {
   CheckInListsMsg({List<CheckInListItem> lists}) : lists = lists;
 }
 
-class CheckInListItemError extends CheckInListMsg {
+class CheckInListItemError extends CheckInListMsg implements ConfotorErrorMsg {
   final dynamic error;
   CheckInListItemError({dynamic error}) : error = error;
 }
@@ -62,6 +63,42 @@ class CheckInListScanUnknownExceptionMsg extends CheckInListScanMsg {
 
 enum CheckInListItemTicketsStatus { Initial, Fetched }
 
+class TicketAndCheckIns {
+  Ticket ticket;
+  final Map<String, CheckInItem> checkInItems = Map();
+
+  TicketAndCheckIns({Ticket ticket}) : ticket = ticket;
+
+  get id {
+    return ticket.id;
+  }
+
+  static TicketAndCheckIns fromJson(dynamic json) {
+    if (json["slug"] != null) {
+      // old
+      print('TicketAndCheckIns:OLD');
+      return TicketAndCheckIns(ticket: Ticket.create(json));
+    } else {
+      print('TicketAndCheckIns:NEW');
+      final ret = TicketAndCheckIns(ticket: Ticket.create(json['ticket']));
+      List<dynamic> checkInItems = json['checkInItems'];
+      if (checkInItems == null) {
+        checkInItems = [];
+      }
+      checkInItems.forEach((jsonItem) {
+        final item = CheckInItem.fromJson(jsonItem);
+        ret.checkInItems[item.uuid] = item;
+      });
+      return ret;
+    }
+  }
+
+  Map<String, dynamic> toJson() => {
+        "ticket": ticket,
+        "checkInItems": checkInItems.values.toList(),
+      };
+}
+
 class CheckInListItem extends CheckInListMsg {
   String url;
   String event_title;
@@ -74,20 +111,20 @@ class CheckInListItem extends CheckInListMsg {
   int total_entries;
   CheckInListItemTicketsStatus ticketsStatus =
       CheckInListItemTicketsStatus.Initial;
-  final Map<int, Ticket> _tickets = new Map();
+  final Map<int, TicketAndCheckIns> _ticketAndCheckIns = new Map();
 
   get ticketsCount {
-    return _tickets.length;
+    return _ticketAndCheckIns.length;
   }
 
   Iterable<Ticket> get tickets {
-    return _tickets.values;
+    return _ticketAndCheckIns.values.map((i) => i.ticket);
   }
 
   static Future<CheckInListItem> fetch(String url) async {
     var response = await http.get(url);
     if (200 <= response.statusCode && response.statusCode < 300) {
-      var jsonResponse = Convert.jsonDecode(response.body);
+      var jsonResponse = json.decode(response.body);
       return CheckInListItem.create(url, jsonResponse);
     }
     throw new Exception('CheckInListItem:fetch:$url');
@@ -109,8 +146,8 @@ class CheckInListItem extends CheckInListMsg {
       ticketsList = [];
     }
     ticketsList.forEach((jsonTicket) {
-      Ticket ticket = Ticket.create(jsonTicket);
-      checkInList._tickets[ticket.id] = ticket;
+      final TicketAndCheckIns ticket = TicketAndCheckIns.fromJson(jsonTicket);
+      checkInList._ticketAndCheckIns[ticket.id] = ticket;
     });
     checkInList.ticketsStatus = ticketsStatusFromJson(json['ticketsStatus']);
     return checkInList;
@@ -139,7 +176,11 @@ class CheckInListItem extends CheckInListMsg {
     }
   }
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() {
+    List<TicketAndCheckIns> ticketAndCheckIns = _ticketAndCheckIns.values.toList();
+    print('toJson:${ticketAndCheckIns.length}');
+    // ticketAndheckIns = [];
+    return {
         "url": url,
         "event_title": event_title,
         "expires_at": expires_at,
@@ -150,8 +191,9 @@ class CheckInListItem extends CheckInListMsg {
         "total_pages": total_pages,
         "total_entries": total_entries,
         "ticketsStatus": jsonTicketStatus,
-        "tickets": _tickets.values.toList()
+        "tickets": ticketAndCheckIns
       };
+  }
 
   String get listId {
     final url = Uri.parse(this.tickets_url);
@@ -163,8 +205,12 @@ class CheckInListItem extends CheckInListMsg {
     return 'https://checkin.tito.io/checkin_lists/$listId/tickets?page=$page';
   }
 
-  String get checkInUrl {
-    return 'https://checkin.tito.io/checkin_lists/$listId/checkins';
+  String checkInUrl({since: 0, page: 0}) {
+    return 'https://checkin.tito.io/checkin_lists/$listId/checkins?since=$since&page=$page';
+  }
+
+  String checkOutUrl(String uuid) {
+    return "https://checkin.tito.io/checkin_lists/$listId/checkins/$uuid";
   }
 }
 
@@ -188,17 +234,20 @@ class CheckInListAgent {
 
   Future<List<CheckInListItem>> writeLists(List<CheckInListItem> lists) async {
     final file = await _localFile;
-    final json = Convert.jsonEncode(lists);
-    final x = await file.writeAsString(json);
-    print('WriteLists:$json:$x');
+    try {
+      final str = json.encode(lists);
+      await file.writeAsString(str);
+    } on dynamic catch (e) {
+       print('WriteLists:Error:$e');
+    }
     return lists;
   }
 
   Future<List<CheckInListItem>> readLists() async {
     try {
       final file = await _localFile;
-      final json = await file.readAsString();
-      List<dynamic> contents = Convert.jsonDecode(json);
+      final str = await file.readAsString();
+      List<dynamic> contents = json.decode(str);
       print('ReadLists:0:$json:$file:${contents.length}');
       return contents.map((json) {
         print('ReadLists:1:$json:$file:${contents.length}');
@@ -214,13 +263,27 @@ class CheckInListAgent {
 
   start() {
     this.appState.bus.stream.listen((msg) {
-      print('CheckInList:${msg}');
-      if (msg is CheckInListItemError) {
-        print('CheckInListItemError:${msg.error}');
+      // print('CheckInList:${msg}');
+      if (msg is CheckInItemMsg) {
+        final idx =
+            this.checkInLists.indexWhere((i) => i.url == msg.listItem.url);
+        if (idx >= 0) {
+          final cil = this.checkInLists[idx];
+          final tac = cil._ticketAndCheckIns[msg.item.ticket_id];
+          if (tac != null) {
+            cil._ticketAndCheckIns[msg.item.ticket_id]
+                .checkInItems[msg.item.uuid] = msg.item;
+          } else {
+            appState.bus.add(CheckInListItemError(error: 'ticketId not found:${msg.item.ticket_id}'));
+          }
+        }
+      } else if (msg is ConfotorErrorMsg) {
+        print('$msg:${(msg as ConfotorErrorMsg).error}');
       } else if (msg is CheckInListScanBarcodeMsg) {
         CheckInListItem.fetch(msg.barcode).then((item) {
           this.appState.bus.add(item);
         }).catchError((e) {
+          print('WTF1:$e');
           this.appState.bus.add(new CheckInListItemError(error: e));
         });
         print('Scan BarCode: ${msg.barcode}');
@@ -229,13 +292,14 @@ class CheckInListAgent {
       } else if (msg is CheckInListItem ||
           msg is CheckInListsRemove ||
           msg is TicketsPageMsg ||
+          msg is CheckInItemCompleteMsg ||
           msg is ClickInListsRefresh) {
         if (msg is ClickInListsRefresh) {
           this.checkInLists.forEach((checkInList) {
             final idx = msg.items.indexWhere((i) => i.url == checkInList.url);
             if (idx >= 0 || msg.items.isEmpty) {
               checkInList.ticketsStatus = CheckInListItemTicketsStatus.Initial;
-              checkInList._tickets.clear();
+              checkInList._ticketAndCheckIns.clear();
             }
           });
         } else if (msg is TicketsPageMsg) {
@@ -250,10 +314,17 @@ class CheckInListAgent {
               return i.url == msg.checkInListItem.url;
             });
             if (idx >= 0) {
-              this.checkInLists[idx]._tickets.clear();
-              this.checkInLists[idx]._tickets.addAll(tickets);
+              this.checkInLists[idx]._ticketAndCheckIns.clear();
+              tickets.values.forEach((t) {
+                var tac = this.checkInLists[idx]._ticketAndCheckIns[t.id];
+                if (tac == null) {
+                  tac = TicketAndCheckIns(ticket: t);
+                  this.checkInLists[idx]._ticketAndCheckIns[t.id] = tac;
+                }
+                tac.ticket = t;
+              });
               this.checkInLists[idx].ticketsStatus =
-                CheckInListItemTicketsStatus.Fetched;
+                  CheckInListItemTicketsStatus.Fetched;
             }
           } else {
             return; // don't write incomplete
@@ -279,12 +350,12 @@ class CheckInListAgent {
         }
         print('CheckItemLists:${this.checkInLists.length}');
         writeLists(this.checkInLists)
-            .then((lists) =>
-                this.appState.bus.add(new CheckInListsMsg(lists: lists),
-                  persist: true
-                ))
+            .then((lists) => this
+                .appState
+                .bus
+                .add(new CheckInListsMsg(lists: lists), persist: true))
             .catchError((e) {
-          print('Error:$e');
+          print('WTF2:$e');
           this.appState.bus.add(new CheckInListItemError(error: e));
         });
       }
@@ -294,7 +365,7 @@ class CheckInListAgent {
       print('Start-1: ${lists.length}');
       lists.forEach((i) => this.appState.bus.add(i));
     }).catchError((e) {
-      print('Start-2');
+      print('WTF3:$e');
       this.appState.bus.add(new CheckInListItemError(error: e));
     });
   }

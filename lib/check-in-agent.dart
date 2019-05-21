@@ -1,28 +1,175 @@
+import 'dart:async';
+
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 
 import 'package:confotor/check-in-list.dart';
 import 'package:confotor/confotor-app.dart';
 import 'package:confotor/confotor-msg.dart';
-import 'package:confotor/ticket.dart';
 import 'package:confotor/tickets.dart';
 
-class CheckInObserver {
-  final CheckInListItem checkInListItem;
-  CheckInObserver(CheckInListItem i): checkInListItem = i;
-  static start(CheckInListItem i) {
-    return new CheckInObserver(i);
+class CheckInItem {
+  int  id;
+  String uuid;
+  int ticket_id;
+  DateTime created_at;
+  DateTime updated_at;
+  DateTime deleted_at;
+
+  static CheckInItem fromJson(dynamic json) {
+    final ret = CheckInItem();
+    ret.id = json['id'];
+    ret.uuid = json['uuid'];
+    ret.ticket_id = json['ticket_id'];
+    ret.created_at = json["created_at"] == null ? null : DateTime.parse(json["created_at"]);
+    ret.updated_at = json["updated_at"] == null ? null : DateTime.parse(json["updated_at"]);
+    ret.deleted_at = json["deleted_at"] == null ? null : DateTime.parse(json["deleted_at"]);
+    return ret;
+  }
+
+  Map<String, dynamic> toJson() => {
+    "id": id,
+    "uuid": uuid,
+    "ticket_id": ticket_id,
+    "created_at": created_at.toIso8601String(),
+    "updated_at": updated_at.toIso8601String(),
+    "deleted_at": deleted_at.toIso8601String()
+  };
+
+
+  DateTime get maxDate {
+    var max = created_at;
+    if (updated_at != null && updated_at.compareTo(max) > 0) {
+      max = updated_at;
+    }
+    if (deleted_at != null && deleted_at.compareTo(max) > 0) {
+      max = deleted_at;
+    }
+    return max;
   }
 }
 
-class CheckedInTicket extends ConfotorMsg {
+class CheckInItemCompleteMsg extends ConfotorMsg {
+  final CheckInListItem listItem;
+  CheckInItemCompleteMsg({CheckInListItem listItem}):
+    listItem = listItem;
+}
+class CheckInItemMsg extends ConfotorMsg {
+  final CheckInListItem listItem;
+  final CheckInItem item;
+  CheckInItemMsg({CheckInListItem listItem, CheckInItem item}):
+    listItem = listItem, item = item;
+}
+
+class CheckInObserverError extends ConfotorMsg implements ConfotorErrorMsg {
+  final CheckInListItem listItem;
+  final dynamic error;
+  CheckInObserverError({dynamic error, CheckInListItem listItem}):
+    error = error, listItem = listItem;
+}
+
+class CheckInObserver {
+  final ConfotorAppState appState;
+  final CheckInListItem checkInListItem;
+  Timer timer;
+  int count = 0;
+  DateTime since;
+  DateTime nextSince;
+  CheckInObserver({ConfotorAppState appState, CheckInListItem checkInListItem}):
+    checkInListItem = checkInListItem, appState = appState;
+
+  getPage(int page) {
+    final url = checkInListItem.checkInUrl(since: since == null ? 0 : since.millisecondsSinceEpoch/1000, page: page);
+    http.get(url).then((res) {
+      List<dynamic> json = convert.jsonDecode(res.body);
+      print('getPage:$url:$page:${json.length}');
+      if (json.length != 0) {
+        json.forEach((i) {
+          final item = CheckInItem.fromJson(i);
+          if (nextSince == null) {
+            nextSince = item.maxDate;
+          } else {
+            nextSince = item.maxDate.compareTo(nextSince) > 0 ? item.maxDate : nextSince;
+          }
+          appState.bus.add(CheckInItemMsg(item: item, listItem: checkInListItem));
+          ++count;
+        });
+        getPage(page + 1);
+      } else {
+        if (count > 0) {
+          appState.bus.add(CheckInItemCompleteMsg(listItem: checkInListItem));
+          since = nextSince;
+          count = 0;
+        }
+        nextSince = null;
+        start();
+      }
+    }).catchError((err) {
+      appState.bus.add(CheckInObserverError(error: err, listItem: checkInListItem));
+    });
+  }
+
+  start({int seconds = 5}) {
+    if (timer != null) {
+      timer.cancel();
+    }
+    timer = new Timer(Duration(seconds: seconds), () {
+      getPage(0);
+    });
+  }
+}
+
+class CheckedTicket extends ConfotorMsg {
   final FoundTicket foundTicket;
   final http.Response res;
-  final dynamic error;
-  CheckedInTicket({FoundTicket foundTicket, http.Response res, dynamic error}):
+  CheckedTicket({FoundTicket foundTicket, http.Response res}):
     foundTicket = foundTicket,
-    res = res,
+    res = res;
+}
+
+class CheckedTicketError extends ConfotorMsg implements ConfotorErrorMsg {
+  final dynamic error;
+  CheckedTicketError({FoundTicket foundTicket, http.Response res, dynamic error}):
     error = error;
+}
+
+class CheckedInResponse {
+  int id;
+  int checkin_list_id;
+  int ticket_id;
+  String created_at;
+  String updated_at;
+  String uuid_bin;
+  String deleted_at;
+  String uuid;
+
+  static CheckedInResponse create(http.Response res) {
+    print('CheckedInResponse:${res.body}');
+    var cir = new CheckedInResponse();
+    var json = convert.jsonDecode(res.body);
+    cir.id = json['id'];
+    cir.checkin_list_id = json['checkin_list_id'];
+    cir.ticket_id = json['ticket_id'];
+    cir.created_at = json['created_at'];
+    cir.updated_at = json['updated_at'];
+    cir.uuid_bin = json['uuid_bin'];
+    cir.deleted_at = json['deleted_at'];
+    cir.uuid = json['uuid'];
+    return cir;
+  }
+
+}
+class CheckedInTicket extends CheckedTicket {
+  final CheckedInResponse checkedIn;
+
+  CheckedInTicket({FoundTicket foundTicket, http.Response res}):
+    checkedIn = CheckedInResponse.create(res),
+    super(foundTicket: foundTicket, res: res);
+}
+
+class CheckedOutTicket extends CheckedTicket {
+  CheckedOutTicket({FoundTicket foundTicket, http.Response res}):
+    super(foundTicket: foundTicket, res: res);
 }
 
 class RequestCheckOutTicket extends ConfotorMsg {
@@ -40,14 +187,35 @@ class CheckInAgent {
   CheckInAgent start() {
     this.appState.bus.listen((msg) {
       if (msg is RequestCheckOutTicket) {
+        final FoundTicket ft = msg.foundTicket;
+        if (ft.checkedIns.last is CheckedInTicket) {
+          http.delete(ft.checkInListItem.checkOutUrl(ft.checkedIns.last.checkedIn.uuid)).then((res) {
+              this.appState.bus.add(CheckedOutTicket(foundTicket: ft, res: res));
+            }).catchError((e) {
+              this.appState.bus.add(CheckedTicketError(foundTicket: ft, error: e));
+            });
+        }
+      }
+      if (msg is CheckedInTicket) {
+        final CheckedInTicket cit = msg;
+        observers[cit.foundTicket.checkInListItem.url].start(seconds: 0);
+      }
+      if (msg is CheckInListsMsg) {
+        final CheckInListsMsg cils = msg;
+        cils.lists.forEach((cil) {
+          print('CheckInAgent:CheckInListsMsg:${cil.url}');
+          if (!observers.containsKey(cil.url)) {
+            observers[cil.url] = CheckInObserver(appState: appState, checkInListItem: cil).start(seconds: 0);
+          }
 
+        });
       }
       if (msg is FoundTickets) {
         final FoundTickets fts = msg;
         fts.tickets.indexWhere((ft) {
           if (ft.state == FoundTicketState.NeedCheckIn) {
-            print('checkIn:${ft.checkInListItem.checkInUrl}:${ft.ticket.id}');
-            http.post(ft.checkInListItem.checkInUrl,
+            print('checkIn:${ft.checkInListItem.checkInUrl()}:${ft.ticket.id}');
+            http.post(ft.checkInListItem.checkInUrl(),
               headers: {
                  "Accept": "application/json",
                  "Content-Type": "application/json"
@@ -58,9 +226,10 @@ class CheckInAgent {
                   }
                 })
             ).then((res) {
+              // print('Checkout:${res.statusCode}:${res.body}');
               this.appState.bus.add(CheckedInTicket(foundTicket: ft, res: res));
             }).catchError((e) {
-              this.appState.bus.add(CheckedInTicket(foundTicket: ft, error: e));
+              this.appState.bus.add(CheckedTicketError(foundTicket: ft, error: e));
             });
             return true;
           }

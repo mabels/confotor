@@ -90,9 +90,10 @@ class ConfotorDrawer extends StatefulWidget {
 }
 
 class ConfotorDrawerState extends State<ConfotorDrawer> {
-  Widget item = Text("");
+  Widget item;
 
   ConfotorDrawerState({ConfotorAppState appState}) {
+    item = ListView(children: staticDrawer(appState: appState));
     appState.bus.stream.listen((msg) {
       if (msg is CheckInListsMsg) {
           final CheckInListsMsg ret = msg;

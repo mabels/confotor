@@ -22,7 +22,7 @@ class TicketListAreaState extends State<TicketListArea> {
   TicketListAreaState({ConfotorAppState appState}) : appState = appState {
     print('TicketListAreaState:TicketListAreaState');
     appState.bus.stream.listen((msg) {
-      print('TicketListAreaState:${msg.runtimeType.toString()}');
+      // print('TicketListAreaState:${msg.runtimeType.toString()}');
       if (msg is LastFoundTickets) {
         setState(() {
           this.lastFoundTickets = msg;
@@ -42,34 +42,48 @@ class TicketListAreaState extends State<TicketListArea> {
           children: lastFoundTickets.last.map((foundTickets) {
         if (foundTickets.hasFound) {
           final subTitle = Column(
-            children: foundTickets.tickets.map((foundTicket) {
-                final List<Widget> out = [];
-                if (foundTicket.state == FoundTicketState.CheckedIn) {
-                  out.add(RaisedButton(
-                    color: Colors.pink,
-                    textColor: Colors.white,
-                    splashColor: Colors.pinkAccent,
-                    onPressed: () {
-                      this.appState.bus.add(RequestCheckOutTicket(foundTicket: foundTicket));
-                      // ticketScan(bus: appState.bus);
-                    },
-                  child: Text("CheckOut[${foundTicket.checkInListItem.shortEventTitle}(${foundTicket.ticket.reference})]")));
-                } else {
-                  out.add(
-                      Text("[${foundTicket.shortState}] -- ${foundTicket.checkInListItem.shortEventTitle}(${foundTicket.ticket.reference})")
-                  );
-                }
-                return Column(children: out);
-              }).toList()
-          );
+              children: foundTickets.tickets.map((foundTicket) {
+            final List<Widget> out = [];
+            var onPressed;
+            if (foundTicket.state == FoundTicketState.CheckedIn) {
+              print(
+                  'LastId:${foundTicket.checkedIns.last.checkedIn.checkin_list_id}');
+              var state = "CheckOut";
+              var color = Colors.green;
+              var onPressed = () {
+                    this
+                        .appState
+                        .bus
+                        .add(RequestCheckOutTicket(foundTicket: foundTicket));
+                    // ticketScan(bus: appState.bus);
+                  };
+              if (foundTicket.checkedIns.last.checkedIn.checkin_list_id !=
+                  null) {
+                color = Colors.red;
+                onPressed = () {};
+                state = "TicketUsed";
+              }
+              out.add(RaisedButton(
+                  color: color,
+                  textColor: Colors.white,
+                  splashColor: Colors.pinkAccent,
+                  onPressed: onPressed,
+                  child: Text(
+                      "$state[${foundTicket.checkInListItem.shortEventTitle}(${foundTicket.ticket.reference})]")));
+            } else {
+              out.add(Text(
+                  "[${foundTicket.shortState}] -- ${foundTicket.checkInListItem.shortEventTitle}(${foundTicket.ticket.reference})"));
+            }
+            return Column(children: out);
+          }).toList());
           return ListTile(
               key: Key(foundTickets.slug),
               title: Text(foundTickets.name),
-              subtitle: subTitle
-          );
+              subtitle: subTitle);
         } else {
           return ListTile(
-              title: Container(color: Colors.red, child: Text("No Ticket found from Scan")));
+              title: Container(
+                  color: Colors.red, child: Text("No Ticket found from Scan")));
         }
       }).toList());
     }

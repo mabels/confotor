@@ -52,13 +52,12 @@ class TicketsPageMsg extends ConfotorMsg {
       completed = completed;
 }
 
-class TicketsError extends ConfotorMsg {
+class TicketsError extends ConfotorMsg implements ConfotorErrorMsg {
   final String url;
   final CheckInListItem checkInListItem;
   final http.Response response;
   final dynamic error;
-  TicketsError(
-      {String url,
+  TicketsError({String url,
       CheckInListItem checkInListItem,
       http.Response response,
       dynamic error})
@@ -120,16 +119,31 @@ class TicketsPages {
 enum FoundTicketState {
   NeedCheckIn,
   CheckedIn,
+  CheckedOut,
   Error
 }
 
 class FoundTicket {
-  FoundTicketState state = FoundTicketState.NeedCheckIn;
   final List<CheckedInTicket> checkedIns = [];
   final CheckInListItem checkInListItem;
   final Ticket ticket;
   FoundTicket({CheckInListItem checkInListItem, Ticket ticket}):
     checkInListItem = checkInListItem, ticket = ticket;
+
+  get state {
+    if (checkedIns.isEmpty) {
+      return FoundTicketState.NeedCheckIn;
+    }
+    if (checkedIns.last is CheckedTicketError) {
+      return FoundTicketState.Error;
+    }
+    if (checkedIns.last is CheckedInTicket) {
+      return FoundTicketState.CheckedIn;
+    }
+    if (checkedIns.last is CheckedOutTicket) {
+      return FoundTicketState.CheckedOut;
+    }
+  }
   get shortState {
     return state.toString().split(".").last;
   }
@@ -224,15 +238,10 @@ class TicketsAgent {
         print('TicketScanBarcodeMsg:$found');
       }
 
-      if (msg is CheckedInTicket) {
+      if (msg is CheckedTicket) {
         this.lastFoundTickets.where((fts) => fts.hasFound).where((fts) {
           return fts.tickets.indexWhere((ft) {
             if (ft.ticket.slug == msg.foundTicket.ticket.slug) {
-              if (msg.error != null) {
-                ft.state = FoundTicketState.Error;
-              } else {
-                ft.state = FoundTicketState.CheckedIn;
-              }
               ft.checkedIns.add(msg);
               return true;
             }
