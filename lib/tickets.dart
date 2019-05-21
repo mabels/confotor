@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 
 // import 'package:flutter/widgets.dart';
+import 'package:confotor/check-in-agent.dart';
 import 'package:http/http.dart' as http;
 import './check-in-list.dart';
 import './confotor-app.dart';
@@ -116,11 +117,22 @@ class TicketsPages {
   }
 }
 
+enum FoundTicketState {
+  NeedCheckIn,
+  CheckedIn,
+  Error
+}
+
 class FoundTicket {
+  FoundTicketState state = FoundTicketState.NeedCheckIn;
+  final List<CheckedInTicket> checkedIns = [];
   final CheckInListItem checkInListItem;
   final Ticket ticket;
   FoundTicket({CheckInListItem checkInListItem, Ticket ticket}):
     checkInListItem = checkInListItem, ticket = ticket;
+  get shortState {
+    return state.toString().split(".").last;
+  }
 }
 
 class FoundTickets extends ConfotorMsg {
@@ -153,15 +165,15 @@ class TicketsAgent {
 
   FoundTickets findTickets(String slug) {
     final List<FoundTicket> ret = [];
-    checkInLists.firstWhere((item) {
-      print('findTickets:${item.url}:${item.ticketsCount}:$slug');
+    checkInLists.indexWhere((item) {
+      // print('findTickets:${item.url}:${item.ticketsCount}:$slug');
       final found = item.tickets.firstWhere((ticket) {
-        print('findTickets:${item.url}:${item.ticketsCount}:$slug:${ticket.slug}');
+        // print('findTickets:${item.url}:${item.ticketsCount}:$slug:${ticket.slug}');
         return ticket.slug == slug;
       }, orElse: () => null);
-      print('findTickets:NEXT:${item.url}:${item.ticketsCount}:$slug:$found');
+      // print('findTickets:NEXT:${item.url}:${item.ticketsCount}:$slug:$found');
       if (found != null) {
-        print("findTickets:Found:${found.slug}:${slug}");
+        // print("findTickets:Found:${found.slug}:${slug}");
         ret.add(FoundTicket(checkInListItem: item, ticket: found));
       }
       return found != null;
@@ -212,10 +224,33 @@ class TicketsAgent {
         print('TicketScanBarcodeMsg:$found');
       }
 
+      if (msg is CheckedInTicket) {
+        this.lastFoundTickets.where((fts) => fts.hasFound).where((fts) {
+          return fts.tickets.indexWhere((ft) {
+            if (ft.ticket.slug == msg.foundTicket.ticket.slug) {
+              if (msg.error != null) {
+                ft.state = FoundTicketState.Error;
+              } else {
+                ft.state = FoundTicketState.CheckedIn;
+              }
+              ft.checkedIns.add(msg);
+              return true;
+            }
+            return false;
+          }) >= 0;
+        }).forEach((fts) =>
+          this.appState.bus.add(FoundTickets(tickets: fts.tickets))
+        );
+      }
+
       if (msg is FoundTickets) {
+        final idx = this.lastFoundTickets.indexWhere((t) => t.slug == msg.slug);
+        if (idx >= 0) {
+          this.lastFoundTickets.removeAt(idx);
+        }
         this.lastFoundTickets.insert(0, msg);
-        for(var i = 5; i < lastFoundTickets.length; i++) {
-          lastFoundTickets.removeAt(5);
+        for(var i = 20; i < lastFoundTickets.length; i++) {
+          lastFoundTickets.removeAt(20);
         }
         this.appState.bus.add(LastFoundTickets(last: lastFoundTickets), persist: true);
       }

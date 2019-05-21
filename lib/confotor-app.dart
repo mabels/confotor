@@ -8,6 +8,8 @@ import './check-in-list.dart';
 import './tickets.dart';
 import 'package:uuid/uuid.dart';
 
+import 'check-in-agent.dart';
+
 // Stream<ConfotorMsg> stream;
 //   @override
 //   State<StatefulWidget> createState() {
@@ -74,6 +76,7 @@ class ConfotorAppState extends State<ConfotorApp> {
   ConfotorBus bus;
   CheckInListAgent checkInListAgent;
   TicketsAgent ticketsAgent;
+  CheckInAgent checkInAgent;
   // Drawer drawer;
   @override
   initState() {
@@ -81,6 +84,7 @@ class ConfotorAppState extends State<ConfotorApp> {
     this.bus = new ConfotorBus();
     this.checkInListAgent = new CheckInListAgent(appState: this).start();
     this.ticketsAgent = new TicketsAgent(appState: this).start();
+    this.checkInAgent = new CheckInAgent(appState: this).start();
     // this.drawer = confotorDrawer(appState: this);
   }
 

@@ -4,6 +4,8 @@ import 'package:barcode_scan/barcode_scan.dart';
 import 'confotor-app.dart';
 import 'confotor-msg.dart';
 
+
+
 class Ticket {
   int id;
   String slug;

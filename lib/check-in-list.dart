@@ -153,11 +153,18 @@ class CheckInListItem extends CheckInListMsg {
         "tickets": _tickets.values.toList()
       };
 
-  String ticketsUrl(int page) {
+  String get listId {
     final url = Uri.parse(this.tickets_url);
-    final listId = basename(dirname(url.path));
+    return basename(dirname(url.path));
+  }
+
+  String ticketsUrl(int page) {
     // https://ti.to/jsconfeu/jsconf-eu-x-2019/checkin_lists/hello/tickets.json
     return 'https://checkin.tito.io/checkin_lists/$listId/tickets?page=$page';
+  }
+
+  String get checkInUrl {
+    return 'https://checkin.tito.io/checkin_lists/$listId/checkins';
   }
 }
 
