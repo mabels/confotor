@@ -1,10 +1,5 @@
-import 'package:confotor/ticket-and-checkins.dart';
-import 'package:confotor/tickets.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'check-in-agent.dart';
-import 'check-in-list.dart';
 import 'confotor-app.dart';
 
 class TicketListArea extends StatefulWidget {

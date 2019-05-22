@@ -1,7 +1,8 @@
-import 'package:confotor/ticket.dart';
+import 'package:confotor/actions/scan-check-in-list-action.dart';
+import 'package:confotor/actions/scan-ticket-action.dart';
+import 'package:confotor/msgs/msgs.dart';
 import 'package:flutter/material.dart';
 
-import 'check-in-list.dart';
 import 'confotor-app.dart';
 
 class ActionArea extends StatefulWidget {
@@ -20,9 +21,9 @@ class ActionAreaState extends State<ActionArea> {
   ActionAreaState({ConfotorAppState appState}) {
     print('ActionAreaState:ActionAreaState');
     appState.bus.stream.listen((msg) {
-      if (msg is CheckInListsMsg) {
+      if (msg is ConferencesMsg) {
         setState(() {
-          if (msg.lists.isEmpty) {
+          if (msg.conferences.isEmpty) {
             this.action = Padding(
                 padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                 child: RaisedButton(
@@ -30,7 +31,7 @@ class ActionAreaState extends State<ActionArea> {
                     textColor: Colors.white,
                     splashColor: Colors.redAccent,
                     onPressed: () {
-                      checkInListScan(bus: appState.bus);
+                      scanCheckInListAction(bus: appState.bus);
                     },
                     child: const Text('Add TicketList')));
           } else {
@@ -39,7 +40,7 @@ class ActionAreaState extends State<ActionArea> {
                 textColor: Colors.white,
                 splashColor: Colors.pinkAccent,
                 onPressed: () {
-                  ticketScan(bus: appState.bus);
+                  scanTicketAction(bus: appState.bus);
                 },
                 child: const Text('TicketScan'));
           }

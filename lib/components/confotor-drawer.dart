@@ -1,7 +1,7 @@
+import 'package:confotor/actions/scan-check-in-list-action.dart';
+import 'package:confotor/models/conference.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart' as prefix0;
 import './confotor-app.dart';
-import './check-in-list.dart';
 // import 'confotor-msg.dart';
 
 List<Widget> staticDrawer({ConfotorAppState appState}) {
@@ -10,7 +10,7 @@ List<Widget> staticDrawer({ConfotorAppState appState}) {
         key: Key('AddCheckInList'),
         title: Text('Add Check-In List'),
         onTap: () {
-          checkInListScan(bus: appState.bus);
+          scanCheckInListAction(bus: appState.bus);
         })
   ];
 }
@@ -18,7 +18,7 @@ List<Widget> staticDrawer({ConfotorAppState appState}) {
 refreshSection({
   ConfotorAppState appState,
   List<Widget> drawer,
-  List<CheckInListItem> lists}) {
+  List<Conference> lists}) {
   List<Widget> children = [];
   if (lists.isNotEmpty) {
     children.add(ListTile(
@@ -42,7 +42,7 @@ refreshSection({
 removeSection({
   ConfotorAppState appState,
   List<Widget> drawer,
-  List<CheckInListItem> lists}) {
+  List<Conference> lists}) {
   List<Widget> children = [];
   if (lists.isNotEmpty) {
     children.add(ListTile(

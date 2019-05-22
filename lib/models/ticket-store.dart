@@ -1,12 +1,9 @@
-import 'package:confotor/ticket-and-checkins.dart';
+import 'package:confotor/models/ticket-and-checkins.dart';
 
-import 'check-in-list.dart';
-
-
+enum TicketStoreStatus { Initial, Fetched }
 
 class TicketStore {
-  CheckInListItemTicketsStatus ticketsStatus =
-      CheckInListItemTicketsStatus.Initial;
+  TicketStoreStatus ticketsStatus = TicketStoreStatus.Initial;
   final Map<int, TicketAndCheckIns> ticketAndCheckIns = new Map();
 
   add(TicketAndCheckIns tac) {
@@ -29,27 +26,31 @@ class TicketStore {
     "ticketAndCheckIns": this.ticketAndCheckIns.values.toList()
   };
 
-  static CheckInListItemTicketsStatus ticketsStatusFromJson(String ts) {
+  static TicketStoreStatus ticketsStatusFromJson(String ts) {
     switch (ts) {
       case 'Fetched':
-        return CheckInListItemTicketsStatus.Fetched;
+        return TicketStoreStatus.Fetched;
       case 'Initial':
       default:
-        return CheckInListItemTicketsStatus.Initial;
+        return TicketStoreStatus.Initial;
     }
   }
 
   static TicketStore fromJson(dynamic json) {
-    final ts = TicketStore();
+    return TicketStore().updateFromJson(json);
+  }
 
+  updateFromJson(dynamic json) {
     List<dynamic> ticketsList = json;
     if (ticketsList == null) {
       ticketsList = [];
     }
     ticketsList.forEach((jsonTicket) {
-      ts.add(TicketAndCheckIns.fromJson(jsonTicket));
+      ticketAndCheckIns.putIfAbsent(jsonTicket['id'], 
+      () => TicketAndCheckIns.fromJson(jsonTicket)).updateFromJson(jsonTicket);
     });
-    ts.ticketsStatus = ticketsStatusFromJson(json['ticketsStatus']);
-    return ts;
+    ticketsStatus = ticketsStatusFromJson(json['ticketsStatus']);
+    return this;
   }
+
 }

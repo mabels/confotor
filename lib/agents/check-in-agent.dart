@@ -1,83 +1,16 @@
 import 'dart:async';
 
-import 'package:confotor/app-lifecycle-agent.dart';
+import 'package:confotor/components/confotor-app.dart';
+import 'package:confotor/models/check-in-item.dart';
+import 'package:confotor/models/check-in-list-item.dart';
+import 'package:confotor/models/ticket-and-checkins.dart';
+import 'package:confotor/msgs/msgs.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 
-import 'package:confotor/check-in-list.dart';
-import 'package:confotor/confotor-app.dart';
-import 'package:confotor/confotor-msg.dart';
-import 'package:confotor/tickets.dart';
-
-class CheckInItem {
-  int  id;
-  String uuid;
-  int ticket_id;
-  DateTime created_at;
-  DateTime updated_at;
-  DateTime deleted_at;
-
-  update(CheckInItem oth) {
-    if (!(uuid == oth.uuid && id == oth.id && ticket_id == oth.ticket_id)) {
-      throw Exception("Update Object with non matching uuid");
-    }
-    created_at = oth.created_at;
-    updated_at = oth.updated_at;
-    deleted_at = oth.deleted_at;
-  }
-
-  static CheckInItem fromJson(dynamic json) {
-    final ret = CheckInItem();
-    ret.id = json['id'];
-    ret.uuid = json['uuid'];
-    ret.ticket_id = json['ticket_id'];
-    ret.created_at = json["created_at"] == null ? null : DateTime.parse(json["created_at"]);
-    ret.updated_at = json["updated_at"] == null ? null : DateTime.parse(json["updated_at"]);
-    ret.deleted_at = json["deleted_at"] == null ? null : DateTime.parse(json["deleted_at"]);
-    return ret;
-  }
-
-  Map<String, dynamic> toJson() => {
-    "id": id,
-    "uuid": uuid,
-    "ticket_id": ticket_id,
-    "created_at": created_at != null ? created_at.toIso8601String() : null,
-    "updated_at": deleted_at != null ? updated_at.toIso8601String() : null,
-    "deleted_at": deleted_at != null ? deleted_at.toIso8601String() : null
-  };
 
 
-  DateTime get maxDate {
-    var max = created_at;
-    if (updated_at != null && updated_at.compareTo(max) > 0) {
-      max = updated_at;
-    }
-    if (deleted_at != null && deleted_at.compareTo(max) > 0) {
-      max = deleted_at;
-    }
-    return max;
-  }
-}
-
-class CheckInItemCompleteMsg extends ConfotorMsg {
-  final CheckInListItem listItem;
-  CheckInItemCompleteMsg({CheckInListItem listItem}):
-    listItem = listItem;
-}
-class CheckInItemMsg extends ConfotorMsg {
-  final CheckInListItem listItem;
-  final CheckInItem item;
-  CheckInItemMsg({CheckInListItem listItem, CheckInItem item}):
-    listItem = listItem, item = item;
-}
-
-class CheckInObserverError extends ConfotorMsg implements ConfotorErrorMsg {
-  final CheckInListItem listItem;
-  final dynamic error;
-  CheckInObserverError({dynamic error, CheckInListItem listItem}):
-    error = error, listItem = listItem;
-}
 
 class CheckInObserver {
   final ConfotorAppState appState;
@@ -149,32 +82,7 @@ class CheckInObserver {
 //     error = error;
 // }
 
-class CheckedInResponse {
-  int id;
-  int checkin_list_id;
-  int ticket_id;
-  String created_at;
-  String updated_at;
-  String uuid_bin;
-  String deleted_at;
-  String uuid;
 
-  static CheckedInResponse create(http.Response res) {
-    print('CheckedInResponse:${res.body}');
-    var cir = new CheckedInResponse();
-    var json = convert.jsonDecode(res.body);
-    cir.id = json['id'];
-    cir.checkin_list_id = json['checkin_list_id'];
-    cir.ticket_id = json['ticket_id'];
-    cir.created_at = json['created_at'];
-    cir.updated_at = json['updated_at'];
-    cir.uuid_bin = json['uuid_bin'];
-    cir.deleted_at = json['deleted_at'];
-    cir.uuid = json['uuid'];
-    return cir;
-  }
-
-}
 // class CheckedInTicket extends CheckedTicket {
 //   final CheckedInResponse checkedIn;
 
@@ -196,7 +104,7 @@ class CheckedInResponse {
 
 class CheckInAgent {
   final ConfotorAppState appState;
-  final Map<String, CheckInObserver> observers = new Map();
+  final Map<String/* url */, CheckInObserver> observers = new Map();
 
   CheckInAgent({ConfotorAppState appState}): appState = appState;
   StreamSubscription subscription;
@@ -221,7 +129,7 @@ class CheckInAgent {
             break;
         }
       }
-      if (msg is CheckInListItemRemoved) {
+      if (msg is ConferenceRemoved) {
         if (observers.containsKey(msg.item.url)) {
           observers[msg.item.url].stop();
           observers.remove(msg.item.url);
@@ -243,9 +151,9 @@ class CheckInAgent {
           observers[cit.foundTicket.checkInListItem.url].start(seconds: 0);
         }
       }
-      if (msg is CheckInListsMsg) {
-        final CheckInListsMsg cils = msg;
-        cils.lists.forEach((cil) {
+      if (msg is ConferenceKeysMsg) {
+        final ConferenceKeysMsg cils = msg;
+        cils.conferenceKeys.forEach((cil) {
           print('CheckInAgent:CheckInListsMsg:${cil.url}');
           if (!observers.containsKey(cil.url)) {
             observers[cil.url] = CheckInObserver(appState: appState, checkInListItem: cil).start(seconds: 0);
@@ -254,17 +162,17 @@ class CheckInAgent {
       }
       if (msg is FoundTickets) {
         final FoundTickets fts = msg;
-        fts.tickets.indexWhere((ft) {
-          if (ft.state == TicketAndCheckInsState.Issueable) {
-            print('checkIn:${ft.checkInListItem.checkInUrl()}:${ft.ticket.id}');
-            http.post(ft.checkInListItem.checkInUrl(),
+        fts.ticketConferenceKeys.indexWhere((ft) {
+          if (ft.ticketAndCheckIns.state == TicketAndCheckInsState.Issueable) {
+            print('checkIn:${ft.conferenceKey.checkInUrl()}:${ft.ticketAndCheckIns.id}');
+            http.post(ft.conferenceKey.checkInUrl(),
               headers: {
                  "Accept": "application/json",
                  "Content-Type": "application/json"
               },
               body: convert.jsonEncode({
                   "checkin": {
-                    "ticket_id": ft.ticket.id
+                    "ticket_id": ft.ticketAndCheckIns.id
                   }
                 })
             ).then((res) {

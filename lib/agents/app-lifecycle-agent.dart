@@ -1,12 +1,8 @@
-import 'package:confotor/confotor-app.dart';
+import 'package:confotor/msgs/msgs.dart';
+
+import '../components/confotor-app.dart';
 import 'package:flutter/material.dart';
 
-import 'confotor-msg.dart';
-
-class AppLifecycleMsg extends ConfotorMsg {
-  final AppLifecycleState state;
-  AppLifecycleMsg({AppLifecycleState state}): state = state;
-}
 
 class AppLifecycleAgent with WidgetsBindingObserver {
   final ConfotorAppState appState;

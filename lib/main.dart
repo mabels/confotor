@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'confotor-app.dart';
+import 'components/confotor-app.dart';
 
 void main() => runApp(ConfotorApp());
