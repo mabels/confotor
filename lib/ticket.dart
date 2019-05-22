@@ -18,6 +18,19 @@ class Ticket {
   String created_at;
   String updated_at;
 
+  update(Ticket oth) {
+    if (id == oth.id && slug == oth.slug && reference == oth.reference
+        && registration_reference == oth.registration_reference) {
+          throw Exception("try update Ticket does not match");
+        }
+    first_name = oth.first_name;
+    last_name = oth.last_name;
+    email = oth.email;
+    company_name = oth.company_name;
+    created_at = oth.created_at;
+    updated_at = oth.updated_at;
+  }
+
   static Ticket create(dynamic json) {
     var ticket = new Ticket();
     ticket.id = json['id'];

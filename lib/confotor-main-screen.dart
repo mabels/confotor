@@ -102,7 +102,7 @@ class ConfotorMainScreen extends StatelessWidget {
             Container(
               height: 40.0,
               color: Colors.green[50],
-              alignment: Alignment.bottomCenter,
+              alignment: Alignment(-0.9, -0.9),
               child: logArea(appState: appState)
               ),
             /*

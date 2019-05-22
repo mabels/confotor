@@ -3,7 +3,10 @@ import 'dart:collection';
 
 // import 'package:flutter/widgets.dart';
 import 'package:confotor/check-in-agent.dart';
+import 'package:confotor/ticket-and-checkins.dart';
+import 'package:confotor/ticket-store.dart';
 import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 import './check-in-list.dart';
 import './confotor-app.dart';
 import './confotor-msg.dart';
@@ -116,42 +119,36 @@ class TicketsPages {
   }
 }
 
-enum FoundTicketState {
-  NeedCheckIn,
-  CheckedIn,
-  CheckedOut,
-  Error
-}
 
-class FoundTicket {
-  final List<CheckedInTicket> checkedIns = [];
-  final CheckInListItem checkInListItem;
-  final Ticket ticket;
-  FoundTicket({CheckInListItem checkInListItem, Ticket ticket}):
-    checkInListItem = checkInListItem, ticket = ticket;
+// class FoundTicket {
+//   final TicketAndCheckIns ticketAndCheckIns;
+//   FoundTicket({@required TicketAndCheckIns ticketAndCheckIns}):
+//     ticketAndCheckIns = ticketAndCheckIns;
 
-  get state {
-    if (checkedIns.isEmpty) {
-      return FoundTicketState.NeedCheckIn;
-    }
-    if (checkedIns.last is CheckedTicketError) {
-      return FoundTicketState.Error;
-    }
-    if (checkedIns.last is CheckedInTicket) {
-      return FoundTicketState.CheckedIn;
-    }
-    if (checkedIns.last is CheckedOutTicket) {
-      return FoundTicketState.CheckedOut;
-    }
-  }
-  get shortState {
-    return state.toString().split(".").last;
-  }
-}
+//   get state {
+//     if (checkedIns.isEmpty) {
+//       return FoundTicketState.Issueable;
+//     }
+//     return FoundTicketState.Error;
+//     // if (checkedIns.last is CheckedTicketError) {
+//     //   return FoundTicketState.Error;
+//     // }
+//     // if (checkedIns.last is CheckedInTicket) {
+//     //   return FoundTicketState.CheckedIn;
+//     // }
+//     // if (checkedIns.last is CheckedOutTicket) {
+//     //   return FoundTicketState.CheckedOut;
+//     // }
+//   }
+//   get shortState {
+//     return state.toString().split(".").last;
+//   }
+// }
 
 class FoundTickets extends ConfotorMsg {
-  final List<FoundTicket> tickets;
-  FoundTickets({List<FoundTicket> tickets}): tickets = tickets;
+  final List<TicketAndCheckIns> tickets;
+  FoundTickets({@required List<TicketAndCheckIns> tickets}): tickets = tickets;
+
   get hasFound {
     return tickets.isNotEmpty;
   }
@@ -174,21 +171,22 @@ class TicketsAgent {
   final List<CheckInListItem> checkInLists = [];
   // final Map<String, Tickets> tickets = new Map();
   final List<FoundTickets> lastFoundTickets = new List();
+  StreamSubscription subscription;
 
   TicketsAgent({ConfotorAppState appState}) : appState = appState;
 
   FoundTickets findTickets(String slug) {
-    final List<FoundTicket> ret = [];
+    final List<TicketStore> ret = [];
     checkInLists.indexWhere((item) {
       // print('findTickets:${item.url}:${item.ticketsCount}:$slug');
-      final found = item.tickets.firstWhere((ticket) {
+      final found = item.ticketStore.values.firstWhere((tac) {
         // print('findTickets:${item.url}:${item.ticketsCount}:$slug:${ticket.slug}');
-        return ticket.slug == slug;
+        return tac.ticket.slug == slug;
       }, orElse: () => null);
       // print('findTickets:NEXT:${item.url}:${item.ticketsCount}:$slug:$found');
       if (found != null) {
         // print("findTickets:Found:${found.slug}:${slug}");
-        ret.add(FoundTicket(checkInListItem: item, ticket: found));
+        ret.add(found);
       }
       return found != null;
     });
@@ -196,16 +194,17 @@ class TicketsAgent {
       final ref = ret.first;
       checkInLists.forEach((item) {
         if (item != ref.checkInListItem) {
-          item.tickets.forEach((ticket) {
+          item.ticketAndCheckIns.values.forEach((tac) {
+            final ticket = tac.ticket;
             if (ticket.registration_reference == ref.ticket.registration_reference) {
-              ret.add(FoundTicket(checkInListItem: item, ticket: ticket));
+              ret.add(tac);
               return;
             }
             if (ticket.email == ref.ticket.email) {
               if (ticket.company_name == ref.ticket.company_name) {
                 if (ticket.first_name == ref.ticket.first_name) {
                   if (ticket.last_name == ref.ticket.last_name) {
-                    ret.add(FoundTicket(checkInListItem: item, ticket: ticket));
+                    ret.add(tac);
                   }
                 }
               }
@@ -218,8 +217,13 @@ class TicketsAgent {
     return FoundTickets(tickets: ret);
   }
 
+
+  stop()  {
+    subscription.cancel();
+  }
+
   start() {
-    this.appState.bus.stream.listen((msg) {
+    subscription = this.appState.bus.stream.listen((msg) {
       if (msg is CheckInListsMsg) {
         msg.lists.forEach((i) {
           if (i.ticketsStatus == CheckInListItemTicketsStatus.Initial) {

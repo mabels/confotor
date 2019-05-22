@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:confotor/app-lifecycle-agent.dart';
 import 'package:flutter/material.dart';
 import './confotor-main-screen.dart';
 import './confotor-msg.dart';
@@ -28,8 +29,13 @@ class ConfotorBus {
   Map<String, ConfotorMsg> persistMsgs = new Map();
 
   ConfotorBus() {
-    print('Switch BroadcastStream');
+    // print('Switch BroadcastStream');
     this._stream = this.bus.stream.asBroadcastStream();
+  }
+
+  stop() {
+    this.bus.close();
+    this.persistMsgs.clear();
   }
 
   add(ConfotorMsg msg, { bool persist = false }) {
@@ -52,9 +58,7 @@ class ConfotorBus {
   }
 
   listen(void onData(ConfotorMsg event)) {
-    print('Listen:1');
     var ret = this.stream.listen(onData);
-    print('Listen:2');
     return ret;
   }
 
@@ -77,15 +81,27 @@ class ConfotorAppState extends State<ConfotorApp> {
   CheckInListAgent checkInListAgent;
   TicketsAgent ticketsAgent;
   CheckInAgent checkInAgent;
+  AppLifecycleAgent appLifecycleAgent;
   // Drawer drawer;
   @override
   initState() {
     super.initState();
     this.bus = new ConfotorBus();
+    this.appLifecycleAgent = new AppLifecycleAgent(appState: this).start();
     this.checkInListAgent = new CheckInListAgent(appState: this).start();
     this.ticketsAgent = new TicketsAgent(appState: this).start();
     this.checkInAgent = new CheckInAgent(appState: this).start();
     // this.drawer = confotorDrawer(appState: this);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    this.bus.stop();
+    this.appLifecycleAgent.stop();
+    this.checkInListAgent.stop();
+    this.ticketsAgent.stop();
+    this.checkInAgent.stop();
   }
 
   @override

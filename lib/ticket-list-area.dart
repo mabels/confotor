@@ -1,8 +1,10 @@
+import 'package:confotor/ticket-and-checkins.dart';
 import 'package:confotor/tickets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'check-in-agent.dart';
+import 'check-in-list.dart';
 import 'confotor-app.dart';
 
 class TicketListArea extends StatefulWidget {
@@ -31,6 +33,61 @@ class TicketListAreaState extends State<TicketListArea> {
     });
   }
 
+  actionText(TicketAndCheckIns tac, String stateText) {
+    return Text("${stateText}[${tac.checkInListItem.shortEventTitle}(${tac.ticket.reference})]");
+  }
+
+  subTitle(FoundTickets foundTickets) {
+    return Column(
+            children: foundTickets.tickets.map((foundTicket) {
+            switch (foundTicket.state) {
+                case TicketAndCheckInsState.Used:
+                  return RaisedButton(
+                  textColor: Colors.white,
+                  splashColor: Colors.pinkAccent,
+                  child: actionText(foundTicket, "TicketUsed"),
+                  color: Colors.red);
+                  break;
+
+                case TicketAndCheckInsState.Issued:
+                  return RaisedButton(
+                  textColor: Colors.white,
+                  splashColor: Colors.pinkAccent,
+                  child: actionText(foundTicket, "Checkout"),
+                  color: Colors.green,
+                  onPressed: () {
+                    this
+                        .appState
+                        .bus
+                        .add(RequestCheckOutTicket(foundTicket: foundTicket));
+                  });
+                  break;
+
+                case TicketAndCheckInsState.Issueable:
+                  return RaisedButton(
+                  textColor: Colors.white,
+                  splashColor: Colors.pinkAccent,
+                  child: actionText(foundTicket, "Checkin"),
+                  color: Colors.blue,
+                  onPressed: () {
+                    this
+                        .appState
+                        .bus
+                        .add(RequestCheckInTicket(foundTicket: foundTicket));
+                  });
+                  break;
+                default:
+                  return RaisedButton(
+                  textColor: Colors.white,
+                  splashColor: Colors.pinkAccent,
+                  child: actionText(foundTicket, foundTicket.shortState),
+                  color: Colors.purple);
+                  break;
+              }
+            }).toList()
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     print('Build:${lastFoundTickets}');
@@ -39,53 +96,20 @@ class TicketListAreaState extends State<TicketListArea> {
     } else {
       print('Build:${lastFoundTickets.last.length}');
       return ListView(
-          children: lastFoundTickets.last.map((foundTickets) {
+        children: lastFoundTickets.last.map((foundTickets) {
         if (foundTickets.hasFound) {
-          final subTitle = Column(
-              children: foundTickets.tickets.map((foundTicket) {
-            final List<Widget> out = [];
-            var onPressed;
-            if (foundTicket.state == FoundTicketState.CheckedIn) {
-              print(
-                  'LastId:${foundTicket.checkedIns.last.checkedIn.checkin_list_id}');
-              var state = "CheckOut";
-              var color = Colors.green;
-              var onPressed = () {
-                    this
-                        .appState
-                        .bus
-                        .add(RequestCheckOutTicket(foundTicket: foundTicket));
-                    // ticketScan(bus: appState.bus);
-                  };
-              if (foundTicket.checkedIns.last.checkedIn.checkin_list_id !=
-                  null) {
-                color = Colors.red;
-                onPressed = () {};
-                state = "TicketUsed";
-              }
-              out.add(RaisedButton(
-                  color: color,
-                  textColor: Colors.white,
-                  splashColor: Colors.pinkAccent,
-                  onPressed: onPressed,
-                  child: Text(
-                      "$state[${foundTicket.checkInListItem.shortEventTitle}(${foundTicket.ticket.reference})]")));
-            } else {
-              out.add(Text(
-                  "[${foundTicket.shortState}] -- ${foundTicket.checkInListItem.shortEventTitle}(${foundTicket.ticket.reference})"));
-            }
-            return Column(children: out);
-          }).toList());
           return ListTile(
-              key: Key(foundTickets.slug),
-              title: Text(foundTickets.name),
-              subtitle: subTitle);
+            key: Key(foundTickets.slug),
+            title: Text(foundTickets.name),
+            subtitle: subTitle(foundTickets)
+          );
         } else {
           return ListTile(
-              title: Container(
-                  color: Colors.red, child: Text("No Ticket found from Scan")));
+            title: Container(
+            color: Colors.red, child: Text("No Ticket found from Scan")));
         }
-      }).toList());
+        }).toList()
+      );
     }
   }
 }

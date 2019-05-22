@@ -29,7 +29,7 @@ refreshSection({
         }));
          lists.forEach((item) => children.add(ListTile(
           key: Key(item.event_title),
-          title: Text("${item.event_title}(${item.ticketsCount})"),
+          title: Text("${item.event_title}(${item.ticketsCount}-${item.checkInCount})"),
           onTap: () {
             appState.bus.add(new ClickInListsRefresh(items: [item]));
           })));
@@ -57,7 +57,7 @@ removeSection({
         }));
         lists.forEach((item) => children.add(ListTile(
           key: Key(item.event_title),
-          title: Text("${item.event_title}(${item.ticketsCount})"),
+          title: Text("${item.event_title}(${item.ticketsCount}-${item.checkInCount})"),
           onLongPress: () {
             appState.bus.add(new CheckInListsRemove(items: [item]));
           })));
@@ -90,10 +90,16 @@ class ConfotorDrawer extends StatefulWidget {
 }
 
 class ConfotorDrawerState extends State<ConfotorDrawer> {
-  Widget item;
+  final ConfotorAppState appState;
+  List<Widget> items;
 
-  ConfotorDrawerState({ConfotorAppState appState}) {
-    item = ListView(children: staticDrawer(appState: appState));
+  ConfotorDrawerState({ConfotorAppState appState}): appState = appState {
+    items = staticDrawer(appState: appState);
+  }
+
+  @override
+  void initState() {
+    super.initState();
     appState.bus.stream.listen((msg) {
       if (msg is CheckInListsMsg) {
           final CheckInListsMsg ret = msg;
@@ -101,7 +107,7 @@ class ConfotorDrawerState extends State<ConfotorDrawer> {
           refreshSection(appState: appState, drawer: drawer, lists: ret.lists);
           removeSection(appState: appState, drawer: drawer, lists: ret.lists);
           setState(() {
-            item = ListView(children: drawer);
+            items = drawer;
           });
       }
     });
@@ -109,6 +115,6 @@ class ConfotorDrawerState extends State<ConfotorDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    return Drawer(child: item);
+    return Drawer(child: ListView(children: items));
   }
 }
