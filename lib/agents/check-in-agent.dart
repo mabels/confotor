@@ -9,9 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 
-
-
-
 class CheckInObserver {
   final ConfotorAppState appState;
   final CheckInListItem checkInListItem;

@@ -3,15 +3,11 @@ import 'dart:convert' as convert;
 
 import 'package:confotor/components/confotor-app.dart';
 import 'package:confotor/models/check-in-list-item.dart';
-import 'package:confotor/models/conference.dart';
 import 'package:confotor/models/ticket.dart';
-import 'package:confotor/msgs/confotor-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
 import 'package:http/http.dart' as http;
-import 'package:meta/meta.dart';
 
 enum TicketsStatus { Initial, Page, Ready, Error }
-
 
 class TicketsPages {
   final ConfotorAppState appState;

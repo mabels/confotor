@@ -4,9 +4,7 @@ import 'dart:ui';
 import 'package:confotor/agents/tickets-agent.dart';
 import 'package:confotor/models/check-in-list-item.dart';
 import 'package:confotor/models/conference.dart';
-import 'package:confotor/models/conferences.dart';
 import 'package:confotor/models/ticket-and-checkins-and-conference-key.dart';
-import 'package:confotor/models/ticket-and-checkins.dart';
 import 'package:confotor/models/ticket.dart';
 import 'package:confotor/msgs/confotor-msg.dart';
 import 'package:meta/meta.dart';
@@ -40,19 +38,19 @@ class AppLifecycleMsg extends ConfotorMsg {
 
 class ConferencesMsg extends ConfotorMsg {
   final List<Conference> conferences;
-  ConferencesMsg({@required conferences}): conferences = conferences; 
+  ConferencesMsg({@required conferences}): conferences = conferences;
 }
 
 class ConferencesError extends ConfotorMsg implements ConfotorErrorMsg {
   final dynamic error;
-  ConferencesError({@required error}): error = error; 
+  ConferencesError({@required error}): error = error;
 }
 
 class TicketsMsg {
   final TicketsStatus status;
   final int page;
   final int totalTickets;
-  TicketsMsg({@required TicketsStatus status, @required int page, @required int totalTickets}): 
+  TicketsMsg({@required TicketsStatus status, @required int page, @required int totalTickets}):
     status = status,
     page = page,
     totalTickets = totalTickets;
@@ -127,7 +125,7 @@ class TicketsError extends ConfotorMsg with ConfotorErrorMsg {
 
 class UpdateConferenceMsg extends ConfotorMsg {
   final CheckInListItem checkInListItem;
-  UpdateConferenceMsg({@required checkInListItem}) :  
+  UpdateConferenceMsg({@required checkInListItem}) :
     checkInListItem = checkInListItem;
 }
 
@@ -141,7 +139,7 @@ class CheckInListItemError extends ConferencesMsg implements ConfotorErrorMsg {
   CheckInListItemError({@required dynamic error}) : error = error;
 }
 
-class RemoveConferences extends ConfotorMsg { 
+class RemoveConferences extends ConfotorMsg {
   final List<ConferenceKey> items;
   RemoveConferences({@required List<ConferenceKey> items}) : items = items;
 }
@@ -199,3 +197,13 @@ class AddCheckInAction extends ConfotorMsg {
   AddCheckInAction({@required CheckInAction item}): item = item;
 }
 
+class FindTicket extends ConfotorMsg {
+  final String slug;
+  FindTicket({@required String slug}): slug = slug;
+}
+
+class ConferenceTicket extends ConfotorMsg {
+  final String slug;
+  ConferenceTicket({@required String slug}): slug = slug;
+
+}

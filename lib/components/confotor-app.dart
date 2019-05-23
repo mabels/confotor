@@ -1,17 +1,13 @@
 import 'package:confotor/agents/app-lifecycle-agent.dart';
+import 'package:confotor/agents/check-in-agent.dart';
 import 'package:confotor/agents/conferences-agent.dart';
-import 'package:confotor/app-lifecycle-agent.dart';
-import 'package:confotor/models/conferences.dart';
+import 'package:confotor/agents/tickets-agent.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import '../confotor-bus.dart';
 import './confotor-main-screen.dart';
-import './check-in-list.dart';
-import './tickets.dart';
 import 'package:uuid/uuid.dart';
 
-import 'check-in-agent.dart';
-import 'confotor-bus.dart';
 
 // Stream<ConfotorMsg> stream;
 //   @override
@@ -41,7 +37,7 @@ class ConfotorAppState extends State<ConfotorApp> {
   @override
   initState() {
     super.initState();
-    
+
     this.appLifecycleAgent = AppLifecycleAgent(appState: this).start();
     this.conferencesAgent = ConferencesAgent(appState: this).start();
     this.ticketsAgent = TicketsAgent(appState: this).start();

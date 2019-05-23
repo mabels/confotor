@@ -19,11 +19,26 @@ class CheckInListItem extends ConferenceKey {
       final jsonResponse = json.decode(response.body);
       return CheckInListItem.fromJson(jsonResponse);
     }
-    throw new Exception('CheckInListItem:fetch:$url');
+    throw new Exception('CheckInListItem:fetch:${response.statusCode}:$url');
   }
 
   static CheckInListItem fromJson(dynamic json) {
     return CheckInListItem().updateFromJson(json);
+  }
+
+  get shortEventTitle {
+    return event_title.split(" ").first;
+  }
+
+  update(CheckInListItem cili) {
+    event_title = cili.event_title;
+    expires_at = cili.expires_at;
+    expires_at_timestamp = cili.expires_at_timestamp;
+    tickets_url = cili.tickets_url;
+    checkin_list_url = cili.checkin_list_url;
+    sync_url = cili.sync_url;
+    total_pages = cili.total_pages;
+    total_entries = cili.total_entries;
   }
 
   updateFromJson(dynamic json) {
@@ -39,9 +54,7 @@ class CheckInListItem extends ConferenceKey {
     return this;
   }
 
-  get shortEventTitle {
-    return event_title.split(" ").first;
-  }
+
 
   Map<String, dynamic> toJson() {
     return {

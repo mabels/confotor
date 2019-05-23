@@ -1,4 +1,5 @@
-import 'package:confotor/models/ticket-store.dart';
+import 'package:confotor/models/ticket-and-checkins.dart';
+import 'package:confotor/stores/ticket-store.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
@@ -28,21 +29,21 @@ abstract class ConferenceKey {
 
 class Conference extends ConferenceKey {
   final CheckInListItem checkInListItem;
-  final TicketStore ticketStore;
+  final List<TicketAndCheckIns> ticketAndCheckInsList;
 
-  Conference({@required checkInListItem, @required ticketStore}):
+  Conference({@required checkInListItem, @required ticketAndCheckInsList}):
     checkInListItem = checkInListItem,
-    ticketStore = ticketStore;
+    ticketAndCheckInsList = ticketAndCheckInsList;
 
 
   static fromJson(dynamic json) {
+    final List<TicketAndCheckIns> ticketAndCheckInsList = [];
+    if (json['ticketAndCheckInsList'] != 0) {
+      List<dynamic> my = json['ticketAndCheckInsList'];
+      my.forEach((j) => ticketAndCheckInsList.add(TicketAndCheckIns.fromJson(j)));
+    }
     return Conference(checkInListItem: CheckInListItem.fromJson(json['checkInListItem']),
-                      ticketStore: TicketStore.fromJson(json['ticketStore']));
-  }
-
-  updateFromJson(dynamic json) {
-    checkInListItem.updateFromJson(json['checkInListItem']);
-    ticketStore.updateFromJson(json['ticketStore']);
+                      ticketAndCheckInsList: ticketAndCheckInsList);
   }
 
   @override
@@ -50,7 +51,8 @@ class Conference extends ConferenceKey {
 
   toJson() => {
     "checkInListItem": checkInListItem.toJson(),
-    "ticketStore": ticketStore.toJson()
+    "ticketStore": ticketAndCheckInsList
   };
+
 
 }
