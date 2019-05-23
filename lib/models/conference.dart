@@ -28,7 +28,7 @@ abstract class ConferenceKey {
 }
 
 class Conference extends ConferenceKey {
-  final CheckInListItem checkInListItem;
+  final CheckInList checkInListItem;
   final List<TicketAndCheckIns> ticketAndCheckInsList;
 
   Conference({@required checkInListItem, @required ticketAndCheckInsList}):
@@ -36,13 +36,17 @@ class Conference extends ConferenceKey {
     ticketAndCheckInsList = ticketAndCheckInsList;
 
 
+  get checkInItemLength {
+    return ticketAndCheckInsList.map((t) => t.checkInItems.length).reduce((a, b) => a + b);
+  }
+
   static fromJson(dynamic json) {
     final List<TicketAndCheckIns> ticketAndCheckInsList = [];
     if (json['ticketAndCheckInsList'] != 0) {
       List<dynamic> my = json['ticketAndCheckInsList'];
       my.forEach((j) => ticketAndCheckInsList.add(TicketAndCheckIns.fromJson(j)));
     }
-    return Conference(checkInListItem: CheckInListItem.fromJson(json['checkInListItem']),
+    return Conference(checkInListItem: CheckInList.fromJson(json['checkInListItem']),
                       ticketAndCheckInsList: ticketAndCheckInsList);
   }
 

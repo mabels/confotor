@@ -1,5 +1,7 @@
 import 'package:confotor/actions/scan-check-in-list-action.dart';
 import 'package:confotor/models/conference.dart';
+import 'package:confotor/models/conferences.dart';
+import 'package:confotor/msgs/conference-msg.dart';
 import 'package:flutter/material.dart';
 import './confotor-app.dart';
 // import 'confotor-msg.dart';
@@ -18,20 +20,20 @@ List<Widget> staticDrawer({ConfotorAppState appState}) {
 refreshSection({
   ConfotorAppState appState,
   List<Widget> drawer,
-  List<Conference> lists}) {
+  List<Conference> confs}) {
   List<Widget> children = [];
-  if (lists.isNotEmpty) {
+  if (confs.isNotEmpty) {
     children.add(ListTile(
         key: Key('RefreshTickets'),
         title: Text('Refresh Tickets'),
         onTap: () {
-          appState.bus.add(new ClickInListsRefresh());
+          confs.forEach((conf) => appState.bus.add(RequestUpdateConference(checkInListItem: conf.checkInListItem)));
         }));
-         lists.forEach((item) => children.add(ListTile(
-          key: Key(item.event_title),
-          title: Text("${item.event_title}(${item.ticketsCount}-${item.checkInCount})"),
+         confs.forEach((conf) => children.add(ListTile(
+          key: Key(conf.checkInListItem.url),
+          title: Text("${conf.checkInListItem.event_title}(${conf.ticketAndCheckInsList.length}-${conf.checkInItemLength})"),
           onTap: () {
-            appState.bus.add(new ClickInListsRefresh(items: [item]));
+            appState.bus.add(RequestUpdateConference(checkInListItem: conf.checkInListItem));
           })));
   }
   drawer.add(Column(
@@ -42,24 +44,24 @@ refreshSection({
 removeSection({
   ConfotorAppState appState,
   List<Widget> drawer,
-  List<Conference> lists}) {
+  List<Conference> confs}) {
   List<Widget> children = [];
-  if (lists.isNotEmpty) {
+  if (confs.isNotEmpty) {
     children.add(ListTile(
         key: Key('RemoveTickets'),
         title: Text('Remove Tickets'),
         onLongPress: () {
           // Navigator.of(appState.context).pop();
           // checkInListScan(bus: appState.bus);
-          appState.bus.add(new CheckInListsRemove(items: lists));
+          confs.forEach((conf) => appState.bus.add(RequestRemoveConference(conference: conf)));
           // Navigator.of(context).push(MaterialPageRoute(
           //   builder: (BuildContext context) => ScanScreen()));
         }));
-        lists.forEach((item) => children.add(ListTile(
-          key: Key(item.event_title),
-          title: Text("${item.event_title}(${item.ticketsCount}-${item.checkInCount})"),
+        confs.forEach((conf) => children.add(ListTile(
+          key: Key(conf.checkInListItem.url),
+          title: Text("${conf.checkInListItem.event_title}(${conf.ticketAndCheckInsList.length}-${conf.checkInItemLength})"),
           onLongPress: () {
-            appState.bus.add(new CheckInListsRemove(items: [item]));
+            appState.bus.add(RequestRemoveConference(conference: conf));
           })));
 
     // children.add(Column(
@@ -101,11 +103,10 @@ class ConfotorDrawerState extends State<ConfotorDrawer> {
   void initState() {
     super.initState();
     appState.bus.stream.listen((msg) {
-      if (msg is CheckInListsMsg) {
-          final CheckInListsMsg ret = msg;
+      if (msg is Conferences) {
           final drawer = staticDrawer(appState: appState);
-          refreshSection(appState: appState, drawer: drawer, lists: ret.lists);
-          removeSection(appState: appState, drawer: drawer, lists: ret.lists);
+          refreshSection(appState: appState, drawer: drawer, confs: msg.conferences);
+          removeSection(appState: appState, drawer: drawer, confs: msg.conferences);
           setState(() {
             items = drawer;
           });

@@ -1,3 +1,5 @@
+import 'package:confotor/models/ticket-and-checkins.dart';
+import 'package:confotor/msgs/msgs.dart';
 import 'package:flutter/material.dart';
 
 import 'confotor-app.dart';
@@ -28,14 +30,14 @@ class TicketListAreaState extends State<TicketListArea> {
     });
   }
 
-  actionText(TicketAndCheckIns tac, String stateText) {
-    return Text("${stateText}[${tac.checkInListItem.shortEventTitle}(${tac.ticket.reference})]");
+  actionText(ConferenceTicket tac, String stateText) {
+    return Text("${stateText}[${tac.checkInListItem.shortEventTitle}(${tac.ticketAndCheckIns.ticket.reference})]");
   }
 
   subTitle(FoundTickets foundTickets) {
     return Column(
-            children: foundTickets.tickets.map((foundTicket) {
-            switch (foundTicket.state) {
+            children: foundTickets.conferenceTickets.map((foundTicket) {
+            switch (foundTicket.ticketAndCheckIns.state) {
                 case TicketAndCheckInsState.Used:
                   return RaisedButton(
                   textColor: Colors.white,
@@ -54,7 +56,7 @@ class TicketListAreaState extends State<TicketListArea> {
                     this
                         .appState
                         .bus
-                        .add(RequestCheckOutTicket(foundTicket: foundTicket));
+                        .add(RequestCheckOutTicket(ticket: foundTicket));
                   });
                   break;
 
@@ -68,14 +70,14 @@ class TicketListAreaState extends State<TicketListArea> {
                     this
                         .appState
                         .bus
-                        .add(RequestCheckInTicket(foundTicket: foundTicket));
+                        .add(RequestCheckInTicket(ticket: foundTicket));
                   });
                   break;
                 default:
                   return RaisedButton(
                   textColor: Colors.white,
                   splashColor: Colors.pinkAccent,
-                  child: actionText(foundTicket, foundTicket.shortState),
+                  child: actionText(foundTicket, foundTicket.ticketAndCheckIns.shortState),
                   color: Colors.purple);
                   break;
               }

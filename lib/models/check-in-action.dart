@@ -1,11 +1,14 @@
 
+import 'package:meta/meta.dart';
+
 class CheckInAction {
   final String  id;
+  final String  ticket_id;
 
-  CheckInAction({id}): id = id;
+  CheckInAction({@required id, @required ticket_id}): id = id, ticket_id = ticket_id;
 
   static CheckInAction fromJson(dynamic json) {
-    return CheckInAction(id: json['id']); // .updateFromJson(json);
+    return CheckInAction(id: json['id'], ticket_id: json['ticket_id']); // .updateFromJson(json);
   }
 
   update(CheckInAction oth) {

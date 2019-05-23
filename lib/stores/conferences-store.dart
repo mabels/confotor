@@ -19,48 +19,76 @@ class ConferencesStore {
 
   ConferencesStore({@required appState}) : appState = appState;
 
-  Conference updateConference(RequestUpdateConference ruc) {
+  ConferenceStore updateConference(RequestUpdateConference ruc) {
     return _conferences
         .putIfAbsent(ruc.checkInListItem.url, () => ConferenceStore(appState: appState))
         .update(ruc);
   }
 
+  ConferenceStore updateCheckInItemPage(CheckInItemPageMsg ciim) {
+    return _conferences
+        .putIfAbsent(ciim.conference.url, () => ConferenceStore(appState: appState))
+        .updateCheckInItems(ciim.items);
+  }
+
+    ConferenceStore updateCheckInActionPage(CheckInActionPageMsg ciam) {
+    return _conferences
+        .putIfAbsent(ciam.conference.url, () => ConferenceStore(appState: appState))
+        .updateCheckInActions(ciam.items);
+  }
+
+  ConferenceStore updateTicketPage(TicketPageMsg tpm) {
+    return _conferences
+        .putIfAbsent(tpm.conference.url, () => ConferenceStore(appState: appState))
+        .updateTickets(tpm.items);
+  }
+
   List<ConferenceStore> get values => _conferences.values;
+
+  Conferences toConferences() {
+    return Conferences(conferences: _conferences.values.map((i) => Conference(
+      checkInListItem: i.checkInListItem,
+      ticketAndCheckInsList: i.ticketStore.values
+    )).toList());
+  }
 
   remove(ConferenceKey key) {
     return _conferences.remove(key.url);
   }
 
   FoundTickets findTickets(String slug) {
-    final List<TicketAndCheckIns> ret = [];
-    final inConf = _conferences.values.firstWhere((item) {
+    final List<ConferenceTicket> ret = [];
+    final inConf = _conferences.values.firstWhere((conf) {
       // print('findTickets:${item.url}:${item.ticketsCount}:$slug');
-      final found = item.ticketStore.firstWhere((tac) {
+      final found = conf.ticketStore.firstWhere((tac) {
         // print('findTickets:${item.url}:${item.ticketsCount}:$slug:${ticket.slug}');
         return tac.ticket.slug == slug;
       });
       // print('findTickets:NEXT:${item.url}:${item.ticketsCount}:$slug:$found');
       if (found != null) {
         // print("findTickets:Found:${found.slug}:${slug}");
-        ret.add(found);
+        ret.add(ConferenceTicket(checkInListItem: conf.checkInListItem,
+                                 ticketAndCheckIns: found.toTicketAndCheckIns()));
       }
       return found != null;
     }, orElse: () => null);
     if (inConf != null) {
-      final ref = ret.first;
+      final ConferenceTicket ref = ret.first;
       _conferences.values.where((c) => c.url != inConf.url).forEach((conf) {
         conf.ticketStore.values.forEach((tac) {
           final ticket = tac.ticket;
           if (ticket.registration_reference ==
-              ref.ticket.registration_reference) {
-            ret.add(tac);
+              ref.ticketAndCheckIns.ticket.registration_reference) {
+            ret.add(ConferenceTicket(checkInListItem: conf.checkInListItem,
+                                     ticketAndCheckIns: tac.toTicketAndCheckIns()));
             return;
           }
-          if (ticket.email == ref.ticket.email) {
-            if (ticket.company_name == ref.ticket.company_name) {
-              if (ticket.first_name == ref.ticket.first_name) {
-                if (ticket.last_name == ref.ticket.last_name) {
-                  ret.add(tac);
+          if (ticket.email == ref.ticketAndCheckIns.ticket.email) {
+            if (ticket.company_name == ref.ticketAndCheckIns.ticket.company_name) {
+              if (ticket.first_name == ref.ticketAndCheckIns.ticket.first_name) {
+                if (ticket.last_name == ref.ticketAndCheckIns.ticket.last_name) {
+                  ret.add(ConferenceTicket(checkInListItem: conf.checkInListItem,
+                                           ticketAndCheckIns: tac.toTicketAndCheckIns()));
                 }
               }
             }
@@ -69,13 +97,13 @@ class ConferencesStore {
         });
       });
     }
-    // return FoundTickets(tickets: ret);
+    return FoundTickets(conferenceTicket: ret);
   }
 
   Future<File> get _localFile async {
     final path = await appState.getLocalPath();
     print('_localFile:$path');
-    return new File('$path/check-in-lists.json');
+    return new File('$path/conferences.json');
   }
 
   Future<ConferencesStore> writeConference() async {
@@ -105,22 +133,15 @@ class ConferencesStore {
     _localFile.then((file) {
       file.readAsString().then((str) {
         try {
-          final List<dynamic> contents = json.decode(str);
-          contents.forEach((json) {
-            appState.bus.add(RequestUpdateConference(
-                checkInListItem:
-                    CheckInListItem.fromJson(json['checkInListItem']),
-                ticketAndCheckIns: (json['ticketAndCheckIns'] as List<dynamic>)
-                    .map((j) => TicketAndCheckIns.fromJson(j))));
-          });
+          appState.bus.add(JsonObject(json: json.decode(str), fileName: file.toString()));
         } catch (e) {
-          appState.bus.add(ConferencesError(error: e));
+          appState.bus.add(JsonObjectError(error: e, str: str, fileName: file.toString()));
         }
       }).catchError((e) {
-        appState.bus.add(new ConferencesError(error: e));
+        appState.bus.add(new FileError(error: e, fileName: file.toString()));
       });
     }).catchError((e) {
-      appState.bus.add(new ConferencesError(error: e));
+      appState.bus.add(new FileError(error: e));
     });
   }
 }

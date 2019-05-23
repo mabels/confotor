@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:confotor/components/confotor-app.dart';
 import 'package:confotor/models/check-in-item.dart';
-import 'package:confotor/models/check-in-list-item.dart';
-import 'package:confotor/models/ticket-and-checkins.dart';
+import 'package:confotor/models/conference.dart';
+import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -11,49 +11,58 @@ import 'dart:convert' as convert;
 
 class CheckInObserver {
   final ConfotorAppState appState;
-  final CheckInListItem checkInListItem;
+  final ConferenceKey conference;
   Timer timer;
-  int count = 0;
+  // int count = 0;
   DateTime since;
   DateTime nextSince;
-  CheckInObserver({ConfotorAppState appState, CheckInListItem checkInListItem}):
-    checkInListItem = checkInListItem, appState = appState;
 
-  getPage(int page) {
-    final url = checkInListItem.checkInUrl(since: since == null ? 0 : since.millisecondsSinceEpoch/1000, page: page);
+  CheckInObserver(
+      {@required ConfotorAppState appState, @required ConferenceKey conference})
+      : conference = conference,
+        appState = appState;
+
+  getPage(int page, String transaction) {
+    final url = conference.checkInUrl(
+        since: since == null ? 0 : since.millisecondsSinceEpoch / 1000,
+        page: page);
     http.get(url).then((res) {
       List<dynamic> json = convert.jsonDecode(res.body);
-      print('getPage:$url:$page:${json.length}');
-      if (json.length != 0) {
-        json.forEach((i) {
-          final item = CheckInItem.fromJson(i);
-          if (nextSince == null) {
-            nextSince = item.maxDate;
-          } else {
-            nextSince = item.maxDate.compareTo(nextSince) > 0 ? item.maxDate : nextSince;
-          }
-          appState.bus.add(CheckInItemMsg(item: item, listItem: checkInListItem));
-          ++count;
-        });
-        getPage(page + 1);
-      } else {
-        if (count > 0) {
-          appState.bus.add(CheckInItemCompleteMsg(listItem: checkInListItem));
-          since = nextSince;
-          count = 0;
+      final items = json.map((i) {
+        final item = CheckInItem.fromJson(i);
+        if (nextSince == null) {
+          nextSince = item.maxDate;
+        } else {
+          nextSince =
+              item.maxDate.compareTo(nextSince) > 0 ? item.maxDate : nextSince;
         }
+        return item;
+      });
+      print('getPage:$url:$page:${json.length}');
+      appState.bus.add(CheckInItemPageMsg(
+        conference: conference,
+        transaction: transaction,
+        items: items,
+        page: page,
+        completed: items.isEmpty,
+      ));
+      if (items.isNotEmpty) {
+        getPage(page + 1, transaction);
+      } else {
+        since = nextSince;
         nextSince = null;
         start();
       }
     }).catchError((err) {
-      appState.bus.add(CheckInObserverError(error: err, listItem: checkInListItem));
+      appState.bus.add(CheckInObserverError(
+          error: err, conference: conference, transaction: transaction));
     });
   }
 
   CheckInObserver start({int seconds = 5}) {
     stop();
     timer = new Timer(Duration(seconds: seconds), () {
-      getPage(1); // paged api triggered by page 1
+      getPage(1, appState.uuid.v4()); // paged api triggered by page 1
     });
     return this;
   }
@@ -79,7 +88,6 @@ class CheckInObserver {
 //     error = error;
 // }
 
-
 // class CheckedInTicket extends CheckedTicket {
 //   final CheckedInResponse checkedIn;
 
@@ -101,10 +109,10 @@ class CheckInObserver {
 
 class CheckInAgent {
   final ConfotorAppState appState;
-  final Map<String/* url */, CheckInObserver> observers = new Map();
-
-  CheckInAgent({ConfotorAppState appState}): appState = appState;
+  final Map<String /* url */, CheckInObserver> observers = new Map();
   StreamSubscription subscription;
+
+  CheckInAgent({@required ConfotorAppState appState}) : appState = appState;
 
   stop() {
     subscription.cancel();
@@ -116,77 +124,89 @@ class CheckInAgent {
         switch (msg.state) {
           // case AppLifecycleState.inactive:
           case AppLifecycleState.paused:
-            observers.values.forEach((o) { o.stop(); });
+            observers.values.forEach((o) {
+              o.stop();
+            });
             break;
           case AppLifecycleState.suspending:
           case AppLifecycleState.resumed:
-            observers.values.forEach((o) { o.start(seconds: 0); });
+            observers.values.forEach((o) {
+              o.start(seconds: 0);
+            });
             break;
           case AppLifecycleState.inactive:
             break;
         }
       }
+      if (msg is UpdatedConference) {
+        if (!observers.containsKey(msg.checkInListItem.url)) {
+          observers[msg.checkInListItem.url] = CheckInObserver(
+              appState: appState, conference: msg.checkInListItem);
+          observers[msg.checkInListItem.url].start();
+        }
+      }
+
       if (msg is ConferenceRemoved) {
-        if (observers.containsKey(msg.item.url)) {
-          observers[msg.item.url].stop();
-          observers.remove(msg.item.url);
+        if (observers.containsKey(msg.checkInItemMsg.url)) {
+          observers[msg.checkInItemMsg.url].stop();
+          observers.remove(msg.checkInItemMsg.url);
         }
       }
-      if (msg is RequestCheckOutTicket) {
-        final FoundTicket ft = msg.foundTicket;
-        if (ft.checkedIns.last is CheckedInTicket) {
-          http.delete(ft.checkInListItem.checkOutUrl(ft.checkedIns.last.checkedIn.uuid)).then((res) {
-              this.appState.bus.add(CheckedOutTicket(foundTicket: ft, res: res));
-            }).catchError((e) {
-              this.appState.bus.add(CheckedTicketError(foundTicket: ft, error: e));
-            });
-        }
-      }
-      if (msg is CheckedInTicket) {
-        final CheckedInTicket cit = msg;
-        if (!observers.containsKey(cit.foundTicket.checkInListItem.url)) {
-          observers[cit.foundTicket.checkInListItem.url].start(seconds: 0);
-        }
-      }
-      if (msg is ConferenceKeysMsg) {
-        final ConferenceKeysMsg cils = msg;
-        cils.conferenceKeys.forEach((cil) {
-          print('CheckInAgent:CheckInListsMsg:${cil.url}');
-          if (!observers.containsKey(cil.url)) {
-            observers[cil.url] = CheckInObserver(appState: appState, checkInListItem: cil).start(seconds: 0);
-          }
-        });
-      }
-      if (msg is FoundTickets) {
-        final FoundTickets fts = msg;
-        fts.ticketConferenceKeys.indexWhere((ft) {
-          if (ft.ticketAndCheckIns.state == TicketAndCheckInsState.Issueable) {
-            print('checkIn:${ft.conferenceKey.checkInUrl()}:${ft.ticketAndCheckIns.id}');
-            http.post(ft.conferenceKey.checkInUrl(),
-              headers: {
-                 "Accept": "application/json",
-                 "Content-Type": "application/json"
-              },
-              body: convert.jsonEncode({
-                  "checkin": {
-                    "ticket_id": ft.ticketAndCheckIns.id
-                  }
-                })
-            ).then((res) {
-              // print('Checkout:${res.statusCode}:${res.body}');
-              this.appState.bus.add(CheckedInTicket(foundTicket: ft, res: res));
-            }).catchError((e) {
-              this.appState.bus.add(CheckedTicketError(foundTicket: ft, error: e));
-            });
-            return true;
-          }
-          return false;
-        });
-      }
-  //     curl --request DELETE \
-  // --url 'https://checkin.tito.io/checkin_lists/wech/checkins/6e16a93c-df5e-4105-b535-28e029027696' \
-  // --header 'Accept: application/json' \
-  // --header 'Content-Type: application/json'
+      // if (msg is RequestCheckOutTicket) {
+      //   final FoundTicket ft = msg.foundTicket;
+      //   if (ft.checkedIns.last is CheckedInTicket) {
+      //     http.delete(ft.checkInListItem.checkOutUrl(ft.checkedIns.last.checkedIn.uuid)).then((res) {
+      //         this.appState.bus.add(CheckedOutTicket(foundTicket: ft, res: res));
+      //       }).catchError((e) {
+      //         this.appState.bus.add(CheckedTicketError(foundTicket: ft, error: e));
+      //       });
+      //   }
+      // }
+      // if (msg is CheckedInTicket) {
+      //   final CheckedInTicket cit = msg;
+      //   if (!observers.containsKey(cit.foundTicket.checkInListItem.url)) {
+      //     observers[cit.foundTicket.checkInListItem.url].start(seconds: 0);
+      //   }
+      // }
+      // if (msg is ConferenceKeysMsg) {
+      //   final ConferenceKeysMsg cils = msg;
+      //   cils.conferenceKeys.forEach((cil) {
+      //     print('CheckInAgent:CheckInListsMsg:${cil.url}');
+      //     if (!observers.containsKey(cil.url)) {
+      //       observers[cil.url] = CheckInObserver(appState: appState, checkInListItem: cil).start(seconds: 0);
+      //     }
+      //   });
+      // }
+      // if (msg is FoundTickets) {
+      //   final FoundTickets fts = msg;
+      //   fts.ticketConferenceKeys.indexWhere((ft) {
+      //     if (ft.ticketAndCheckIns.state == TicketAndCheckInsState.Issueable) {
+      //       print('checkIn:${ft.conferenceKey.checkInUrl()}:${ft.ticketAndCheckIns.id}');
+      //       http.post(ft.conferenceKey.checkInUrl(),
+      //         headers: {
+      //            "Accept": "application/json",
+      //            "Content-Type": "application/json"
+      //         },
+      //         body: convert.jsonEncode({
+      //             "checkin": {
+      //               "ticket_id": ft.ticketAndCheckIns.id
+      //             }
+      //           })
+      //       ).then((res) {
+      //         // print('Checkout:${res.statusCode}:${res.body}');
+      //         this.appState.bus.add(CheckedInTicket(foundTicket: ft, res: res));
+      //       }).catchError((e) {
+      //         this.appState.bus.add(CheckedTicketError(foundTicket: ft, error: e));
+      //       });
+      //       return true;
+      //     }
+      //     return false;
+      //   });
+      // }
+      //     curl --request DELETE \
+      // --url 'https://checkin.tito.io/checkin_lists/wech/checkins/6e16a93c-df5e-4105-b535-28e029027696' \
+      // --header 'Accept: application/json' \
+      // --header 'Content-Type: application/json'
       // if (msg is CheckInListsMsg) {
       //   // msg.lists
       //   //   .where((i) => i.ticketsStatus == CheckInListItemTicketsStatus.Fetched)
@@ -201,9 +221,7 @@ class CheckInAgent {
       //   msg.lists.
       //     .where((i) => i.ticketsStatus == CheckInListItemTicketsStatus.Fetched)
       // }
-
     });
     return this;
   }
-
 }

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:confotor/models/conference.dart';
 import 'package:http/http.dart' as http;
 
-class CheckInListItem extends ConferenceKey {
+class CheckInList extends ConferenceKey {
   String url;
   String event_title;
   String expires_at;
@@ -13,24 +13,24 @@ class CheckInListItem extends ConferenceKey {
   int total_pages;
   int total_entries;
 
-  static Future<CheckInListItem> fetch(String url) async {
+  static Future<ConferenceKey> fetch(String url) async {
     var response = await http.get(url);
     if (200 <= response.statusCode && response.statusCode < 300) {
       final jsonResponse = json.decode(response.body);
-      return CheckInListItem.fromJson(jsonResponse);
+      return CheckInList.fromJson(jsonResponse);
     }
     throw new Exception('CheckInListItem:fetch:${response.statusCode}:$url');
   }
 
-  static CheckInListItem fromJson(dynamic json) {
-    return CheckInListItem().updateFromJson(json);
+  static ConferenceKey fromJson(dynamic json) {
+    return CheckInList().updateFromJson(json);
   }
 
   get shortEventTitle {
     return event_title.split(" ").first;
   }
 
-  update(CheckInListItem cili) {
+  update(CheckInList cili) {
     event_title = cili.event_title;
     expires_at = cili.expires_at;
     expires_at_timestamp = cili.expires_at_timestamp;

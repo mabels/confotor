@@ -29,7 +29,15 @@ class TicketAndCheckInsStore {
     return state.toString().split('.').last;
   }
 
-  TicketAndCheckIns update(TicketAndCheckIns tac) {
+  TicketAndCheckIns toTicketAndCheckIns() {
+    return TicketAndCheckIns(
+      checkInItems: checkInItems.toList(),
+      checkInActions: checkInActions.toList(),
+      ticket: ticket
+    );
+  }
+
+  TicketAndCheckInsStore update(TicketAndCheckIns tac) {
     if (!(ticket.id == tac.ticket.id)) {
       throw Exception("Ticket update on wrong instance");
     }

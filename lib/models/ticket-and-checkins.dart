@@ -21,11 +21,19 @@ class TicketAndCheckIns {
     Ticket ticket
    }): checkInItems = checkInItems, checkInActions = checkInActions, ticket = ticket;
 
+  TicketAndCheckInsState get state {
+    return TicketAndCheckInsState.Error;
+  }
+
+  String get shortState {
+    return state.toString().split(".").last;
+  }
 
   static fromJson(dynamic json) {
     final my = TicketAndCheckIns(checkInActions: [], checkInItems: [], ticket: Ticket());
     return my._updateFromJson(json);
   }
+
   TicketAndCheckIns _updateFromJson(dynamic json) {
     ticket.updateFromJson(json['ticket']);
     var loop = [];
@@ -44,6 +52,6 @@ class TicketAndCheckIns {
   Map<String, dynamic> toJson() => {
         "checkInItems": checkInItems,
         "checkInActions": checkInActions,
-        "ticket": ticket.toJson(),
+        "ticket": ticket.toJson()
       };
 }

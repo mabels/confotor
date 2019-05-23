@@ -1,62 +1,77 @@
 import 'dart:async';
 import 'dart:convert' as convert;
+import 'dart:ui';
 
 import 'package:confotor/components/confotor-app.dart';
 import 'package:confotor/models/check-in-list-item.dart';
+import 'package:confotor/models/conference.dart';
 import 'package:confotor/models/ticket.dart';
+import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
 import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 
 enum TicketsStatus { Initial, Page, Ready, Error }
 
-class TicketsPages {
+class TicketObserver {
   final ConfotorAppState appState;
-  final String transaction;
-  final CheckInListItem checkInListItem;
+  final ConferenceKey conference;
+  Timer timer;
 
-  static TicketsPages fetch({ConfotorAppState appState, CheckInListItem checkInListItem}) {
-    final tickets = TicketsPages(appState: appState, checkInListItem: checkInListItem);
-    tickets.getPages(0);
-    return tickets;
-  }
+  // static TicketObserver fetch(
+  //     {ConfotorAppState appState, ConferenceKey conference}) {
+  //   final tickets = TicketObserver(appState: appState, conference: conference);
+  //   tickets.getPages(0);
+  //   return tickets;
+  // }
 
-  TicketsPages({ConfotorAppState appState, CheckInListItem checkInListItem})
-    : transaction = appState.uuid.v4(),
-      appState = appState,
-      checkInListItem = checkInListItem;
+  TicketObserver({ConfotorAppState appState, ConferenceKey conference})
+      : appState = appState,
+        conference = conference;
 
-  getPages(int page) {
-    final url = this.checkInListItem.ticketsUrl(page);
-    print("getPage:$url");
+  getPages(int page, String transaction) {
+    final url = this.conference.ticketsUrl(page);
     http.get(url).then((response) {
       if (200 <= response.statusCode && response.statusCode < 300) {
         Iterable jsonResponse = convert.jsonDecode(response.body);
-        Map<int, Ticket> tickets = new Map();
-        jsonResponse.forEach((f) {
-          Ticket ticket = Ticket.fromJson(f);
-          tickets[ticket.id] = ticket;
-        });
         // this.tickets.addAll(tickets);
-        this.appState.bus.add(TicketsPageMsg(
+        final items = jsonResponse.map((f) => Ticket.fromJson(f));
+        this.appState.bus.add(TicketPageMsg(
             transaction: transaction,
-            conferenceKey: this.checkInListItem,
-            tickets: tickets,
+            conference: this.conference,
+            items: items,
             page: page,
-            completed: page >= this.checkInListItem.total_pages));
-        if (page < this.checkInListItem.total_pages) {
-          getPages(page + 1);
+            completed: items.isEmpty));
+
+        if (items.isNotEmpty) {
+          getPages(page + 1, transaction);
         }
       } else {
-        this.appState.bus.add(new TicketsError(
-            conferenceKey: this.checkInListItem, url: url, response: response));
+        this.appState.bus.add(TicketsError(
+            conference: this.conference, url: url, response: response,
+            error: Exception("ResponseCode:getPage:${url}:${response.statusCode}"),
+            transaction: transaction));
       }
     }).catchError((e) {
-      this.appState.bus.add(new TicketsError(
-          conferenceKey: this.checkInListItem, url: url, error: e));
+      this.appState.bus.add(
+          TicketsError(conference: this.conference, url: url, error: e, transaction: transaction));
     });
   }
-}
 
+  TicketObserver start({int hours = 4}) {
+    stop();
+    timer = new Timer(Duration(hours: hours), () {
+      getPages(1, appState.uuid.v4()); // paged api triggered by page 1
+    });
+    return this;
+  }
+
+  stop() {
+    if (timer != null) {
+      timer.cancel();
+    }
+  }
+}
 
 // class FoundTicket {
 //   final TicketAndCheckIns ticketAndCheckIns;
@@ -85,60 +100,96 @@ class TicketsPages {
 
 class TicketsAgent {
   final ConfotorAppState appState;
-  final List<FoundTickets> lastFoundTickets = new List();
+  final Map<String /* url */, TicketObserver> observers = new Map();
+
   StreamSubscription subscription;
 
-  TicketsAgent({ConfotorAppState appState}) : appState = appState;
+  TicketsAgent({@required ConfotorAppState appState}) : appState = appState;
 
-  stop()  {
+  stop() {
     subscription.cancel();
   }
 
   start() {
     subscription = this.appState.bus.stream.listen((msg) {
-      if (msg is CheckInListsMsg) {
-        msg.lists.forEach((i) {
-          if (i.ticketsStatus == CheckInListItemTicketsStatus.Initial) {
-            TicketsPages.fetch(appState: appState, item: i);
-          }
-        });
-        checkInLists.clear();
-        msg.lists.where((i) => i.ticketsStatus == CheckInListItemTicketsStatus.Fetched).forEach((item) {
-          checkInLists.add(item);
-        });
+
+      if (msg is AppLifecycleMsg) {
+        switch (msg.state) {
+          // case AppLifecycleState.inactive:
+          case AppLifecycleState.paused:
+            observers.values.forEach((o) {
+              o.stop();
+            });
+            break;
+          case AppLifecycleState.suspending:
+          case AppLifecycleState.resumed:
+            observers.values.forEach((o) {
+              o.start(hours: 0);
+            });
+            break;
+          case AppLifecycleState.inactive:
+            break;
+        }
       }
-      if (msg is TicketScanBarcodeMsg) {
-        TicketScanBarcodeMsg tsmsg = msg;
-        final found = findTickets(tsmsg.barcode);
-        this.appState.bus.add(found);
-        print('TicketScanBarcodeMsg:$found');
+      if (msg is UpdatedConference) {
+        if (!observers.containsKey(msg.checkInListItem.url)) {
+          observers[msg.checkInListItem.url] = TicketObserver(
+              appState: appState, conference: msg.checkInListItem);
+          observers[msg.checkInListItem.url].start();
+        } 
       }
 
-      if (msg is CheckedTicket) {
-        this.lastFoundTickets.where((fts) => fts.hasFound).where((fts) {
-          return fts.tickets.indexWhere((ft) {
-            if (ft.ticket.slug == msg.foundTicket.ticket.slug) {
-              ft.checkedIns.add(msg);
-              return true;
-            }
-            return false;
-          }) >= 0;
-        }).forEach((fts) =>
-          this.appState.bus.add(FoundTickets(tickets: fts.tickets))
-        );
-      }
-
-      if (msg is FoundTickets) {
-        final idx = this.lastFoundTickets.indexWhere((t) => t.slug == msg.slug);
-        if (idx >= 0) {
-          this.lastFoundTickets.removeAt(idx);
+      if (msg is ConferenceRemoved) {
+        if (observers.containsKey(msg.checkInItemMsg.url)) {
+          observers[msg.checkInItemMsg.url].stop();
+          observers.remove(msg.checkInItemMsg.url);
         }
-        this.lastFoundTickets.insert(0, msg);
-        for(var i = 20; i < lastFoundTickets.length; i++) {
-          lastFoundTickets.removeAt(20);
-        }
-        this.appState.bus.add(LastFoundTickets(last: lastFoundTickets), persist: true);
       }
     });
   }
 }
+
+//   if (msg is ConferenceKeysMsg) {
+//     msg.conferenceKeys.forEach((i) {
+//       if (i.ticketsStatus == CheckInListItemTicketsStatus.Initial) {
+//         TicketObserver.fetch(appState: appState, item: i);
+//       }
+//     });
+//     checkInLists.clear();
+//     msg.conferences.where((i) => i.ticketsStatus == CheckInListItemTicketsStatus.Fetched).forEach((item) {
+//       checkInLists.add(item);
+//     });
+//   }
+//   if (msg is ScanTicketMsg) {
+//     ScanTicketMsg tsmsg = msg;
+//     final found = findTickets(tsmsg.barcode);
+//     this.appState.bus.add(found);
+//     print('TicketScanBarcodeMsg:$found');
+//   }
+
+//   if (msg is CheckedTicket) {
+//     this.lastFoundTickets.where((fts) => fts.hasFound).where((fts) {
+//       return fts.tickets.indexWhere((ft) {
+//         if (ft.ticket.slug == msg.foundTicket.ticket.slug) {
+//           ft.checkedIns.add(msg);
+//           return true;
+//         }
+//         return false;
+//       }) >= 0;
+//     }).forEach((fts) =>
+//       this.appState.bus.add(FoundTickets(tickets: fts.tickets))
+//     );
+//   }
+
+//   if (msg is FoundTickets) {
+//     final idx = this.lastFoundTickets.indexWhere((t) => t.slug == msg.slug);
+//     if (idx >= 0) {
+//       this.lastFoundTickets.removeAt(idx);
+//     }
+//     this.lastFoundTickets.insert(0, msg);
+//     for(var i = 20; i < lastFoundTickets.length; i++) {
+//       lastFoundTickets.removeAt(20);
+//     }
+//     this.appState.bus.add(LastFoundTickets(last: lastFoundTickets), persist: true);
+//   }
+// });

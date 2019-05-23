@@ -1,15 +1,16 @@
-import 'dart:io';
-
 import 'package:confotor/models/conference.dart';
-import 'package:confotor/models/ticket-and-checkins.dart';
-import 'package:confotor/msgs/msgs.dart';
+import 'package:confotor/msgs/confotor-msg.dart';
 
-class Conferences {
-  final List<Conference> conferences = [];
-  Conferences fromJson(dynamic json) {
+const List<Conference> conferencesEmpty = [];
+class Conferences extends ConfotorMsg {
+  final List<Conference> conferences;
+
+  Conferences({List<Conference> conferences: conferencesEmpty}): conferences = conferences;
+
+  static Conferences fromJson(dynamic json) {
     final confs = Conferences();
     List<dynamic> o = json;
-    o.forEach((conf) => conferences.add(Conference.fromJson(conf)));
+    o.forEach((conf) => confs.conferences.add(Conference.fromJson(conf)));
     return confs;
   }
 
