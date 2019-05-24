@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:confotor/components/confotor-app.dart';
 import 'package:confotor/models/check-in-item.dart';
+import 'package:confotor/models/check-in-list-item.dart';
 import 'package:confotor/models/conference.dart';
 import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
@@ -11,23 +12,26 @@ import 'dart:convert' as convert;
 
 class CheckInObserver {
   final ConfotorAppState appState;
-  final ConferenceKey conference;
+  final CheckInList checkInList;
   Timer timer;
   // int count = 0;
   DateTime since;
   DateTime nextSince;
 
   CheckInObserver(
-      {@required ConfotorAppState appState, @required ConferenceKey conference})
-      : conference = conference,
+      {@required ConfotorAppState appState, @required CheckInList checkInList})
+      : checkInList = checkInList,
         appState = appState;
 
   getPage(int page, String transaction) {
-    final url = conference.checkInUrl(
+    final url = checkInList.checkInUrl(
         since: since == null ? 0 : since.millisecondsSinceEpoch / 1000,
         page: page);
+    print('getPage:$url:$page:since:${since == null ? 0 : since.millisecondsSinceEpoch / 1000}');
     http.get(url).then((res) {
+      print('getPage:$url:$page:pre');
       List<dynamic> json = convert.jsonDecode(res.body);
+      print('getPage:$url:$page:${json.length}');
       final items = json.map((i) {
         final item = CheckInItem.fromJson(i);
         if (nextSince == null) {
@@ -38,24 +42,27 @@ class CheckInObserver {
         }
         return item;
       });
-      print('getPage:$url:$page:${json.length}');
+      print('getPage:$url:$page:pos');
       appState.bus.add(CheckInItemPageMsg(
-        conference: conference,
+        checkInList: checkInList,
         transaction: transaction,
-        items: items,
+        items: items.toList(),
         page: page,
         completed: items.isEmpty,
       ));
+      print('getPage:$url:$page:pos:1');
       if (items.isNotEmpty) {
+        print('getPage:$url:$page:pos:2');
         getPage(page + 1, transaction);
       } else {
+        print('getPage:$url:$page:pos:3:$nextSince');
         since = nextSince;
-        nextSince = null;
+        // nextSince = null;
         start();
       }
     }).catchError((err) {
       appState.bus.add(CheckInObserverError(
-          error: err, conference: conference, transaction: transaction));
+          error: err, conference: checkInList, transaction: transaction));
     });
   }
 
@@ -139,10 +146,12 @@ class CheckInAgent {
         }
       }
       if (msg is UpdatedConference) {
+        print('CheckInAgent:UpdatedConference:${msg.checkInListItem.url}');
         if (!observers.containsKey(msg.checkInListItem.url)) {
+          print('CheckInAgent:UpdatedConference:${msg.checkInListItem.url}:create');
           observers[msg.checkInListItem.url] = CheckInObserver(
-              appState: appState, conference: msg.checkInListItem);
-          observers[msg.checkInListItem.url].start();
+              appState: appState, checkInList: msg.checkInListItem);
+          observers[msg.checkInListItem.url].start(seconds: 0);
         }
       }
 
@@ -152,6 +161,7 @@ class CheckInAgent {
           observers.remove(msg.checkInItemMsg.url);
         }
       }
+
       // if (msg is RequestCheckOutTicket) {
       //   final FoundTicket ft = msg.foundTicket;
       //   if (ft.checkedIns.last is CheckedInTicket) {

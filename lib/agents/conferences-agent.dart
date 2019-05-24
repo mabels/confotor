@@ -6,6 +6,7 @@ import 'package:confotor/models/conferences.dart';
 import 'package:confotor/models/ticket.dart';
 import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
+import 'package:confotor/msgs/scan-msg.dart';
 import 'package:confotor/stores/conferences-store.dart';
 import 'package:meta/meta.dart';
 
@@ -28,28 +29,29 @@ class ConferencesAgent {
         final conferences = Conferences.fromJson(msg.json['conferences']);
         conferences.conferences.forEach((conf) => appState.bus.add(
             RequestUpdateConference(
-                checkInListItem: conf.checkInListItem, conference: conf)));
+                checkInListItem: conf.checkInList, conference: conf)));
       } else if (msg is UpdatedConference) {
+        print('conferences-agent:UpdateConference:${msg.conference}');
         if (msg.conference != null) {
           if (msg.conference.ticketAndCheckInsList != null) {
             msg.conference.ticketAndCheckInsList.forEach((tac) {
               _conferences.updateTicketPage(TicketPageMsg(
                   transaction: appState.uuid.v4(),
-                  conference: msg.checkInListItem,
+                  checkInList: msg.checkInListItem,
                   items: msg.conference.ticketAndCheckInsList
                       .map((tac) => tac.ticket),
                   page: 1,
                   completed: true));
               _conferences.updateCheckInItemPage(CheckInItemPageMsg(
                   transaction: appState.uuid.v4(),
-                  conference: msg.checkInListItem,
+                  checkInList: msg.checkInListItem,
                   items: msg.conference.ticketAndCheckInsList
                       .expand((tac) => tac.checkInItems),
                   page: 1,
                   completed: true));
               _conferences.updateCheckInActionPage(CheckInActionPageMsg(
                   transaction: appState.uuid.v4(),
-                  conference: msg.checkInListItem,
+                  checkInList: msg.checkInListItem,
                   items: msg.conference.ticketAndCheckInsList
                       .expand((tac) => tac.checkInActions),
                   page: 1,
@@ -73,10 +75,11 @@ class ConferencesAgent {
 
       if (msg is CheckInItemPageMsg) {
         try {
+          print('UpdateCheckInItem:${msg.items.length}');
           _conferences.updateCheckInItemPage(msg);
         } catch (e) {
           appState.bus.add(CheckInItemPageError(
-              conference: msg.conference,
+              conference: msg.checkInList,
               transaction: msg.transaction,
               error: e));
         }
@@ -84,20 +87,31 @@ class ConferencesAgent {
 
       if (msg is TicketPageMsg) {
         try {
+          print('UpdateTicket:${msg.items.length}');
           _conferences.updateTicketPage(msg);
         } catch (e) {
           appState.bus.add(TicketError(
-              conference: msg.conference,
+              conference: msg.checkInList,
               transaction: msg.transaction,
               error: e));
         }
       }
 
-      if (msg is CheckInListScanBarcodeMsg) {
+      if (msg is ScanCheckInListMsg) {
         CheckInList.fetch(msg.barcode).then((item) {
           this.appState.bus.add(RequestUpdateConference(checkInListItem: item));
         }).catchError((e) {
           this.appState.bus.add(ConferencesError(error: e));
+        });
+      }
+
+      if (msg is JsonObjectError || msg is FileError) {
+        final fileName = msg as FileName;
+        _conferences.conferencesFile.then((conferencesFile) {
+          print('Run:${fileName.fileName}:${conferencesFile.path}');
+          if (fileName.fileName == conferencesFile.path) {
+            this.appState.bus.add(ConferencesMsg(conferences: _conferences.toConferences()));
+          }
         });
       }
     });

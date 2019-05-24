@@ -2,10 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:confotor/components/confotor-app.dart';
-import 'package:confotor/models/check-in-list-item.dart';
 import 'package:confotor/models/conference.dart';
 import 'package:confotor/models/conferences.dart';
-import 'package:confotor/models/ticket-and-checkins.dart';
 import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
 import 'package:meta/meta.dart';
@@ -21,25 +19,25 @@ class ConferencesStore {
 
   ConferenceStore updateConference(RequestUpdateConference ruc) {
     return _conferences
-        .putIfAbsent(ruc.checkInListItem.url, () => ConferenceStore(appState: appState))
+        .putIfAbsent(ruc.checkInListItem.url, () => ConferenceStore(appState: appState, ruc: ruc))
         .update(ruc);
   }
 
   ConferenceStore updateCheckInItemPage(CheckInItemPageMsg ciim) {
     return _conferences
-        .putIfAbsent(ciim.conference.url, () => ConferenceStore(appState: appState))
+        .putIfAbsent(ciim.checkInList.url, () => ConferenceStore(appState: appState))
         .updateCheckInItems(ciim.items);
   }
 
     ConferenceStore updateCheckInActionPage(CheckInActionPageMsg ciam) {
     return _conferences
-        .putIfAbsent(ciam.conference.url, () => ConferenceStore(appState: appState))
+        .putIfAbsent(ciam.checkInList.url, () => ConferenceStore(appState: appState))
         .updateCheckInActions(ciam.items);
   }
 
   ConferenceStore updateTicketPage(TicketPageMsg tpm) {
     return _conferences
-        .putIfAbsent(tpm.conference.url, () => ConferenceStore(appState: appState))
+        .putIfAbsent(tpm.checkInList.url, () => ConferenceStore(appState: appState))
         .updateTickets(tpm.items);
   }
 
@@ -47,8 +45,8 @@ class ConferencesStore {
 
   Conferences toConferences() {
     return Conferences(conferences: _conferences.values.map((i) => Conference(
-      checkInListItem: i.checkInListItem,
-      ticketAndCheckInsList: i.ticketStore.values
+      checkInList: i.checkInListItem,
+      ticketAndCheckInsList: i.ticketStore.values.map((ts) => ts.asTicketAndCheckIns()).toList()
     )).toList());
   }
 
@@ -68,7 +66,7 @@ class ConferencesStore {
       if (found != null) {
         // print("findTickets:Found:${found.slug}:${slug}");
         ret.add(ConferenceTicket(checkInListItem: conf.checkInListItem,
-                                 ticketAndCheckIns: found.toTicketAndCheckIns()));
+                                 ticketAndCheckIns: found.asTicketAndCheckIns()));
       }
       return found != null;
     }, orElse: () => null);
@@ -80,7 +78,7 @@ class ConferencesStore {
           if (ticket.registration_reference ==
               ref.ticketAndCheckIns.ticket.registration_reference) {
             ret.add(ConferenceTicket(checkInListItem: conf.checkInListItem,
-                                     ticketAndCheckIns: tac.toTicketAndCheckIns()));
+                                     ticketAndCheckIns: tac.asTicketAndCheckIns()));
             return;
           }
           if (ticket.email == ref.ticketAndCheckIns.ticket.email) {
@@ -88,7 +86,7 @@ class ConferencesStore {
               if (ticket.first_name == ref.ticketAndCheckIns.ticket.first_name) {
                 if (ticket.last_name == ref.ticketAndCheckIns.ticket.last_name) {
                   ret.add(ConferenceTicket(checkInListItem: conf.checkInListItem,
-                                           ticketAndCheckIns: tac.toTicketAndCheckIns()));
+                                           ticketAndCheckIns: tac.asTicketAndCheckIns()));
                 }
               }
             }
@@ -100,14 +98,14 @@ class ConferencesStore {
     return FoundTickets(conferenceTicket: ret);
   }
 
-  Future<File> get _localFile async {
+  Future<File> get conferencesFile async {
     final path = await appState.getLocalPath();
-    print('_localFile:$path');
+    // print('_localFile:$path');
     return new File('$path/conferences.json');
   }
 
   Future<ConferencesStore> writeConference() async {
-    final file = await _localFile;
+    final file = await conferencesFile;
     String str;
     try {
       str = json.encode(_conferences);
@@ -130,15 +128,15 @@ class ConferencesStore {
     }).catchError((e) {
     });
     */
-    _localFile.then((file) {
+    conferencesFile.then((file) {
       file.readAsString().then((str) {
         try {
-          appState.bus.add(JsonObject(json: json.decode(str), fileName: file.toString()));
+          appState.bus.add(JsonObject(json: json.decode(str), fileName: file.path));
         } catch (e) {
-          appState.bus.add(JsonObjectError(error: e, str: str, fileName: file.toString()));
+          appState.bus.add(JsonObjectError(error: e, str: str, fileName: file.path));
         }
       }).catchError((e) {
-        appState.bus.add(new FileError(error: e, fileName: file.toString()));
+        appState.bus.add(new FileError(error: e, fileName: file.path));
       });
     }).catchError((e) {
       appState.bus.add(new FileError(error: e));

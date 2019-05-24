@@ -14,6 +14,8 @@ class Conferences extends ConfotorMsg {
     return confs;
   }
 
+  get isEmpty => conferences.isEmpty;
+
   toJson() => conferences;
 
 }

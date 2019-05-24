@@ -1,16 +1,20 @@
 import 'package:confotor/models/ticket-and-checkins.dart';
-import 'package:confotor/stores/ticket-store.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 import 'check-in-list-item.dart';
 
 abstract class ConferenceKey {
-  String get url;
+  final String url;
+
+  ConferenceKey(String url): url = url {
+    print('ConferenceKey:$url');
+  }
 
   String get listId {
     final url = Uri.parse(this.url);
-    return basename(dirname(url.path));
+    return basename(url.path).split('.').first;
+    // https://ti.to/jsconfeu/jsconf-eu-x-2019/checkin_lists/xxxxxxxxx.json;
   }
 
   String ticketsUrl(int page) {
@@ -27,14 +31,13 @@ abstract class ConferenceKey {
   }
 }
 
-class Conference extends ConferenceKey {
-  final CheckInList checkInListItem;
+class Conference {
+  final CheckInList checkInList;
   final List<TicketAndCheckIns> ticketAndCheckInsList;
 
-  Conference({@required checkInListItem, @required ticketAndCheckInsList}):
-    checkInListItem = checkInListItem,
+  Conference({@required CheckInList checkInList, @required List<TicketAndCheckIns> ticketAndCheckInsList}):
+    checkInList = checkInList,
     ticketAndCheckInsList = ticketAndCheckInsList;
-
 
   get checkInItemLength {
     return ticketAndCheckInsList.map((t) => t.checkInItems.length).reduce((a, b) => a + b);
@@ -46,15 +49,15 @@ class Conference extends ConferenceKey {
       List<dynamic> my = json['ticketAndCheckInsList'];
       my.forEach((j) => ticketAndCheckInsList.add(TicketAndCheckIns.fromJson(j)));
     }
-    return Conference(checkInListItem: CheckInList.fromJson(json['checkInListItem']),
+    return Conference(checkInList: CheckInList.fromJson(json['checkInListItem']),
                       ticketAndCheckInsList: ticketAndCheckInsList);
   }
 
   @override
-  get url => checkInListItem.url;
+  get url => checkInList.url;
 
   toJson() => {
-    "checkInListItem": checkInListItem.toJson(),
+    "checkInListItem": checkInList.toJson(),
     "ticketStore": ticketAndCheckInsList
   };
 

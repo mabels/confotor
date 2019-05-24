@@ -29,14 +29,6 @@ class TicketAndCheckInsStore {
     return state.toString().split('.').last;
   }
 
-  TicketAndCheckIns toTicketAndCheckIns() {
-    return TicketAndCheckIns(
-      checkInItems: checkInItems.toList(),
-      checkInActions: checkInActions.toList(),
-      ticket: ticket
-    );
-  }
-
   TicketAndCheckInsStore update(TicketAndCheckIns tac) {
     if (!(ticket.id == tac.ticket.id)) {
       throw Exception("Ticket update on wrong instance");
@@ -46,6 +38,12 @@ class TicketAndCheckInsStore {
     checkInItems.update(tac.checkInItems);
     // checkInActions.addAll(tac.checkInActions);
     return this;
+  }
+
+  TicketAndCheckIns asTicketAndCheckIns() {
+    return TicketAndCheckIns(
+      ticket: ticket, checkInActions: checkInActions.toList(), checkInItems: checkInItems.toList()
+    );
   }
 
   Map<String, dynamic> toJson() => {

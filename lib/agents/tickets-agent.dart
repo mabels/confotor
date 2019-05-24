@@ -15,7 +15,7 @@ enum TicketsStatus { Initial, Page, Ready, Error }
 
 class TicketObserver {
   final ConfotorAppState appState;
-  final ConferenceKey conference;
+  final CheckInList checkInList;
   Timer timer;
 
   // static TicketObserver fetch(
@@ -25,21 +25,23 @@ class TicketObserver {
   //   return tickets;
   // }
 
-  TicketObserver({ConfotorAppState appState, ConferenceKey conference})
+  TicketObserver({ConfotorAppState appState, CheckInList checkInList})
       : appState = appState,
-        conference = conference;
+        checkInList = checkInList;
 
   getPages(int page, String transaction) {
-    final url = this.conference.ticketsUrl(page);
+    final url = this.checkInList.ticketsUrl(page);
+    print('TicketAgent:getPages:$url:$page:$transaction');
     http.get(url).then((response) {
+      print('TicketAgent:getPages:$url:$page:$transaction:${response.statusCode}');
       if (200 <= response.statusCode && response.statusCode < 300) {
         Iterable jsonResponse = convert.jsonDecode(response.body);
         // this.tickets.addAll(tickets);
         final items = jsonResponse.map((f) => Ticket.fromJson(f));
         this.appState.bus.add(TicketPageMsg(
             transaction: transaction,
-            conference: this.conference,
-            items: items,
+            checkInList: this.checkInList,
+            items: items.toList(),
             page: page,
             completed: items.isEmpty));
 
@@ -47,20 +49,24 @@ class TicketObserver {
           getPages(page + 1, transaction);
         }
       } else {
+        print("TicketsError:ResponseCode:getPage:${url}:${response.statusCode}");
         this.appState.bus.add(TicketsError(
-            conference: this.conference, url: url, response: response,
+            conference: this.checkInList, url: url, response: response,
             error: Exception("ResponseCode:getPage:${url}:${response.statusCode}"),
             transaction: transaction));
       }
     }).catchError((e) {
+      print("TicketsError:ResponseCode:getPage:${url}:${e}");
       this.appState.bus.add(
-          TicketsError(conference: this.conference, url: url, error: e, transaction: transaction));
+          TicketsError(conference: this.checkInList, url: url, error: e, transaction: transaction));
     });
   }
 
   TicketObserver start({int hours = 4}) {
     stop();
+    print('TicketObserver:start:$hours');
     timer = new Timer(Duration(hours: hours), () {
+      print('TicketObserver:start:$hours:getPages:');
       getPages(1, appState.uuid.v4()); // paged api triggered by page 1
     });
     return this;
@@ -111,6 +117,7 @@ class TicketsAgent {
   }
 
   start() {
+    print('TicketAgent:start');
     subscription = this.appState.bus.stream.listen((msg) {
 
       if (msg is AppLifecycleMsg) {
@@ -131,12 +138,15 @@ class TicketsAgent {
             break;
         }
       }
+
       if (msg is UpdatedConference) {
+        print('TicketsAgent:UpdatedConference:${msg.checkInListItem.url}');
         if (!observers.containsKey(msg.checkInListItem.url)) {
+          print('TicketsAgent:UpdatedConference:${msg.checkInListItem.url}:create');
           observers[msg.checkInListItem.url] = TicketObserver(
-              appState: appState, conference: msg.checkInListItem);
-          observers[msg.checkInListItem.url].start();
-        } 
+              appState: appState, checkInList: msg.checkInListItem);
+          observers[msg.checkInListItem.url].start(hours: 0);
+        }
       }
 
       if (msg is ConferenceRemoved) {

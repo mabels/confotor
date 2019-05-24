@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:confotor/models/ticket-and-checkins.dart';
 import 'package:confotor/msgs/msgs.dart';
 import 'package:flutter/material.dart';
@@ -17,10 +19,15 @@ class TicketListArea extends StatefulWidget {
 class TicketListAreaState extends State<TicketListArea> {
   LastFoundTickets lastFoundTickets;
   final ConfotorAppState appState;
+  StreamSubscription subscription;
 
-  TicketListAreaState({ConfotorAppState appState}) : appState = appState {
-    print('TicketListAreaState:TicketListAreaState');
-    appState.bus.stream.listen((msg) {
+  TicketListAreaState({ConfotorAppState appState}) : appState = appState;
+
+  @override
+  void initState() {
+    super.initState();
+    print('TicketListAreaState:initState');
+    subscription = appState.bus.stream.listen((msg) {
       // print('TicketListAreaState:${msg.runtimeType.toString()}');
       if (msg is LastFoundTickets) {
         setState(() {
@@ -28,6 +35,12 @@ class TicketListAreaState extends State<TicketListArea> {
         });
       }
     });
+  }
+
+  @override
+  dispose() {
+    super.dispose();
+    subscription.cancel();
   }
 
   actionText(ConferenceTicket tac, String stateText) {

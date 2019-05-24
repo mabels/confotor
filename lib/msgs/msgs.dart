@@ -5,6 +5,7 @@ import 'package:confotor/models/check-in-action.dart';
 import 'package:confotor/models/check-in-item.dart';
 import 'package:confotor/models/check-in-list-item.dart';
 import 'package:confotor/models/conference.dart';
+import 'package:confotor/models/conferences.dart';
 import 'package:confotor/models/ticket-and-checkins.dart';
 import 'package:confotor/models/ticket.dart';
 import 'package:confotor/msgs/confotor-msg.dart';
@@ -28,7 +29,7 @@ import 'package:http/http.dart' as http;
 //   final List<CheckInItem> items;
 //   CheckInItemPageMsg({
 //     @required ConferenceKey conference,
-//     @required List<CheckInItem> items, 
+//     @required List<CheckInItem> items,
 //     String transaction}):
 //     conference = conference, items = items, transaction = transaction;
 
@@ -67,8 +68,8 @@ class AppLifecycleMsg extends ConfotorMsg {
 }
 
 class ConferencesMsg extends ConfotorMsg {
-  final List<Conference> conferences;
-  ConferencesMsg({@required conferences}): conferences = conferences;
+  final Conferences conferences;
+  ConferencesMsg({@required Conferences conferences}): conferences = conferences;
 }
 
 class ConferencesError extends ConfotorMsg implements ConfotorErrorMsg {
@@ -118,19 +119,19 @@ class LastFoundTickets extends ConfotorMsg {
 
 class PageMsg<T> extends ConfotorMsg {
   final String transaction;
-  final ConferenceKey conference;
+  final CheckInList checkInList;
   final List<T> items;
   final int page;
   final bool completed;
   PageMsg({
     @required final String transaction,
-    @required final ConferenceKey conference,
+    @required final CheckInList checkInList,
     @required final List<T> items,
     @required final int page,
     @required final bool completed
     }) :
       transaction = transaction,
-      conference = conference,
+      checkInList = checkInList,
       items = items,
       page = page,
       completed = completed;
@@ -139,13 +140,13 @@ class PageMsg<T> extends ConfotorMsg {
 class TicketPageMsg extends PageMsg<Ticket> {
   TicketPageMsg({
     @required final String transaction,
-    @required final ConferenceKey conference,
+    @required final CheckInList checkInList,
     @required final List<Ticket> items,
     @required final int page,
     @required final bool completed
     }) :
       super(transaction: transaction,
-      conference: conference,
+      checkInList: checkInList,
       items: items,
       page: page,
       completed: completed);
@@ -155,13 +156,13 @@ class TicketPageMsg extends PageMsg<Ticket> {
 class CheckInItemPageMsg extends PageMsg<CheckInItem> {
   CheckInItemPageMsg({
     @required final String transaction,
-    @required final ConferenceKey conference,
+    @required final CheckInList checkInList,
     @required final List<CheckInItem> items,
     @required final int page,
     @required final bool completed
     }) :
       super(transaction: transaction,
-      conference: conference,
+      checkInList: checkInList,
       items: items,
       page: page,
       completed: completed);
@@ -170,13 +171,13 @@ class CheckInItemPageMsg extends PageMsg<CheckInItem> {
 class CheckInActionPageMsg extends PageMsg<CheckInAction> {
   CheckInActionPageMsg({
     @required final String transaction,
-    @required final ConferenceKey conference,
+    @required final CheckInList checkInList,
     @required final List<CheckInAction> items,
     @required final int page,
     @required final bool completed
     }) :
       super(transaction: transaction,
-      conference: conference,
+      checkInList: checkInList,
       items: items,
       page: page,
       completed: completed);
@@ -235,12 +236,12 @@ class RefreshConferences extends ConfotorMsg {
   RefreshConferences({List<ConferenceKey> items: empty}) : items = items;
 }
 
-class CheckInListScanMsg extends ConfotorMsg {}
+// class CheckInListScanMsg extends ConfotorMsg {}
 
-class CheckInListScanBarcodeMsg extends CheckInListScanMsg {
-  final String barcode;
-  CheckInListScanBarcodeMsg({@required String barcode}) : barcode = barcode;
-}
+// class CheckInListScanBarcodeMsg extends CheckInListScanMsg {
+//   final String barcode;
+//   CheckInListScanBarcodeMsg({@required String barcode}) : barcode = barcode;
+// }
 // class TicketListScanPlatformExceptionMsg extends TicketListScanMsg {
 //   final PlatformException exception;
 //   TicketListScanPlatformExceptionMsg({PlatformException exception}): exception = exception;
@@ -251,11 +252,11 @@ class CheckInListScanBarcodeMsg extends CheckInListScanMsg {
 //   TicketListScanFormatExceptionMsg({FormatException exception}): exception = exception;
 // }
 
-class CheckInListScanUnknownExceptionMsg extends CheckInListScanMsg {
-  final dynamic exception;
-  CheckInListScanUnknownExceptionMsg({dynamic exception})
-      : exception = exception;
-}
+// class CheckInListScanUnknownExceptionMsg extends CheckInListScanMsg {
+//   final dynamic exception;
+//   CheckInListScanUnknownExceptionMsg({dynamic exception})
+//       : exception = exception;
+//}
 
 // class CheckedTicketError extends ConfotorMsg implements ConfotorErrorMsg {
 //   final dynamic error;
@@ -300,14 +301,19 @@ class RequestCheckInTicket extends ConfotorMsg {
   RequestCheckInTicket({@required ticket}): conferenceTicket = ticket;
 }
 
-class FileError extends ConfotorMsg implements ConfotorErrorMsg {
+abstract class FileName {
+  final String fileName;
+  FileName(this.fileName);
+}
+
+class FileError extends ConfotorMsg implements ConfotorErrorMsg, FileName {
   final dynamic error;
   final String fileName;
   FileError({@required dynamic error, String fileName}):
     error = error, fileName = fileName;
 }
 
-class JsonObject extends ConfotorMsg {
+class JsonObject extends ConfotorMsg implements FileName {
   final dynamic json;
   final String fileName;
   JsonObject({@required dynamic json, String fileName}):

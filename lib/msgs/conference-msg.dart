@@ -17,7 +17,7 @@ class RequestUpdateConference extends ConfotorMsg {
 class UpdatedConference extends ConfotorMsg {
   final ConferenceKey checkInListItem;
   final Conference conference;
-  UpdatedConference({@required ConferenceKey checkInListItem, Conference conference}): 
+  UpdatedConference({@required ConferenceKey checkInListItem, Conference conference}):
     checkInListItem = checkInListItem,
     conference = conference;
 }

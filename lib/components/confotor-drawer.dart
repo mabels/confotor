@@ -27,13 +27,13 @@ refreshSection({
         key: Key('RefreshTickets'),
         title: Text('Refresh Tickets'),
         onTap: () {
-          confs.forEach((conf) => appState.bus.add(RequestUpdateConference(checkInListItem: conf.checkInListItem)));
+          confs.forEach((conf) => appState.bus.add(RequestUpdateConference(checkInListItem: conf.checkInList)));
         }));
          confs.forEach((conf) => children.add(ListTile(
-          key: Key(conf.checkInListItem.url),
-          title: Text("${conf.checkInListItem.event_title}(${conf.ticketAndCheckInsList.length}-${conf.checkInItemLength})"),
+          key: Key(conf.checkInList.url),
+          title: Text("${conf.checkInList.event_title}(${conf.ticketAndCheckInsList.length}-${conf.checkInItemLength})"),
           onTap: () {
-            appState.bus.add(RequestUpdateConference(checkInListItem: conf.checkInListItem));
+            appState.bus.add(RequestUpdateConference(checkInListItem: conf.checkInList));
           })));
   }
   drawer.add(Column(
@@ -53,15 +53,15 @@ removeSection({
         onLongPress: () {
           // Navigator.of(appState.context).pop();
           // checkInListScan(bus: appState.bus);
-          confs.forEach((conf) => appState.bus.add(RequestRemoveConference(conference: conf)));
+          confs.forEach((conf) => appState.bus.add(RequestRemoveConference(conference: conf.checkInList)));
           // Navigator.of(context).push(MaterialPageRoute(
           //   builder: (BuildContext context) => ScanScreen()));
         }));
         confs.forEach((conf) => children.add(ListTile(
-          key: Key(conf.checkInListItem.url),
-          title: Text("${conf.checkInListItem.event_title}(${conf.ticketAndCheckInsList.length}-${conf.checkInItemLength})"),
+          key: Key(conf.checkInList.url),
+          title: Text("${conf.checkInList.event_title}(${conf.ticketAndCheckInsList.length}-${conf.checkInItemLength})"),
           onLongPress: () {
-            appState.bus.add(RequestRemoveConference(conference: conf));
+            appState.bus.add(RequestRemoveConference(conference: conf.checkInList));
           })));
 
     // children.add(Column(

@@ -6,8 +6,8 @@ import '../confotor-bus.dart';
 
 scanCheckInListAction({ConfotorBus bus}) {
   BarcodeScanner.scan().then((barcode) {
-    bus.add(new ScanCheckInListMsg(barcode: barcode));
+    bus.add(ScanCheckInListMsg(barcode: barcode));
   }).catchError((e) {
-    bus.add(new ScanCheckInListErrorMsg(error: e));
+    bus.add(ScanCheckInListErrorMsg(error: e));
   });
 }

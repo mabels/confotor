@@ -30,7 +30,7 @@ class TicketStore {
             .putIfAbsent(
                 tac.ticket.id, () => TicketAndCheckInsStore(ticket: tac.ticket))
             .update(tac)
-            .toTicketAndCheckIns())));
+            .asTicketAndCheckIns())));
     return this;
   }
 

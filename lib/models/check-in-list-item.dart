@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:confotor/models/conference.dart';
 import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 
 class CheckInList extends ConferenceKey {
-  String url;
   String event_title;
   String expires_at;
   String expires_at_timestamp;
@@ -13,17 +13,25 @@ class CheckInList extends ConferenceKey {
   int total_pages;
   int total_entries;
 
+  CheckInList({@required String url}): super(url) {
+    print('CheckInList:$url');
+    if (this.url == null) {
+      throw Exception('CheckInList: tried with null url');
+    }
+  }
+
   static Future<ConferenceKey> fetch(String url) async {
+    final cil = CheckInList(url: url);
     var response = await http.get(url);
     if (200 <= response.statusCode && response.statusCode < 300) {
       final jsonResponse = json.decode(response.body);
-      return CheckInList.fromJson(jsonResponse);
+      return cil.updateFromJson(jsonResponse);
     }
     throw new Exception('CheckInListItem:fetch:${response.statusCode}:$url');
   }
 
-  static ConferenceKey fromJson(dynamic json) {
-    return CheckInList().updateFromJson(json);
+  static CheckInList fromJson(dynamic json) {
+    return CheckInList(url: json['url']).updateFromJson(json);
   }
 
   get shortEventTitle {
@@ -42,7 +50,6 @@ class CheckInList extends ConferenceKey {
   }
 
   updateFromJson(dynamic json) {
-    url = json['url'];
     event_title = json['event_title'];
     expires_at = json['expires_at'];
     expires_at_timestamp = json['expires_at_timestamp'];
@@ -69,6 +76,7 @@ class CheckInList extends ConferenceKey {
         "total_entries": total_entries,
       };
   }
+
 
 
 }

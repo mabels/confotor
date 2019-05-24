@@ -5,11 +5,12 @@ import 'package:confotor/models/check-in-list-item.dart';
 import 'package:confotor/models/ticket.dart';
 import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/stores/ticket-store.dart';
+import 'package:meta/meta.dart';
 
 class ConferenceStore {
   final CheckInList checkInListItem;
   final TicketStore ticketStore;
-  ConferenceStore({ConfotorAppState appState, RequestUpdateConference ruc}):
+  ConferenceStore({@required ConfotorAppState appState, @required RequestUpdateConference ruc}):
     checkInListItem = ruc.checkInListItem,
     ticketStore = TicketStore(appState: appState, checkInListItem: ruc.checkInListItem);
 

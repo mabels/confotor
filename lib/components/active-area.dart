@@ -24,16 +24,14 @@ class ActionAreaState extends State<ActionArea> {
       if (msg is ConferencesMsg) {
         setState(() {
           if (msg.conferences.isEmpty) {
-            this.action = Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                child: RaisedButton(
+            this.action = RaisedButton(
                     color: Colors.red,
                     textColor: Colors.white,
                     splashColor: Colors.redAccent,
                     onPressed: () {
                       scanCheckInListAction(bus: appState.bus);
                     },
-                    child: const Text('Add TicketList')));
+                    child: const Text('Add TicketList'));
           } else {
             this.action = RaisedButton(
                 color: Colors.pink,
@@ -54,10 +52,7 @@ class ActionAreaState extends State<ActionArea> {
     return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-              padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-              child: action)
-        ]);
+        children: [action]
+        );
   }
 }
