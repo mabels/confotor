@@ -6,6 +6,7 @@ import 'package:confotor/models/check-in-list-item.dart';
 import 'package:confotor/models/conference.dart';
 import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
+import 'package:confotor/msgs/scan-msg.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
@@ -27,11 +28,11 @@ class CheckInObserver {
     final url = checkInList.checkInUrl(
         since: since == null ? 0 : since.millisecondsSinceEpoch / 1000,
         page: page);
-    print('getPage:$url:$page:since:${since == null ? 0 : since.millisecondsSinceEpoch / 1000}');
+    // print('getPage:$url:$page:since:${since == null ? 0 : since.millisecondsSinceEpoch / 1000}');
     http.get(url).then((res) {
-      print('getPage:$url:$page:pre');
+      // print('getPage:$url:$page:pre');
       List<dynamic> json = convert.jsonDecode(res.body);
-      print('getPage:$url:$page:${json.length}');
+      // print('getPage:$url:$page:${json.length}');
       final items = json.map((i) {
         final item = CheckInItem.fromJson(i);
         if (nextSince == null) {
@@ -42,7 +43,7 @@ class CheckInObserver {
         }
         return item;
       });
-      print('getPage:$url:$page:pos');
+      // print('getPage:$url:$page:pos');
       appState.bus.add(CheckInItemPageMsg(
         checkInList: checkInList,
         transaction: transaction,
@@ -50,12 +51,12 @@ class CheckInObserver {
         page: page,
         completed: items.isEmpty,
       ));
-      print('getPage:$url:$page:pos:1');
+      // print('getPage:$url:$page:pos:1');
       if (items.isNotEmpty) {
-        print('getPage:$url:$page:pos:2');
+        // print('getPage:$url:$page:pos:2');
         getPage(page + 1, transaction);
       } else {
-        print('getPage:$url:$page:pos:3:$nextSince');
+        // print('getPage:$url:$page:pos:3:$nextSince');
         since = nextSince;
         // nextSince = null;
         start();
@@ -146,21 +147,23 @@ class CheckInAgent {
         }
       }
       if (msg is UpdatedConference) {
-        print('CheckInAgent:UpdatedConference:${msg.checkInListItem.url}');
-        if (!observers.containsKey(msg.checkInListItem.url)) {
-          print('CheckInAgent:UpdatedConference:${msg.checkInListItem.url}:create');
-          observers[msg.checkInListItem.url] = CheckInObserver(
-              appState: appState, checkInList: msg.checkInListItem);
-          observers[msg.checkInListItem.url].start(seconds: 0);
+        print('CheckInAgent:UpdatedConference:${msg.checkInList.url}');
+        if (!observers.containsKey(msg.checkInList.url)) {
+          print('CheckInAgent:UpdatedConference:${msg.checkInList.url}:create');
+          observers[msg.checkInList.url] = CheckInObserver(
+              appState: appState, checkInList: msg.checkInList);
+          observers[msg.checkInList.url].start(seconds: 0);
         }
       }
 
-      if (msg is ConferenceRemoved) {
-        if (observers.containsKey(msg.checkInItemMsg.url)) {
-          observers[msg.checkInItemMsg.url].stop();
-          observers.remove(msg.checkInItemMsg.url);
+      if (msg is RemovedConference) {
+        if (observers.containsKey(msg.checkInList.url)) {
+          observers[msg.checkInList.url].stop();
+          observers.remove(msg.checkInList.url);
         }
       }
+
+
 
       // if (msg is RequestCheckOutTicket) {
       //   final FoundTicket ft = msg.foundTicket;

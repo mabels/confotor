@@ -1,5 +1,3 @@
-import 'package:confotor/actions/scan-check-in-list-action.dart';
-import 'package:confotor/actions/scan-ticket-action.dart';
 import 'package:confotor/msgs/msgs.dart';
 import 'package:flutter/material.dart';
 

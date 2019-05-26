@@ -40,12 +40,16 @@ class Conference {
     ticketAndCheckInsList = ticketAndCheckInsList;
 
   get checkInItemLength {
-    return ticketAndCheckInsList.map((t) => t.checkInItems.length).reduce((a, b) => a + b);
+    final i = ticketAndCheckInsList.map((t) => t.checkInItems.length);
+    if (i.isEmpty) {
+      return 0;
+    }
+    return i.reduce((a, b) => a + b);
   }
 
-  static fromJson(dynamic json) {
+  static Conference fromJson(dynamic json) {
     final List<TicketAndCheckIns> ticketAndCheckInsList = [];
-    if (json['ticketAndCheckInsList'] != 0) {
+    if (json['ticketAndCheckInsList'] != null) {
       List<dynamic> my = json['ticketAndCheckInsList'];
       my.forEach((j) => ticketAndCheckInsList.add(TicketAndCheckIns.fromJson(j)));
     }
@@ -57,7 +61,7 @@ class Conference {
   get url => checkInList.url;
 
   toJson() => {
-    "checkInListItem": checkInList.toJson(),
+    "checkInListItem": checkInList,
     "ticketStore": ticketAndCheckInsList
   };
 

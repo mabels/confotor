@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "40439862025",
+    "firebase_url": "https://confotor-ad969.firebaseio.com",
+    "project_id": "confotor-ad969",
+    "storage_bucket": "confotor-ad969.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:40439862025:android:4787cf39c0635368",
+        "android_client_info": {
+          "package_name": "com.adviser.confotor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "40439862025-diu85v11d6kf46dtnmr494bu72afnd70.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBiigfY5xMVYFyWUsYfxM31rLtx5WLHysE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "40439862025-diu85v11d6kf46dtnmr494bu72afnd70.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,16 +1,21 @@
 import 'package:confotor/models/conference.dart';
 import 'package:confotor/msgs/confotor-msg.dart';
+import 'package:meta/meta.dart';
 
-const List<Conference> conferencesEmpty = [];
+// const List<Conference> conferencesEmpty = [];
 class Conferences extends ConfotorMsg {
   final List<Conference> conferences;
 
-  Conferences({List<Conference> conferences: conferencesEmpty}): conferences = conferences;
+  Conferences({@required List<Conference> conferences}): conferences = conferences;
 
   static Conferences fromJson(dynamic json) {
-    final confs = Conferences();
     List<dynamic> o = json;
-    o.forEach((conf) => confs.conferences.add(Conference.fromJson(conf)));
+    if (!(o is List)) {
+      o = [];
+    }
+    final confs = Conferences(conferences: o.map((conf) => 
+      Conference.fromJson(conf))
+      .toList());
     return confs;
   }
 

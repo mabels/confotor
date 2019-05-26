@@ -14,56 +14,68 @@ class TicketStore {
   TicketStoreStatus ticketsStatus = TicketStoreStatus.Initial;
   final Map<int, TicketAndCheckInsStore> _ticketAndCheckIns = new Map();
   final ConfotorAppState appState;
-  final CheckInList _checkInListItem;
+  // final CheckInList _checkInListItem;
 
-  TicketStore(
-      {@required ConfotorAppState appState,
-      @required CheckInList checkInListItem})
-      : _checkInListItem = checkInListItem,
-        appState = appState;
+  TicketStore({@required ConfotorAppState appState}) : appState = appState;
 
   update(List<TicketAndCheckIns> list) {
     // final transaction = appState.uuid.v4();
-    list.forEach((tac) => appState.bus.add(ConferenceTicket(
-        checkInListItem: _checkInListItem,
-        ticketAndCheckIns: _ticketAndCheckIns
-            .putIfAbsent(
-                tac.ticket.id, () => TicketAndCheckInsStore(ticket: tac.ticket))
-            .update(tac)
-            .asTicketAndCheckIns())));
+    list.forEach((tac) => _ticketAndCheckIns
+        .putIfAbsent(
+            tac.ticket.id, () => TicketAndCheckInsStore(id: tac.ticket.id))
+        .update(tac));
     return this;
   }
 
   updateCheckInActions(List<CheckInAction> ciams) {
     ciams.forEach((ciam) {
-      if (_ticketAndCheckIns.containsKey(ciam.ticket_id)) {
-        _ticketAndCheckIns[ciam.ticket_id].checkInActions.update([ciam]);
+      try {
+        _ticketAndCheckIns
+            .putIfAbsent(ciam.ticketId,
+                () => TicketAndCheckInsStore(id: ciam.ticketId))
+            .checkInActions
+            .update([ciam]);
+      } catch (e) {
+        // print('updateTickets:${tickets.length}:${ticket.id}:$e');
+        throw e;
+      }
+
+      if (_ticketAndCheckIns.containsKey(ciam.ticketId)) {
+        _ticketAndCheckIns[ciam.ticketId].checkInActions.update([ciam]);
         return;
       }
-      throw Exception(
-          "updateCheckInItem ticketId:${ciam.ticket_id}:${_checkInListItem.url} not found");
+      throw Exception("updateCheckInItem ticketId:${ciam.ticketId} not found");
     });
   }
 
   updateCheckInItems(List<CheckInItem> ciims) {
     ciims.forEach((ciim) {
-      if (_ticketAndCheckIns.containsKey(ciim.ticket_id)) {
-        _ticketAndCheckIns[ciim.ticket_id].checkInItems.update([ciim]);
-        return;
+      // print('updateCheckInItems:${ciims.length}:${ciim.toJson()}');
+      try {
+        _ticketAndCheckIns
+            .putIfAbsent(ciim.ticket_id,
+                () => TicketAndCheckInsStore(id: ciim.ticket_id))
+            .checkInItems
+            .update([ciim]);
+      } catch (e) {
+        print('updateTickets:${ciims.length}:${ciim.ticket_id}:$e');
+        throw e;
       }
-      throw Exception(
-          "updateCheckInItem ticketId:${ciim.ticket_id}:${_checkInListItem.url} not found");
     });
   }
 
   updateTickets(List<Ticket> tickets) {
     tickets.forEach((ticket) {
-      if (_ticketAndCheckIns.containsKey(ticket.id)) {
-        _ticketAndCheckIns[ticket.id].ticket.update(ticket);
-        return;
+      // print('updateTickets:${tickets.length}:${ticket}');
+      try {
+        _ticketAndCheckIns
+            .putIfAbsent(ticket.id, () => TicketAndCheckInsStore(id: ticket.id))
+            .ticket
+            .update(ticket);
+      } catch (e) {
+        // print('updateTickets:${tickets.length}:${ticket.id}:$e');
+        throw e;
       }
-      throw Exception(
-          "updateCheckInItem ticketId:${ticket.id}:${_checkInListItem.url} not found");
     });
   }
 
@@ -74,7 +86,7 @@ class TicketStore {
   add(TicketAndCheckIns tac) {
     _ticketAndCheckIns
         .putIfAbsent(
-            tac.ticket.id, () => TicketAndCheckInsStore(ticket: tac.ticket))
+            tac.ticket.id, () => TicketAndCheckInsStore(id: tac.ticket.id))
         .update(tac);
   }
 

@@ -3,12 +3,12 @@ import 'package:meta/meta.dart';
 
 class CheckInAction {
   final String  id;
-  final String  ticket_id;
+  final int ticketId;
 
-  CheckInAction({@required id, @required ticket_id}): id = id, ticket_id = ticket_id;
+  CheckInAction({@required id, @required int ticketId}): id = id, ticketId = ticketId;
 
   static CheckInAction fromJson(dynamic json) {
-    return CheckInAction(id: json['id'], ticket_id: json['ticket_id']); // .updateFromJson(json);
+    return CheckInAction(id: json['id'], ticketId: json['ticket_id']); // .updateFromJson(json);
   }
 
   update(CheckInAction oth) {
@@ -17,6 +17,7 @@ class CheckInAction {
 
   Map<String, dynamic> toJson() => {
     "id": id,
+    "ticket_id": ticketId
   };
 
 }

@@ -2,6 +2,7 @@
 import 'package:confotor/models/check-in-action.dart';
 import 'package:confotor/models/check-in-item.dart';
 import 'package:confotor/models/ticket.dart';
+import 'package:meta/meta.dart';
 
 enum TicketAndCheckInsState {
   Used,
@@ -16,9 +17,9 @@ class TicketAndCheckIns {
   final Ticket ticket;
 
   TicketAndCheckIns({
-    List<CheckInItem> checkInItems,
-    List<CheckInAction> checkInActions,
-    Ticket ticket
+    @required List<CheckInItem> checkInItems,
+    @required List<CheckInAction> checkInActions,
+    @required Ticket ticket
    }): checkInItems = checkInItems, checkInActions = checkInActions, ticket = ticket;
 
   TicketAndCheckInsState get state {
@@ -29,8 +30,8 @@ class TicketAndCheckIns {
     return state.toString().split(".").last;
   }
 
-  static fromJson(dynamic json) {
-    final my = TicketAndCheckIns(checkInActions: [], checkInItems: [], ticket: Ticket());
+  static TicketAndCheckIns fromJson(dynamic json) {
+    final my = TicketAndCheckIns(checkInActions: [], checkInItems: [], ticket: Ticket(id: json['ticket']['id']));
     return my._updateFromJson(json);
   }
 
@@ -52,6 +53,6 @@ class TicketAndCheckIns {
   Map<String, dynamic> toJson() => {
         "checkInItems": checkInItems,
         "checkInActions": checkInActions,
-        "ticket": ticket.toJson()
+        "ticket": ticket
       };
 }

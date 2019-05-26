@@ -1,4 +1,4 @@
-package com.example.confotor;
+package com.adviser.confotor;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;

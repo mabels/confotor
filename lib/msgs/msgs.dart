@@ -35,7 +35,7 @@ import 'package:http/http.dart' as http;
 
 // }
 
-
+class RequestLastFoundTickets extends ConfotorMsg {}
 
 class TicketError extends ConfotorMsg implements ConfotorErrorMsg, ConfotorTransactionMsg {
   @override
@@ -61,7 +61,6 @@ class CheckInObserverError extends ConfotorMsg implements ConfotorErrorMsg, Conf
     error = error, conference = conference, transaction = transaction;
 }
 
-
 class AppLifecycleMsg extends ConfotorMsg {
   final AppLifecycleState state;
   AppLifecycleMsg({@required AppLifecycleState state}): state = state;
@@ -70,6 +69,11 @@ class AppLifecycleMsg extends ConfotorMsg {
 class ConferencesMsg extends ConfotorMsg {
   final Conferences conferences;
   ConferencesMsg({@required Conferences conferences}): conferences = conferences;
+}
+
+class ConferenceMsg extends ConfotorMsg {
+  final Conference conference;
+  ConferenceMsg({@required Conference conference}): conference = conference;
 }
 
 class ConferencesError extends ConfotorMsg implements ConfotorErrorMsg {
@@ -106,7 +110,28 @@ class FoundTickets extends ConfotorMsg {
 const List<FoundTickets> emptyFoundTickets = [];
 class LastFoundTickets extends ConfotorMsg {
   final List<FoundTickets> last;
-  LastFoundTickets({List<FoundTickets> last = emptyFoundTickets}): last = List.from(last);
+  final int maxLen;
+
+  LastFoundTickets({
+    List<FoundTickets> last = emptyFoundTickets,
+    int maxLen = 20
+    }): last = List.from(last), maxLen = maxLen;
+
+  LastFoundTickets clone() {
+    return LastFoundTickets(last: last, maxLen: maxLen);
+  }
+
+  LastFoundTickets update(FoundTickets oth) {
+    final idx = last.indexWhere((t) => t.slug == oth.slug);
+    if (idx >= 0) {
+      last.removeAt(idx);
+    }
+    this.last.insert(0, oth);
+    for (var i = maxLen; i < last.length; i++) {
+      last.removeLast();
+    }
+    return LastFoundTickets(last: List.from(last));
+  }
 }
 
 // class TicketsCompleteMsg extends ConfotorMsg {
@@ -220,21 +245,7 @@ class CheckInListItemError extends ConferencesMsg implements ConfotorErrorMsg {
   CheckInListItemError({@required dynamic error}) : error = error;
 }
 
-class RemoveConferences extends ConfotorMsg {
-  final List<ConferenceKey> items;
-  RemoveConferences({@required List<ConferenceKey> items}) : items = items;
-}
 
-class ConferenceRemoved extends ConfotorMsg {
-  final ConferenceKey checkInItemMsg;
-  ConferenceRemoved({@required ConferenceKey checkInItemMsg}) : checkInItemMsg = checkInItemMsg;
-}
-
-const List<ConferenceKey> empty = [];
-class RefreshConferences extends ConfotorMsg {
-  final List<ConferenceKey> items;
-  RefreshConferences({List<ConferenceKey> items: empty}) : items = items;
-}
 
 // class CheckInListScanMsg extends ConfotorMsg {}
 
@@ -284,11 +295,10 @@ class FindTicket extends ConfotorMsg {
 }
 
 class ConferenceTicket extends ConfotorMsg {
-  final CheckInList checkInListItem;
+  final CheckInList checkInList;
   final TicketAndCheckIns ticketAndCheckIns;
-  ConferenceTicket({@required ConferenceKey checkInListItem, TicketAndCheckIns ticketAndCheckIns}):
-    checkInListItem = checkInListItem, ticketAndCheckIns = ticketAndCheckIns;
-
+  ConferenceTicket({@required CheckInList checkInList, TicketAndCheckIns ticketAndCheckIns}):
+    checkInList = checkInList, ticketAndCheckIns = ticketAndCheckIns;
 }
 
 class RequestCheckOutTicket extends ConfotorMsg {

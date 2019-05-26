@@ -2,22 +2,26 @@ import 'package:meta/meta.dart';
 
 import 'confotor-msg.dart';
 
-class ScanTicketMsg extends ConfotorMsg {
+class RequestQrScanMsg extends ConfotorMsg {
+}
+
+class StopQrScanMsg extends ConfotorMsg {
+}
+
+class QrScanMsg extends ConfotorMsg {
   final String barcode;
-  ScanTicketMsg({@required String barcode}) : barcode = barcode;
+  QrScanMsg({@required String barcode}) : barcode = barcode;
 }
 
-class ScanTicketErrorMsg extends ConfotorMsg implements ConfotorErrorMsg {
+class QrScanErrorMsg extends ConfotorMsg implements ConfotorErrorMsg {
   final dynamic error;
-  ScanTicketErrorMsg({@required dynamic error}) : error = error;
+  QrScanErrorMsg({@required dynamic error}) : error = error;
 }
 
-class ScanCheckInListMsg extends ConfotorMsg {
-  final String barcode;
-  ScanCheckInListMsg({@required String barcode}) : barcode = barcode;
+class ScanTicketMsg extends QrScanMsg {
+  ScanTicketMsg({@required String barcode}) : super(barcode: barcode);
 }
 
-class ScanCheckInListErrorMsg extends ConfotorMsg implements ConfotorErrorMsg {
-  final dynamic error;
-  ScanCheckInListErrorMsg({@required dynamic error}) : error = error;
+class ScanCheckInListMsg extends QrScanMsg {
+  ScanCheckInListMsg({@required String barcode}) : super(barcode: barcode);
 }

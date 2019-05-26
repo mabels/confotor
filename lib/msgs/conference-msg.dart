@@ -7,18 +7,18 @@ import 'package:meta/meta.dart';
 import 'confotor-msg.dart';
 
 class RequestUpdateConference extends ConfotorMsg {
-  final ConferenceKey checkInListItem;
+  final CheckInList checkInList;
   final Conference conference;
-  RequestUpdateConference({@required ConferenceKey checkInListItem, Conference conference}):
-    checkInListItem = checkInListItem,
+  RequestUpdateConference({@required CheckInList checkInList, Conference conference}):
+    checkInList = checkInList,
     conference = conference;
 }
 
 class UpdatedConference extends ConfotorMsg {
-  final ConferenceKey checkInListItem;
+  final CheckInList checkInList;
   final Conference conference;
-  UpdatedConference({@required ConferenceKey checkInListItem, Conference conference}):
-    checkInListItem = checkInListItem,
+  UpdatedConference({@required CheckInList checkInList, Conference conference}):
+    checkInList = checkInList,
     conference = conference;
 }
 
@@ -28,7 +28,18 @@ class RequestRemoveConference extends ConfotorMsg {
 }
 
 class RemovedConference extends ConfotorMsg {
-  final ConferenceKey checkInListItem;
-  RemovedConference({@required ConferenceKey checkInListItem}): checkInListItem = checkInListItem;
+  final ConferenceKey checkInList;
+  RemovedConference({@required ConferenceKey checkInList}): checkInList = checkInList;
 }
 
+class RequestConferencesMsg extends ConfotorMsg {}
+
+class RemoveConferences extends ConfotorMsg {
+  final List<ConferenceKey> items;
+  RemoveConferences({@required List<ConferenceKey> items}) : items = items;
+}
+const List<ConferenceKey> empty = [];
+class RefreshConferences extends ConfotorMsg {
+  final List<ConferenceKey> items;
+  RefreshConferences({List<ConferenceKey> items: empty}) : items = items;
+}

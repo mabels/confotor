@@ -38,6 +38,8 @@ class ConfotorAppState extends State<ConfotorApp> {
   initState() {
     super.initState();
 
+    // FirebaseApp.initializeApp();
+
     this.appLifecycleAgent = AppLifecycleAgent(appState: this).start();
     this.conferencesAgent = ConferencesAgent(appState: this).start();
     this.ticketsAgent = TicketsAgent(appState: this).start();

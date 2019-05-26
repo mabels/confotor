@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:confotor/models/ticket-and-checkins.dart';
 import 'package:confotor/msgs/msgs.dart';
+import 'package:confotor/msgs/scan-msg.dart';
 import 'package:flutter/material.dart';
 
 import 'confotor-app.dart';
@@ -26,15 +27,17 @@ class TicketListAreaState extends State<TicketListArea> {
   @override
   void initState() {
     super.initState();
-    print('TicketListAreaState:initState');
+    // print('TicketListAreaState:initState');
     subscription = appState.bus.stream.listen((msg) {
       // print('TicketListAreaState:${msg.runtimeType.toString()}');
       if (msg is LastFoundTickets) {
+        appState.bus.add(StopQrScanMsg());
         setState(() {
-          this.lastFoundTickets = msg;
+          lastFoundTickets = msg;
         });
       }
     });
+    appState.bus.add(RequestLastFoundTickets());
   }
 
   @override
@@ -44,7 +47,7 @@ class TicketListAreaState extends State<TicketListArea> {
   }
 
   actionText(ConferenceTicket tac, String stateText) {
-    return Text("${stateText}[${tac.checkInListItem.shortEventTitle}(${tac.ticketAndCheckIns.ticket.reference})]");
+    return Text("${stateText}[${tac.checkInList.shortEventTitle}(${tac.ticketAndCheckIns.ticket.reference})]");
   }
 
   subTitle(FoundTickets foundTickets) {
@@ -100,23 +103,29 @@ class TicketListAreaState extends State<TicketListArea> {
 
   @override
   Widget build(BuildContext context) {
-    print('Build:${lastFoundTickets}');
+    // print('Build:${lastFoundTickets}');
     if (lastFoundTickets == null) {
       return ListView(children: <Widget>[]);
     } else {
-      print('Build:${lastFoundTickets.last.length}');
+      // print('Build:${lastFoundTickets.last.length}');
       return ListView(
         children: lastFoundTickets.last.map((foundTickets) {
         if (foundTickets.hasFound) {
-          return ListTile(
+          return Card(
+            color: Colors.white70,
+            child: ListTile(
             key: Key(foundTickets.slug),
-            title: Text(foundTickets.name),
+            title: Text(foundTickets.name,
+              style: TextStyle(fontSize: 24.0, color: Colors.black, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center),
             subtitle: subTitle(foundTickets)
-          );
+          ));
         } else {
-          return ListTile(
+          return Card(
+            color: Colors.red,
+            child: ListTile(
             title: Container(
-            color: Colors.red, child: Text("No Ticket found from Scan")));
+            color: Colors.red, child: Text("No Ticket found from Scan"))));
         }
         }).toList()
       );

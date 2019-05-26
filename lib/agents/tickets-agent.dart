@@ -4,7 +4,6 @@ import 'dart:ui';
 
 import 'package:confotor/components/confotor-app.dart';
 import 'package:confotor/models/check-in-list-item.dart';
-import 'package:confotor/models/conference.dart';
 import 'package:confotor/models/ticket.dart';
 import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
@@ -140,19 +139,19 @@ class TicketsAgent {
       }
 
       if (msg is UpdatedConference) {
-        print('TicketsAgent:UpdatedConference:${msg.checkInListItem.url}');
-        if (!observers.containsKey(msg.checkInListItem.url)) {
-          print('TicketsAgent:UpdatedConference:${msg.checkInListItem.url}:create');
-          observers[msg.checkInListItem.url] = TicketObserver(
-              appState: appState, checkInList: msg.checkInListItem);
-          observers[msg.checkInListItem.url].start(hours: 0);
+        print('TicketsAgent:UpdatedConference:${msg.checkInList.url}');
+        if (!observers.containsKey(msg.checkInList.url)) {
+          print('TicketsAgent:UpdatedConference:${msg.checkInList.url}:create');
+          observers[msg.checkInList.url] = TicketObserver(
+              appState: appState, checkInList: msg.checkInList);
+          observers[msg.checkInList.url].start(hours: 0);
         }
       }
 
-      if (msg is ConferenceRemoved) {
-        if (observers.containsKey(msg.checkInItemMsg.url)) {
-          observers[msg.checkInItemMsg.url].stop();
-          observers.remove(msg.checkInItemMsg.url);
+      if (msg is RemovedConference) {
+        if (observers.containsKey(msg.checkInList.url)) {
+          observers[msg.checkInList.url].stop();
+          observers.remove(msg.checkInList.url);
         }
       }
     });

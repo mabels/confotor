@@ -11,7 +11,7 @@ class TicketAndCheckInsStore {
   final CheckInActionsStore checkInActions = CheckInActionsStore();
   final Ticket ticket;
 
-  TicketAndCheckInsStore({@required Ticket ticket}) : ticket = ticket;
+  TicketAndCheckInsStore({int id}) : ticket = Ticket(id: id);
 
   get id {
     return ticket.id;
@@ -40,7 +40,7 @@ class TicketAndCheckInsStore {
     return this;
   }
 
-  TicketAndCheckIns asTicketAndCheckIns() {
+  TicketAndCheckIns toTicketAndCheckIns() {
     return TicketAndCheckIns(
       ticket: ticket, checkInActions: checkInActions.toList(), checkInItems: checkInItems.toList()
     );

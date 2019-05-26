@@ -1,6 +1,7 @@
+import 'package:meta/meta.dart';
 
 class Ticket {
-  int id;
+  final int id;
   String slug;
   String first_name;
   String last_name;
@@ -11,11 +12,17 @@ class Ticket {
   String created_at;
   String updated_at;
 
+  Ticket({@required int id}) : id = id;
+
   update(Ticket oth) {
-    if (id == oth.id && slug == oth.slug && reference == oth.reference
-        && registration_reference == oth.registration_reference) {
-          throw Exception("try update Ticket does not match");
-        }
+    if (id != oth.id) {
+      // && slug == oth.slug && reference == oth.reference
+      // && registration_reference == oth.registration_reference)) {
+      throw Exception("try update Ticket does not match");
+    }
+    slug = oth.slug;
+    reference = oth.reference;
+    registration_reference = oth.registration_reference;
     first_name = oth.first_name;
     last_name = oth.last_name;
     email = oth.email;
@@ -25,11 +32,15 @@ class Ticket {
   }
 
   static Ticket fromJson(dynamic json) {
-    return Ticket().updateFromJson(json);
+    return Ticket(id: json['id']).updateFromJson(json);
   }
 
   updateFromJson(dynamic json) {
-    id = json['id'];
+    if (id != json['id']) {
+      // && slug == oth.slug && reference == oth.reference
+      // && registration_reference == oth.registration_reference)) {
+      throw Exception("try update Ticket does not match");
+    }
     slug = json['slug'];
     first_name = json['first_name'];
     last_name = json['last_name'];
@@ -43,16 +54,15 @@ class Ticket {
   }
 
   Map<String, dynamic> toJson() => {
-    "id": id,
-    "slug": slug,
-    "first_name": first_name,
-    "last_name": last_name,
-    "email": email,
-    "company_name": company_name,
-    "reference": reference,
-    "registration_reference": registration_reference,
-    "created_at": created_at,
-    "updated_at": updated_at,
-  };
-
+        "id": id,
+        "slug": slug,
+        "first_name": first_name,
+        "last_name": last_name,
+        "email": email,
+        "company_name": company_name,
+        "reference": reference,
+        "registration_reference": registration_reference,
+        "created_at": created_at,
+        "updated_at": updated_at,
+      };
 }

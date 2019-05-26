@@ -21,13 +21,23 @@ class CheckInList extends ConferenceKey {
   }
 
   static Future<ConferenceKey> fetch(String url) async {
+    try {
+      final parsed = Uri.parse(url);
+      // print('fetch:$url:$parsed');
+      if (parsed.scheme == null) {
+        throw Exception("uri fetch:$url");
+      } 
+    } catch (e) {
+      // print('fetch:$url:$e');
+      throw e;
+    }
     final cil = CheckInList(url: url);
     var response = await http.get(url);
     if (200 <= response.statusCode && response.statusCode < 300) {
       final jsonResponse = json.decode(response.body);
       return cil.updateFromJson(jsonResponse);
     }
-    throw new Exception('CheckInListItem:fetch:${response.statusCode}:$url');
+    throw Exception('CheckInList:fetch:${response.statusCode}:$url');
   }
 
   static CheckInList fromJson(dynamic json) {

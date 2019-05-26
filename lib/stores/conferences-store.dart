@@ -19,36 +19,36 @@ class ConferencesStore {
 
   ConferenceStore updateConference(RequestUpdateConference ruc) {
     return _conferences
-        .putIfAbsent(ruc.checkInListItem.url, () => ConferenceStore(appState: appState, ruc: ruc))
+        .putIfAbsent(ruc.checkInList.url, () => ConferenceStore(appState: appState, checkInList: ruc.checkInList))
         .update(ruc);
   }
 
   ConferenceStore updateCheckInItemPage(CheckInItemPageMsg ciim) {
     return _conferences
-        .putIfAbsent(ciim.checkInList.url, () => ConferenceStore(appState: appState))
+        .putIfAbsent(ciim.checkInList.url, () => ConferenceStore(appState: appState, checkInList: ciim.checkInList))
         .updateCheckInItems(ciim.items);
   }
 
     ConferenceStore updateCheckInActionPage(CheckInActionPageMsg ciam) {
     return _conferences
-        .putIfAbsent(ciam.checkInList.url, () => ConferenceStore(appState: appState))
+        .putIfAbsent(ciam.checkInList.url, () => ConferenceStore(appState: appState, checkInList: ciam.checkInList))
         .updateCheckInActions(ciam.items);
   }
 
   ConferenceStore updateTicketPage(TicketPageMsg tpm) {
     return _conferences
-        .putIfAbsent(tpm.checkInList.url, () => ConferenceStore(appState: appState))
+        .putIfAbsent(tpm.checkInList.url, () => ConferenceStore(appState: appState, checkInList: tpm.checkInList))
         .updateTickets(tpm.items);
   }
 
   List<ConferenceStore> get values => _conferences.values;
 
-  Conferences toConferences() {
-    return Conferences(conferences: _conferences.values.map((i) => Conference(
-      checkInList: i.checkInListItem,
-      ticketAndCheckInsList: i.ticketStore.values.map((ts) => ts.asTicketAndCheckIns()).toList()
-    )).toList());
-  }
+  // Conferences toConferences() {
+  //   return Conferences(conferences: _conferences.values.map((i) => Conference(
+  //     checkInList: i.checkInList,
+  //     ticketAndCheckInsList: i.ticketStore.values.map((ts) => ts.toTicketAndCheckIns()).toList()
+  //   )).toList());
+  // }
 
   remove(ConferenceKey key) {
     return _conferences.remove(key.url);
@@ -65,8 +65,8 @@ class ConferencesStore {
       // print('findTickets:NEXT:${item.url}:${item.ticketsCount}:$slug:$found');
       if (found != null) {
         // print("findTickets:Found:${found.slug}:${slug}");
-        ret.add(ConferenceTicket(checkInListItem: conf.checkInListItem,
-                                 ticketAndCheckIns: found.asTicketAndCheckIns()));
+        ret.add(ConferenceTicket(checkInList: conf.checkInList,
+                                 ticketAndCheckIns: found.toTicketAndCheckIns()));
       }
       return found != null;
     }, orElse: () => null);
@@ -77,16 +77,16 @@ class ConferencesStore {
           final ticket = tac.ticket;
           if (ticket.registration_reference ==
               ref.ticketAndCheckIns.ticket.registration_reference) {
-            ret.add(ConferenceTicket(checkInListItem: conf.checkInListItem,
-                                     ticketAndCheckIns: tac.asTicketAndCheckIns()));
+            ret.add(ConferenceTicket(checkInList: conf.checkInList,
+                                     ticketAndCheckIns: tac.toTicketAndCheckIns()));
             return;
           }
           if (ticket.email == ref.ticketAndCheckIns.ticket.email) {
             if (ticket.company_name == ref.ticketAndCheckIns.ticket.company_name) {
               if (ticket.first_name == ref.ticketAndCheckIns.ticket.first_name) {
                 if (ticket.last_name == ref.ticketAndCheckIns.ticket.last_name) {
-                  ret.add(ConferenceTicket(checkInListItem: conf.checkInListItem,
-                                           ticketAndCheckIns: tac.asTicketAndCheckIns()));
+                  ret.add(ConferenceTicket(checkInList: conf.checkInList,
+                                           ticketAndCheckIns: tac.toTicketAndCheckIns()));
                 }
               }
             }
@@ -104,11 +104,19 @@ class ConferencesStore {
     return new File('$path/conferences.json');
   }
 
+  Conferences toConferences() {
+    return Conferences(conferences: _conferences.values.map((i) => i.toConference()).toList());
+    // return Conferences(conferences: []);
+  }
+
   Future<ConferencesStore> writeConference() async {
     final file = await conferencesFile;
     String str;
+    // print('writeConference');
     try {
-      str = json.encode(_conferences);
+      str = json.encode({
+        "conferences": toConferences()
+      });
     } on dynamic catch (e) {
       print('JsonEncode:Error:$e');
       return this;
