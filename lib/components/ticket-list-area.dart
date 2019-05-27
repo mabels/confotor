@@ -116,7 +116,7 @@ class TicketListAreaState extends State<TicketListArea> {
             child: ListTile(
             key: Key(foundTickets.slug),
             title: Text(foundTickets.name,
-              style: TextStyle(fontSize: 24.0, color: Color(0x303f62), fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 24.0, color: Color(0xFF303f62), fontWeight: FontWeight.bold),
               textAlign: TextAlign.center),
             subtitle: subTitle(foundTickets)
           ));

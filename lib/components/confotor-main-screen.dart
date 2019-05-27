@@ -38,9 +38,9 @@ class ConfotorMainScreenState extends State<ConfotorMainScreen> {
     return Scaffold(
       appBar: AppBar(
           centerTitle: true,
-          title: Text('Confotor', style: TextStyle(color: Color(0xf3ecda))),
-          backgroundColor: Color(0x303f62),
-          iconTheme: IconThemeData(color: Color(0xf3ecda))),
+          title: Text('Confotor', style: TextStyle(color: Color(0xFFf3ecda))),
+          backgroundColor: Color(0xFF303f62),
+          iconTheme: IconThemeData(color: Color(0xFFf3ecda))),
       drawer: ConfotorDrawer(appState: appState),
       body: Stack(
         // crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,15 +66,15 @@ class ConfotorMainScreenState extends State<ConfotorMainScreen> {
           backgroundColor: Color(0x303f62),
           items: <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: Icon(Icons.business, color: Color(0xf3ecda)),
+              icon: Icon(Icons.business, color: Color(0xFFf3ecda)),
               title: Text("${toggleQrScan ? 'Scan Off' : 'Scan On'}",
-                  style: TextStyle(color: Color(0xf3ecda))),
+                  style: TextStyle(color: Color(0xFFf3ecda))),
               backgroundColor: Colors.deepOrange,
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.school, color: Color(0xf3ecda)),
+              icon: Icon(Icons.school, color: Color(0xFFf3ecda)),
               title: Text('Add CheckInList',
-                  style: TextStyle(color: Color(0xf3ecda))),
+                  style: TextStyle(color: Color(0xFFf3ecda))),
               backgroundColor: Colors.deepOrange,
             ),
           ],
