@@ -38,9 +38,9 @@ class ConfotorMainScreenState extends State<ConfotorMainScreen> {
     return Scaffold(
       appBar: AppBar(
           centerTitle: true,
-          title: Text('Confotor', style: TextStyle(color: Colors.deepOrange)),
-          backgroundColor: Colors.black87,
-          iconTheme: IconThemeData(color: Colors.deepOrange)),
+          title: Text('Confotor', style: TextStyle(color: Color(0xf3ecda))),
+          backgroundColor: Color(0x303f62),
+          iconTheme: IconThemeData(color: Color(0xf3ecda))),
       drawer: ConfotorDrawer(appState: appState),
       body: Stack(
         // crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,7 +50,7 @@ class ConfotorMainScreenState extends State<ConfotorMainScreen> {
               alignment: Alignment.topCenter,
               child: Container(
                   //height: MediaQuery.of(context).size.height - (60 + 100),
-                  color: Colors.black54,
+                  color: Color(0x303f62),
                   child: toggleQrScan
                       ? QrScan(appState: appState)
                       : TicketListArea(appState: appState))),
@@ -63,18 +63,18 @@ class ConfotorMainScreenState extends State<ConfotorMainScreen> {
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
-          backgroundColor: Colors.black87,
+          backgroundColor: Color(0x303f62),
           items: <BottomNavigationBarItem>[
             BottomNavigationBarItem(
-              icon: Icon(Icons.business, color: Colors.deepOrange),
+              icon: Icon(Icons.business, color: Color(0xf3ecda)),
               title: Text("${toggleQrScan ? 'Scan Off' : 'Scan On'}",
-                  style: TextStyle(color: Colors.deepOrange)),
+                  style: TextStyle(color: Color(0xf3ecda))),
               backgroundColor: Colors.deepOrange,
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.school, color: Colors.deepOrange),
+              icon: Icon(Icons.school, color: Color(0xf3ecda)),
               title: Text('Add CheckInList',
-                  style: TextStyle(color: Colors.deepOrange)),
+                  style: TextStyle(color: Color(0xf3ecda))),
               backgroundColor: Colors.deepOrange,
             ),
           ],

@@ -131,7 +131,7 @@ class ConfotorDrawerState extends State<ConfotorDrawer> {
   @override
   Widget build(BuildContext context) {
     return Drawer(child: Container(
-      color: Colors.black87,
+      color: Color(0x303f62),
       child: ListView(children: items)));
   }
 }
