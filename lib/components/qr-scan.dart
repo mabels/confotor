@@ -42,12 +42,12 @@ class QrScanState extends State<QrScan> {
         _appState.bus.add(QrScanMsg(barcode: code));
         lastCode = code;
       }
-      if (controller != null) {
-        await controller.stopScanning();
-      }
-      if (controller != null) {
-        await controller.startScanning();
-      }
+      // if (controller != null) {
+      //   await controller.stopScanning();
+      // }
+      // if (controller != null) {
+      //   await controller.startScanning();
+      // }
     });
         controller.addListener(() {
       if (mounted) setState(() {});
@@ -63,7 +63,7 @@ class QrScanState extends State<QrScan> {
         });
       }
     });
-    return ret;
+    return controller;
   }
 
   void _start(List<CameraDescription> cameras) {

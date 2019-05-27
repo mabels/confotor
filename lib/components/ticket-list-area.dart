@@ -31,7 +31,7 @@ class TicketListAreaState extends State<TicketListArea> {
     subscription = appState.bus.stream.listen((msg) {
       // print('TicketListAreaState:${msg.runtimeType.toString()}');
       if (msg is LastFoundTickets) {
-        appState.bus.add(StopQrScanMsg());
+        appState.bus.add(CloseQrScan());
         setState(() {
           lastFoundTickets = msg;
         });

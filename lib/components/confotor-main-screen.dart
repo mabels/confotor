@@ -23,6 +23,17 @@ class ConfotorMainScreenState extends State<ConfotorMainScreen> {
   ConfotorMainScreenState({@required ConfotorAppState appState})
       : appState = appState;
 
+  @override
+  void initState() {
+    super.initState();
+    appState.bus.listen((msg) => {
+      if (msg is CloseQrScan) {
+        appState.bus.add(StopQrScanMsg());
+        setState(() => toggleQrScan = false);
+      }
+    });
+  }
+
   _scanAction(int id) {
     if (!toggleQrScan) {
       appState.bus.add(RequestQrScanMsg());

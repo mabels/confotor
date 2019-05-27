@@ -8,6 +8,9 @@ class RequestQrScanMsg extends ConfotorMsg {
 class StopQrScanMsg extends ConfotorMsg {
 }
 
+class CloseQrScan extends ConfotorMsg {
+}
+
 class QrScanMsg extends ConfotorMsg {
   final String barcode;
   QrScanMsg({@required String barcode}) : barcode = barcode;
