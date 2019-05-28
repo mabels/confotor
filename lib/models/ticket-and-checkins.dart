@@ -11,27 +11,45 @@ enum TicketAndCheckInsState {
   Error
 }
 
+TicketAndCheckInsState ticketAndCheckInsStateFromString(String s) {
+  switch (s) {
+    case 'Used': return TicketAndCheckInsState.Used;
+    case 'Issueable': return TicketAndCheckInsState.Issueable;
+    case 'Issued': return TicketAndCheckInsState.Issued;
+    case 'Error': 
+    default:
+      return TicketAndCheckInsState.Error;
+  }
+}
+
 class TicketAndCheckIns {
   final List<CheckInItem> checkInItems;
   final List<CheckInAction> checkInActions;
   final Ticket ticket;
+  final TicketAndCheckInsState state;
 
   TicketAndCheckIns({
     @required List<CheckInItem> checkInItems,
     @required List<CheckInAction> checkInActions,
-    @required Ticket ticket
-   }): checkInItems = checkInItems, checkInActions = checkInActions, ticket = ticket;
+    @required Ticket ticket,
+    @required TicketAndCheckInsState state
+   }): checkInItems = checkInItems, 
+       checkInActions = checkInActions, 
+       ticket = ticket, 
+       state = state;
 
-  TicketAndCheckInsState get state {
-    return TicketAndCheckInsState.Error;
-  }
 
   String get shortState {
     return state.toString().split(".").last;
   }
 
   static TicketAndCheckIns fromJson(dynamic json) {
-    final my = TicketAndCheckIns(checkInActions: [], checkInItems: [], ticket: Ticket(id: json['ticket']['id']));
+    final my = TicketAndCheckIns(
+       checkInActions: [], 
+       checkInItems: [], 
+       ticket: Ticket(id: json['ticket']['id']),
+       state: ticketAndCheckInsStateFromString(json['state'])
+    );
     return my._updateFromJson(json);
   }
 

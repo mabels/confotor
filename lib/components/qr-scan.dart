@@ -142,7 +142,7 @@ class QrScanState extends State<QrScan> {
         style: const TextStyle(
           color: Colors.white,
           fontSize: 24.0,
-          fontWeight: FontWeight.w900,
+          fontWeight: FontWeight.bold,
         ),
       );
     } else {
@@ -171,7 +171,7 @@ class QrScanState extends State<QrScan> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white24,
+      color: Color(0xff303f62),
       child: _camera(),
     );
   }

@@ -3,15 +3,13 @@ import 'dart:async';
 import 'package:confotor/components/confotor-app.dart';
 import 'package:confotor/models/check-in-item.dart';
 import 'package:confotor/models/check-in-list-item.dart';
-import 'package:confotor/models/conference.dart';
 import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
-import 'package:confotor/msgs/scan-msg.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 
-class CheckInObserver {
+class CheckInListObserver {
   final ConfotorAppState appState;
   final CheckInList checkInList;
   Timer timer;
@@ -19,7 +17,7 @@ class CheckInObserver {
   DateTime since;
   DateTime nextSince;
 
-  CheckInObserver(
+  CheckInListObserver(
       {@required ConfotorAppState appState, @required CheckInList checkInList})
       : checkInList = checkInList,
         appState = appState;
@@ -67,7 +65,7 @@ class CheckInObserver {
     });
   }
 
-  CheckInObserver start({int seconds = 5}) {
+  CheckInListObserver start({int seconds = 5}) {
     stop();
     timer = new Timer(Duration(seconds: seconds), () {
       getPage(1, appState.uuid.v4()); // paged api triggered by page 1
@@ -115,18 +113,18 @@ class CheckInObserver {
 //     foundTicket = foundTicket;
 // }
 
-class CheckInAgent {
+class CheckInListAgent {
   final ConfotorAppState appState;
-  final Map<String /* url */, CheckInObserver> observers = new Map();
+  final Map<String /* url */, CheckInListObserver> observers = new Map();
   StreamSubscription subscription;
 
-  CheckInAgent({@required ConfotorAppState appState}) : appState = appState;
+  CheckInListAgent({@required ConfotorAppState appState}) : appState = appState;
 
   stop() {
     subscription.cancel();
   }
 
-  CheckInAgent start() {
+  CheckInListAgent start() {
     subscription = this.appState.bus.listen((msg) {
       if (msg is AppLifecycleMsg) {
         switch (msg.state) {
@@ -150,7 +148,7 @@ class CheckInAgent {
         print('CheckInAgent:UpdatedConference:${msg.checkInList.url}');
         if (!observers.containsKey(msg.checkInList.url)) {
           print('CheckInAgent:UpdatedConference:${msg.checkInList.url}:create');
-          observers[msg.checkInList.url] = CheckInObserver(
+          observers[msg.checkInList.url] = CheckInListObserver(
               appState: appState, checkInList: msg.checkInList);
           observers[msg.checkInList.url].start(seconds: 0);
         }
@@ -162,8 +160,6 @@ class CheckInAgent {
           observers.remove(msg.checkInList.url);
         }
       }
-
-
 
       // if (msg is RequestCheckOutTicket) {
       //   final FoundTicket ft = msg.foundTicket;

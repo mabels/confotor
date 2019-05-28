@@ -1,6 +1,7 @@
-import 'package:confotor/actions/scan-action.dart';
 import 'package:confotor/components/qr-scan.dart';
 import 'package:confotor/components/ticket-list-area.dart';
+import 'package:confotor/models/found-tickets.dart';
+import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/scan-msg.dart';
 import 'package:flutter/material.dart';
 import './confotor-app.dart';
@@ -27,14 +28,15 @@ class ConfotorMainScreenState extends State<ConfotorMainScreen> {
   void initState() {
     super.initState();
     appState.bus.listen((msg) {
-      if (msg is CloseQrScan) {
+      if (msg is LastFoundTickets || msg is RequestUpdateConference) {
+        print('LastFoundTickets:toggleQrScan:$msg');
         appState.bus.add(StopQrScanMsg());
         setState(() => toggleQrScan = false);
       }
     });
   }
 
-  _scanAction(int id) {
+  _scanAction() {
     if (!toggleQrScan) {
       appState.bus.add(RequestQrScanMsg());
       setState(() => toggleQrScan = true);
@@ -61,7 +63,7 @@ class ConfotorMainScreenState extends State<ConfotorMainScreen> {
               alignment: Alignment.topCenter,
               child: Container(
                   //height: MediaQuery.of(context).size.height - (60 + 100),
-                  color: Color(0x303f62),
+                  color: Color(0xff303f62),
                   child: toggleQrScan
                       ? QrScan(appState: appState)
                       : TicketListArea(appState: appState))),
@@ -73,26 +75,32 @@ class ConfotorMainScreenState extends State<ConfotorMainScreen> {
           //         child: LogListArea(appState: appState))),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-          backgroundColor: Color(0x303f62),
-          items: <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.business, color: Color(0xFFf3ecda)),
-              title: Text("${toggleQrScan ? 'Scan Off' : 'Scan On'}",
-                  style: TextStyle(color: Color(0xFFf3ecda))),
-              backgroundColor: Colors.deepOrange,
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.school, color: Color(0xFFf3ecda)),
-              title: Text('Add CheckInList',
-                  style: TextStyle(color: Color(0xFFf3ecda))),
-              backgroundColor: Colors.deepOrange,
-            ),
-          ],
-          // currentIndex: _selectedIndex,
-          selectedItemColor: Colors.orange,
-          type: BottomNavigationBarType.fixed,
-          onTap: _scanAction),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _scanAction,
+        icon: Icon(toggleQrScan ? Icons.list : Icons.camera),
+        label: Text("${toggleQrScan ? 'Ticket List' : 'Scan On'}",
+            style: TextStyle(color: Color(0xFFf3ecda))),
+      ),
+      // bottomNavigationBar: BottomNavigationBar(
+      //     backgroundColor: Color(0xff303f62),
+      //     items: <BottomNavigationBarItem>[
+      //       BottomNavigationBarItem(
+      //         icon: Icon(Icons.business, color: Color(0xFFf3ecda)),
+      //         title: Text("${toggleQrScan ? 'Scan Off' : 'Scan On'}",
+      //             style: TextStyle(color: Color(0xFFf3ecda))),
+      //         backgroundColor: Colors.deepOrange,
+      //       ),
+      //       BottomNavigationBarItem(
+      //         icon: Icon(Icons.school, color: Color(0xFFf3ecda)),
+      //         title: Text('Add CheckInList',
+      //             style: TextStyle(color: Color(0xFFf3ecda))),
+      //         backgroundColor: Colors.deepOrange,
+      //       ),
+      //     ],
+      //     // currentIndex: _selectedIndex,
+      //     selectedItemColor: Colors.orange,
+      //     type: BottomNavigationBarType.fixed,
+      //     onTap: _scanAction),
     );
   }
 }

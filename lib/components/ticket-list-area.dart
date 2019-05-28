@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:confotor/models/found-tickets.dart';
 import 'package:confotor/models/ticket-and-checkins.dart';
 import 'package:confotor/msgs/msgs.dart';
 import 'package:confotor/msgs/scan-msg.dart';
@@ -29,9 +30,9 @@ class TicketListAreaState extends State<TicketListArea> {
     super.initState();
     // print('TicketListAreaState:initState');
     subscription = appState.bus.stream.listen((msg) {
-      // print('TicketListAreaState:${msg.runtimeType.toString()}');
       if (msg is LastFoundTickets) {
-        appState.bus.add(CloseQrScan());
+         print('LastFoundTickets:CloseQrScan');
+        // appState.bus.add(CloseQrScan());
         setState(() {
           lastFoundTickets = msg;
         });
@@ -58,7 +59,7 @@ class TicketListAreaState extends State<TicketListArea> {
                   return RaisedButton(
                   textColor: Colors.white,
                   splashColor: Colors.pinkAccent,
-                  child: actionText(foundTicket, "TicketUsed"),
+                  child: actionText(foundTicket, "Used"),
                   color: Colors.red);
                   break;
 
@@ -66,7 +67,7 @@ class TicketListAreaState extends State<TicketListArea> {
                   return RaisedButton(
                   textColor: Colors.white,
                   splashColor: Colors.pinkAccent,
-                  child: actionText(foundTicket, "Checkout"),
+                  child: actionText(foundTicket, "CheckedIn"),
                   color: Colors.green,
                   onPressed: () {
                     this
@@ -80,7 +81,7 @@ class TicketListAreaState extends State<TicketListArea> {
                   return RaisedButton(
                   textColor: Colors.white,
                   splashColor: Colors.pinkAccent,
-                  child: actionText(foundTicket, "Checkin"),
+                  child: actionText(foundTicket, "Issueable"),
                   color: Colors.blue,
                   onPressed: () {
                     this

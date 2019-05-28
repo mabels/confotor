@@ -22,7 +22,7 @@ class TicketAndCheckInsStore {
   }
 
   get state {
-    return TicketAndCheckInsState.Error;
+    return checkInItems.state;
   }
 
   get shortState {
@@ -42,7 +42,10 @@ class TicketAndCheckInsStore {
 
   TicketAndCheckIns toTicketAndCheckIns() {
     return TicketAndCheckIns(
-      ticket: ticket, checkInActions: checkInActions.toList(), checkInItems: checkInItems.toList()
+      state: state,
+      ticket: ticket, 
+      checkInActions: checkInActions.toList(), 
+      checkInItems: checkInItems.toList()
     );
   }
 

@@ -92,48 +92,6 @@ class ConferencesError extends ConfotorMsg implements ConfotorErrorMsg {
 // }
 
 
-class FoundTickets extends ConfotorMsg {
-  final List<ConferenceTicket> conferenceTickets;
-  FoundTickets({@required conferenceTicket}): conferenceTickets = conferenceTicket;
-
-  get hasFound {
-    return conferenceTickets.isNotEmpty;
-  }
-  get slug {
-    return hasFound ? conferenceTickets.first.ticketAndCheckIns.ticket.slug : "Not Found";
-  }
-  get name {
-    return hasFound ? "${conferenceTickets.first.ticketAndCheckIns.ticket.first_name} ${conferenceTickets.first.ticketAndCheckIns.ticket.last_name}" : "John Doe";
-  }
-}
-
-const List<FoundTickets> emptyFoundTickets = [];
-class LastFoundTickets extends ConfotorMsg {
-  final List<FoundTickets> last;
-  final int maxLen;
-
-  LastFoundTickets({
-    List<FoundTickets> last = emptyFoundTickets,
-    int maxLen = 20
-    }): last = List.from(last), maxLen = maxLen;
-
-  LastFoundTickets clone() {
-    return LastFoundTickets(last: last, maxLen: maxLen);
-  }
-
-  LastFoundTickets update(FoundTickets oth) {
-    final idx = last.indexWhere((t) => t.slug == oth.slug);
-    if (idx >= 0) {
-      last.removeAt(idx);
-    }
-    this.last.insert(0, oth);
-    for (var i = maxLen; i < last.length; i++) {
-      last.removeLast();
-    }
-    return LastFoundTickets(last: List.from(last));
-  }
-}
-
 // class TicketsCompleteMsg extends ConfotorMsg {
 //   TicketsCompleteMsg(
 //       {CheckInListItem checkInListItem, Map<int, Ticket> tickets, String url})
@@ -297,8 +255,21 @@ class FindTicket extends ConfotorMsg {
 class ConferenceTicket extends ConfotorMsg {
   final CheckInList checkInList;
   final TicketAndCheckIns ticketAndCheckIns;
-  ConferenceTicket({@required CheckInList checkInList, TicketAndCheckIns ticketAndCheckIns}):
+  ConferenceTicket({@required CheckInList checkInList, 
+                    @required TicketAndCheckIns ticketAndCheckIns}):
     checkInList = checkInList, ticketAndCheckIns = ticketAndCheckIns;
+
+  static ConferenceTicket fromJson(dynamic json) {
+    return ConferenceTicket(checkInList: CheckInList.fromJson(json['checkInItem']),
+                            ticketAndCheckIns: TicketAndCheckIns.fromJson(json['ticketAndCheckIns']));
+  }
+
+
+  toJson() => {
+    "checkInList": checkInList,
+    "ticketAndCheckIns": ticketAndCheckIns
+  };
+
 }
 
 class RequestCheckOutTicket extends ConfotorMsg {

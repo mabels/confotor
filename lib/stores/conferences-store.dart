@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:confotor/components/confotor-app.dart';
 import 'package:confotor/models/conference.dart';
 import 'package:confotor/models/conferences.dart';
+import 'package:confotor/models/found-tickets.dart';
 import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
 import 'package:meta/meta.dart';
@@ -95,10 +96,10 @@ class ConferencesStore {
         });
       });
     }
-    return FoundTickets(conferenceTicket: ret);
+    return FoundTickets(conferenceTickets: ret);
   }
 
-  Future<File> get conferencesFile async {
+  Future<File> get fileName async {
     final path = await appState.getLocalPath();
     // print('_localFile:$path');
     return new File('$path/conferences.json');
@@ -110,7 +111,7 @@ class ConferencesStore {
   }
 
   Future<ConferencesStore> writeConference() async {
-    final file = await conferencesFile;
+    final file = await fileName;
     String str;
     // print('writeConference');
     try {
@@ -136,7 +137,7 @@ class ConferencesStore {
     }).catchError((e) {
     });
     */
-    conferencesFile.then((file) {
+    fileName.then((file) {
       file.readAsString().then((str) {
         try {
           appState.bus.add(JsonObject(json: json.decode(str), fileName: file.path));
