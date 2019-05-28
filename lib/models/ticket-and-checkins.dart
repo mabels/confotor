@@ -22,31 +22,55 @@ TicketAndCheckInsState ticketAndCheckInsStateFromString(String s) {
   }
 }
 
+String ticketAndCheckInsStateToString(TicketAndCheckInsState s) {
+  switch (s) {
+    case TicketAndCheckInsState.Used: return "Used";
+    case TicketAndCheckInsState.Issueable: return "Issueable";
+    case TicketAndCheckInsState.Issued: return "Issued";
+    case TicketAndCheckInsState.Error: return "Error";
+  }
+}
+
 class TicketAndCheckIns {
   final List<CheckInItem> checkInItems;
-  final List<CheckInAction> checkInActions;
+  // final List<CheckInAction> checkInActions;
   final Ticket ticket;
-  final TicketAndCheckInsState state;
+  // final TicketAndCheckInsState state;
 
   TicketAndCheckIns({
     @required List<CheckInItem> checkInItems,
-    @required List<CheckInAction> checkInActions,
+    // @required List<CheckInAction> checkInActions,
     @required Ticket ticket,
     @required TicketAndCheckInsState state
    }): checkInItems = checkInItems, 
-       checkInActions = checkInActions, 
-       ticket = ticket, 
-       state = state;
+      //  checkInActions = checkInActions, 
+       ticket = ticket; 
+      //  state = state;
 
-
-  String get shortState {
-    return state.toString().split(".").last;
+  updateCheckInItems(List<CheckInItem> ciis) {
+    final lookup = Map.fromEntries(ciis.map((cii) => MapEntry(cii.uuid, cii)));
+    checkInItems.forEach((cii) {
+      if (lookup.containsKey(cii.uuid)) {
+        cii.update(lookup[cii.uuid]);
+        lookup.remove(cii.uuid);
+      }
+    });
+    checkInItems.addAll(lookup.values);
   }
 
+  // String get shortState {
+  //   return state.toString().split(".").last;
+  // }
+
   static TicketAndCheckIns fromJson(dynamic json) {
+    final List<CheckInItem> ciis = [];
+    if (json['checkInItems'] is List) {
+      final List<dynamic> ljson = json['checkInItems'];
+      ciis.addAll(ljson.map((o) => CheckInItem.fromJson(o)));
+    }
     final my = TicketAndCheckIns(
-       checkInActions: [], 
-       checkInItems: [], 
+      //  checkInActions: [], 
+       checkInItems: ciis,
        ticket: Ticket(id: json['ticket']['id']),
        state: ticketAndCheckInsStateFromString(json['state'])
     );
@@ -56,11 +80,11 @@ class TicketAndCheckIns {
   TicketAndCheckIns _updateFromJson(dynamic json) {
     ticket.updateFromJson(json['ticket']);
     var loop = [];
-    if (json['checkInActions'] != null) {
-      loop = json['checkInActions'];
-    }
-    loop.forEach((i) => checkInActions.add(CheckInAction.fromJson(i)));
-    loop = [];
+    // if (json['checkInActions'] != null) {
+      // loop = json['checkInActions'];
+    // }
+    // loop.forEach((i) => checkInActions.add(CheckInAction.fromJson(i)));
+    // loop = [];
     if (json['checkInItems'] != null) {
       loop = json['checkInItems'];
     }
@@ -70,7 +94,8 @@ class TicketAndCheckIns {
 
   Map<String, dynamic> toJson() => {
         "checkInItems": checkInItems,
-        "checkInActions": checkInActions,
-        "ticket": ticket
+        // "checkInActions": checkInActions,
+        "ticket": ticket,
+        // "state": ticketAndCheckInsStateToString(state)
       };
 }

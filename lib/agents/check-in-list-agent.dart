@@ -26,7 +26,6 @@ class CheckInListObserver {
     final url = checkInList.checkInUrl(
         since: since == null ? 0 : since.millisecondsSinceEpoch / 1000,
         page: page);
-    // print('getPage:$url:$page:since:${since == null ? 0 : since.millisecondsSinceEpoch / 1000}');
     http.get(url).then((res) {
       // print('getPage:$url:$page:pre');
       List<dynamic> json = convert.jsonDecode(res.body);
@@ -41,7 +40,9 @@ class CheckInListObserver {
         }
         return item;
       });
-      // print('getPage:$url:$page:pos');
+      if (items.isNotEmpty) {
+        print('getPage:$url:$page:${items.length}');
+      }
       appState.bus.add(CheckInItemPageMsg(
         checkInList: checkInList,
         transaction: transaction,
@@ -145,11 +146,16 @@ class CheckInListAgent {
         }
       }
       if (msg is UpdatedConference) {
-        print('CheckInAgent:UpdatedConference:${msg.checkInList.url}');
+        // print('CheckInListAgent:UpdatedConference:${msg.checkInList.url}');
         if (!observers.containsKey(msg.checkInList.url)) {
-          print('CheckInAgent:UpdatedConference:${msg.checkInList.url}:create');
+          // print('CheckInListAgent:UpdatedConference:${msg.checkInList.url}:create');
           observers[msg.checkInList.url] = CheckInListObserver(
               appState: appState, checkInList: msg.checkInList);
+          observers[msg.checkInList.url].start(seconds: 0);
+        } else {
+          // reload list
+          // print('CheckInListAgent:UpdatedConference:${msg.checkInList.url}:refresh');
+          observers[msg.checkInList.url].stop();
           observers[msg.checkInList.url].start(seconds: 0);
         }
       }

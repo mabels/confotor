@@ -1,27 +1,24 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ui';
 
 import 'package:confotor/components/confotor-app.dart';
 import 'package:confotor/models/check-in-list-item.dart';
 import 'package:confotor/models/conferences.dart';
-import 'package:confotor/models/found-tickets.dart';
 import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
 import 'package:confotor/msgs/scan-msg.dart';
 import 'package:confotor/stores/conferences-store.dart';
-import 'package:confotor/stores/last-found-tickets-store.dart';
 import 'package:meta/meta.dart';
 
 class ConferencesAgent {
   final ConfotorAppState appState;
   final ConferencesStore _conferences;
-  final LastFoundTicketsStore _lastFoundTicketsStore;
   StreamSubscription subscription;
 
   ConferencesAgent({@required ConfotorAppState appState})
       : appState = appState,
-        _conferences = ConferencesStore(appState: appState),
-        _lastFoundTicketsStore = LastFoundTicketsStore(appState: appState);
+        _conferences = ConferencesStore(appState: appState);
 
   stop() {
     subscription.cancel();
@@ -32,13 +29,11 @@ class ConferencesAgent {
       if (msg is AppLifecycleMsg) {
         switch (msg.state) {
           // case AppLifecycleState.inactive:
+          case AppLifecycleState.suspending:
           case AppLifecycleState.paused:
-            _lastFoundTicketsStore.write();
             _conferences.writeConference();
             break;
-          case AppLifecycleState.suspending:
           case AppLifecycleState.resumed:
-            _lastFoundTicketsStore.read();
             _conferences.readConferences();
             break;
           case AppLifecycleState.inactive:
@@ -51,11 +46,6 @@ class ConferencesAgent {
           conferences.conferences.forEach((conf) => appState.bus.add(
               RequestUpdateConference(
                   checkInList: conf.checkInList, conference: conf)));
-        }
-        if (msg.json['lastFoundTickets'] != null) {
-          final lft = LastFoundTickets.fromJson(msg.json['lastFoundTickets']);
-          _lastFoundTicketsStore.update(lft);
-          print('lastFoundTickets:${msg.json['lastFoundTickets']}');
         }
       } else if (msg is UpdatedConference) {
         print('conferences-agent:UpdateConference:${msg.conference}');
@@ -76,13 +66,13 @@ class ConferencesAgent {
                       .expand((tac) => tac.checkInItems),
                   page: 1,
                   completed: true));
-              _conferences.updateCheckInActionPage(CheckInActionPageMsg(
-                  transaction: appState.uuid.v4(),
-                  checkInList: msg.checkInList,
-                  items: msg.conference.ticketAndCheckInsList
-                      .expand((tac) => tac.checkInActions),
-                  page: 1,
-                  completed: true));
+              // _conferences.updateCheckInActionPage(CheckInActionPageMsg(
+              //     transaction: appState.uuid.v4(),
+              //     checkInList: msg.checkInList,
+              //     items: msg.conference.ticketAndCheckInsList
+              //         .expand((tac) => tac.checkInActions),
+              //     page: 1,
+              //     completed: true));
             });
           }
         }
@@ -98,15 +88,18 @@ class ConferencesAgent {
             checkInList: _conferences.remove(msg.conference)));
         appState.bus
             .add(ConferencesMsg(conferences: _conferences.toConferences()));
-      } else if (msg is FindTicket) {
-        appState.bus.add(_conferences.findTickets(msg.slug));
-      }
+      } 
+      // else if (msg is FindTicket) {
+      //   appState.bus.add(_conferences.findTickets(msg.slug));
+      // }
 
       if (msg is CheckInItemPageMsg) {
         try {
-          // print('UpdateCheckInItem:${msg.items.length}');
+          if (msg.items.length == 1) {
+            print('UpdateCheckInItem:${msg.items.length}:${json.encode(msg.items)}');
+          }
           final conference = _conferences.updateCheckInItemPage(msg);
-          if (msg.completed && msg.items.isNotEmpty) {
+          if (msg.items.length > 0) {
             appState.bus
                 .add(ConferenceMsg(conference: conference.toConference()));
           }
@@ -166,30 +159,18 @@ class ConferencesAgent {
           // print('CheckInList:then:${msg.barcode}');
           appState.bus.add(RequestUpdateConference(checkInList: checkInList));
         }).catchError((e) {
-          final found = _conferences.findTickets(msg.barcode);
-          print(
-              'FoundTickets:${msg.barcode}:${found.conferenceTickets.length}');
+          final found = _conferences.findTickets(msg.barcode, BarcodeScannedTicketAction(barcode: msg.barcode));
+          // print( 'FoundTickets:${msg.barcode}:${found.conferenceTickets.length}');
           if (found.conferenceTickets.isNotEmpty) {
             appState.bus.add(found);
           }
         });
       }
 
-      if (msg is FoundTickets) {
-        appState.bus
-            .add(_lastFoundTicketsStore.updateFoundTickets(msg).toLastFoundTickets());
-      }
-
-      if (msg is LastFoundTickets) {}
-
-      if (msg is RequestLastFoundTickets) {
-        appState.bus.add(_lastFoundTicketsStore.toLastFoundTickets());
-      }
-
+     
       if (msg is ConferencesMsg) {}
     });
     /* Boot Application by reading file */
-    _lastFoundTicketsStore.read();
     _conferences.readConferences();
     // appState.bus.add(ConferencesMsg(conferences: Conferences(conferences: [])));
   }

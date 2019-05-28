@@ -1,5 +1,6 @@
 import 'package:confotor/agents/app-lifecycle-agent.dart';
 import 'package:confotor/agents/check-in-list-agent.dart';
+import 'package:confotor/agents/check-in-manager.dart';
 import 'package:confotor/agents/conferences-agent.dart';
 import 'package:confotor/agents/tickets-agent.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,7 @@ class ConfotorAppState extends State<ConfotorApp> {
   ConferencesAgent conferencesAgent;
   TicketsAgent ticketsAgent;
   CheckInListAgent checkInListAgent;
+  CheckInManager checkInManager;
 
   Future<String> getLocalPath() async {
     final directory = await getApplicationDocumentsDirectory();
@@ -44,6 +46,7 @@ class ConfotorAppState extends State<ConfotorApp> {
     this.conferencesAgent = ConferencesAgent(appState: this).start();
     this.ticketsAgent = TicketsAgent(appState: this).start();
     this.checkInListAgent = CheckInListAgent(appState: this).start();
+    this.checkInManager = CheckInManager(appState: this).start();
   }
 
   @override
@@ -54,6 +57,7 @@ class ConfotorAppState extends State<ConfotorApp> {
     this.conferencesAgent.stop();
     this.ticketsAgent.stop();
     this.checkInListAgent.stop();
+    this.checkInManager.stop();
   }
 
   @override

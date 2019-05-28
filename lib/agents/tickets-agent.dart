@@ -139,9 +139,9 @@ class TicketsAgent {
       }
 
       if (msg is UpdatedConference) {
-        print('TicketsAgent:UpdatedConference:${msg.checkInList.url}');
+        // print('TicketsAgent:UpdatedConference:${msg.checkInList.url}');
         if (!observers.containsKey(msg.checkInList.url)) {
-          print('TicketsAgent:UpdatedConference:${msg.checkInList.url}:create');
+          // print('TicketsAgent:UpdatedConference:${msg.checkInList.url}:create');
           observers[msg.checkInList.url] = TicketObserver(
               appState: appState, checkInList: msg.checkInList);
           observers[msg.checkInList.url].start(hours: 0);

@@ -30,11 +30,11 @@ class ConferencesStore {
         .updateCheckInItems(ciim.items);
   }
 
-    ConferenceStore updateCheckInActionPage(CheckInActionPageMsg ciam) {
-    return _conferences
-        .putIfAbsent(ciam.checkInList.url, () => ConferenceStore(appState: appState, checkInList: ciam.checkInList))
-        .updateCheckInActions(ciam.items);
-  }
+  //   ConferenceStore updateCheckInActionPage(CheckInActionPageMsg ciam) {
+  //   return _conferences
+  //       .putIfAbsent(ciam.checkInList.url, () => ConferenceStore(appState: appState, checkInList: ciam.checkInList))
+  //       .updateCheckInActions(ciam.items);
+  // }
 
   ConferenceStore updateTicketPage(TicketPageMsg tpm) {
     return _conferences
@@ -55,7 +55,7 @@ class ConferencesStore {
     return _conferences.remove(key.url);
   }
 
-  FoundTickets findTickets(String slug) {
+  FoundTickets findTickets(String slug, TicketAction taction) {
     final List<ConferenceTicket> ret = [];
     final inConf = _conferences.values.firstWhere((conf) {
       // print('findTickets:${item.url}:${item.ticketsCount}:$slug');
@@ -67,7 +67,8 @@ class ConferencesStore {
       if (found != null) {
         // print("findTickets:Found:${found.slug}:${slug}");
         ret.add(ConferenceTicket(checkInList: conf.checkInList,
-                                 ticketAndCheckIns: found.toTicketAndCheckIns()));
+                                 ticketAndCheckIns: found.toTicketAndCheckIns(),
+                                 actions: [taction]));
       }
       return found != null;
     }, orElse: () => null);
@@ -79,7 +80,8 @@ class ConferencesStore {
           if (ticket.registration_reference ==
               ref.ticketAndCheckIns.ticket.registration_reference) {
             ret.add(ConferenceTicket(checkInList: conf.checkInList,
-                                     ticketAndCheckIns: tac.toTicketAndCheckIns()));
+                                     ticketAndCheckIns: tac.toTicketAndCheckIns(),
+                                     actions: [taction]));
             return;
           }
           if (ticket.email == ref.ticketAndCheckIns.ticket.email) {
@@ -87,7 +89,8 @@ class ConferencesStore {
               if (ticket.first_name == ref.ticketAndCheckIns.ticket.first_name) {
                 if (ticket.last_name == ref.ticketAndCheckIns.ticket.last_name) {
                   ret.add(ConferenceTicket(checkInList: conf.checkInList,
-                                           ticketAndCheckIns: tac.toTicketAndCheckIns()));
+                                           ticketAndCheckIns: tac.toTicketAndCheckIns(),
+                                           actions: [taction]));
                 }
               }
             }

@@ -5,6 +5,7 @@ import 'package:meta/meta.dart';
 
 class FoundTickets extends ConfotorMsg {
   final List<ConferenceTicket> conferenceTickets;
+
   FoundTickets({@required List<ConferenceTicket> conferenceTickets}): 
     conferenceTickets = conferenceTickets;
 
@@ -19,7 +20,7 @@ class FoundTickets extends ConfotorMsg {
   }
 
   static FoundTickets fromJson(dynamic json) {
-    final conferenceTickets = [];
+    final List<ConferenceTicket> conferenceTickets = [];
     if (json['conferenceTickets'] is List) {
       final List<dynamic> cts = json['conferenceTickets'];
       cts.forEach((ct) => conferenceTickets.add(ConferenceTicket.fromJson(ct)));
