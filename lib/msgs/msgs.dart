@@ -401,11 +401,6 @@ class ConferenceTicket extends ConfotorMsg {
 
   String get shortState => state.toString().split(".").last;
 
-  toJson() => {
-        "checkInList": checkInList,
-        "ticketAndCheckIns": ticketAndCheckIns,
-        "actions": actions,
-      };
 }
 
 class RequestCheckOutTicket extends ConfotorMsg {
