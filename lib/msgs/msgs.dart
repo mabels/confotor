@@ -273,6 +273,12 @@ class BarcodeScannedTicketAction extends TicketAction {
   BarcodeScannedTicketAction({@required barcode})
       : barcode = barcode,
         super('BarcodeScannedTicketAction');
+
+  Map<String, dynamic> toJson() => {
+    "type": type,
+    "barcode": barcode,
+  };
+
 }
 
 enum CheckInOutTransactionTicketActionStep { Started, Completed, Error }
@@ -289,6 +295,12 @@ class CheckInTransactionTicketAction extends StepTransactionTicketAction {
   dynamic error;
   CheckInTransactionTicketAction({@required step}):
     super(type: 'CheckInTransactionTicketAction', step: step);
+
+  Map<String, dynamic> toJson() => {
+    "error": error.toString(),
+    "res": res.toString(),
+    "type": type,
+  };
 
   Future<dynamic> run({
     @required String url,
@@ -330,6 +342,12 @@ class CheckOutTransactionTicketAction extends StepTransactionTicketAction {
       this.error = error;
     });
   }
+
+  Map<String, dynamic> toJson() => {
+    "error": error.toString(),
+    "res": res.toString(),
+    "type": type,
+  };
 }
 
 class ConferenceTicket extends ConfotorMsg {
@@ -382,12 +400,6 @@ class ConferenceTicket extends ConfotorMsg {
     }
     return my;
   }
-
-  Map<String, dynamic> toJson() => {
-    "checkInList": checkInList,
-    "ticketAndCheckIns": ticketAndCheckIns,
-    "actions": actions
-  };
 
 
   TicketAndCheckInsState get state {
