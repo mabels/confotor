@@ -54,17 +54,17 @@ class TicketListAreaState extends State<TicketListArea> {
     switch (tac.checkInList.shortEventTitle) {
       case 'CSSconf':
         return Column(children: [
-          Image.asset('assets/cssconf.png', height: 60),
+          //Image.asset('assets/cssconf.png', height: 60),
           // SvgPicture.asset('assets/jsconf.svg',
           //     semanticsLabel: tac.checkInList.shortEventTitle),
-          Text("${stateText}[(${tac.ticketAndCheckIns.ticket.reference})]")
+          Text("CSSconf EU ${stateText} [${tac.ticketAndCheckIns.ticket.reference}]")
         ]);
       case 'JSConf':
         return Column(children: [
-          Image.asset('assets/jsconf.png', height: 60),
+          //Image.asset('assets/jsconf.png', height: 60),
           // SvgPicture.asset('assets/jsconf.svg',
           //     semanticsLabel: tac.checkInList.shortEventTitle),
-          Text("${stateText}[(${tac.ticketAndCheckIns.ticket.reference})]")
+          Text("JSConf EU ${stateText} [${tac.ticketAndCheckIns.ticket.reference}]")
         ]);
       default:
         return Text(
@@ -89,7 +89,7 @@ class TicketListAreaState extends State<TicketListArea> {
             return RaisedButton(
                 textColor: Colors.white,
                 splashColor: Colors.pinkAccent,
-                child: actionText(conferenceTicket, "Checkout"),
+                child: actionText(conferenceTicket, "checked in successfully "),
                 color: Colors.green,
                 onPressed: () {
                   this
@@ -101,7 +101,7 @@ class TicketListAreaState extends State<TicketListArea> {
             return RaisedButton(
                 textColor: Colors.white,
                 splashColor: Colors.pinkAccent,
-                child: actionText(conferenceTicket, "Used"),
+                child: actionText(conferenceTicket, "is already used "),
                 color: Colors.red,
                 onPressed: () {
                   if (++checkoutPressCounter % 5 == 0) {
@@ -118,7 +118,7 @@ class TicketListAreaState extends State<TicketListArea> {
           return RaisedButton(
               textColor: Colors.white,
               splashColor: Colors.pinkAccent,
-              child: actionText(conferenceTicket, "CheckedIn"),
+              child: actionText(conferenceTicket, "Ticket is checked in"),
               color: Colors.green,
               onPressed: () {
                 this
@@ -132,7 +132,7 @@ class TicketListAreaState extends State<TicketListArea> {
           return RaisedButton(
               textColor: Colors.white,
               splashColor: Colors.pinkAccent,
-              child: actionText(conferenceTicket, "Issueable"),
+              child: actionText(conferenceTicket, "Ticket is not checked in"),
               color: Colors.blue,
               onPressed: () {
                 this
