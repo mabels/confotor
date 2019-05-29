@@ -114,19 +114,19 @@ class TicketListAreaState extends State<TicketListArea> {
           }
           break;
 
-        case TicketAndCheckInsState.Issued:
-          return RaisedButton(
-              textColor: Colors.white,
-              splashColor: Colors.pinkAccent,
-              child: actionText(conferenceTicket, "Ticket is checked in"),
-              color: Colors.green,
-              onPressed: () {
-                this
-                    .appState
-                    .bus
-                    .add(RequestCheckOutTicket(ticket: conferenceTicket));
-              });
-          break;
+        // case TicketAndCheckInsState.Issued:
+        //   return RaisedButton(
+        //       textColor: Colors.white,
+        //       splashColor: Colors.pinkAccent,
+        //       child: actionText(conferenceTicket, "Ticket is checked in"),
+        //       color: Colors.green,
+        //       onPressed: () {
+        //         this
+        //             .appState
+        //             .bus
+        //             .add(RequestCheckOutTicket(ticket: conferenceTicket));
+        //       });
+        //   break;
 
         case TicketAndCheckInsState.Issueable:
           return RaisedButton(

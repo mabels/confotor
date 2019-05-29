@@ -1,5 +1,4 @@
 
-import 'package:confotor/models/check-in-action.dart';
 import 'package:confotor/models/check-in-item.dart';
 import 'package:confotor/models/ticket.dart';
 import 'package:meta/meta.dart';
@@ -7,7 +6,7 @@ import 'package:meta/meta.dart';
 enum TicketAndCheckInsState {
   Used,
   Issueable,
-  Issued,
+  // Issued,
   Error
 }
 
@@ -15,7 +14,7 @@ TicketAndCheckInsState ticketAndCheckInsStateFromString(String s) {
   switch (s) {
     case 'Used': return TicketAndCheckInsState.Used;
     case 'Issueable': return TicketAndCheckInsState.Issueable;
-    case 'Issued': return TicketAndCheckInsState.Issued;
+    // case 'Issued': return TicketAndCheckInsState.Issued;
     case 'Error': 
     default:
       return TicketAndCheckInsState.Error;
@@ -26,7 +25,7 @@ String ticketAndCheckInsStateToString(TicketAndCheckInsState s) {
   switch (s) {
     case TicketAndCheckInsState.Used: return "Used";
     case TicketAndCheckInsState.Issueable: return "Issueable";
-    case TicketAndCheckInsState.Issued: return "Issued";
+    // case TicketAndCheckInsState.Issued: return "Issued";
     case TicketAndCheckInsState.Error: return "Error";
   }
 }
