@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:ui';
+// import 'package:reflectable/reflectable.dart';
 
 import 'package:confotor/models/check-in-action.dart';
 import 'package:confotor/models/check-in-item.dart';
@@ -263,44 +264,95 @@ class AddCheckInAction extends ConfotorMsg {
 //   FindTicket({@required String slug}): slug = slug;
 //}
 
-abstract class TicketAction {
+class TicketAction {
   final String type;
   TicketAction(String type) : type = type;
+
+  static Map<Type, Function> registered = Map(); 
+
+  static TicketAction fromJson(dynamic json) {
+    switch (json['type']) {
+      case "BarcodeScannedTicketAction":
+        return BarcodeScannedTicketAction.fromJson(json);
+      case "CheckInTransactionTicketAction":
+        return CheckInTransactionTicketAction.fromJson(json);
+      case "CheckOutTransactionTicketAction":
+        return CheckOutTransactionTicketAction.fromJson(json);
+      default:
+        return TicketAction(json['type']);
+    }
+    // return ta.fromJson(json);
+  }
+
+  @mustCallSuper
+  Map<String, dynamic> toJson() => {
+    "type": type.toString()
+  };
 }
 
 class BarcodeScannedTicketAction extends TicketAction {
   final String barcode;
   BarcodeScannedTicketAction({@required barcode})
       : barcode = barcode,
-        super('BarcodeScannedTicketAction');
+        super("BarcodeScannedTicketAction");
+
+  static BarcodeScannedTicketAction fromJson(dynamic json) {
+    return BarcodeScannedTicketAction(barcode: json['barcode']);
+  } 
 
   Map<String, dynamic> toJson() => {
-    "type": type,
+    ...super.toJson(),
     "barcode": barcode,
   };
 
 }
+// registerTicketAction(type: BarcodeScannedTicketAction, fromJson);
 
 enum CheckInOutTransactionTicketActionStep { Started, Completed, Error }
+String asStringCheckInOutTransactionTicketActionStep(CheckInOutTransactionTicketActionStep step) {
+  switch (step) {
+    case CheckInOutTransactionTicketActionStep.Started: return "Started";
+    case CheckInOutTransactionTicketActionStep.Completed: return "Completed";
+    case CheckInOutTransactionTicketActionStep.Error:
+    default:
+      return "Error";
+  }
+}
+
+CheckInOutTransactionTicketActionStep fromStringCheckInOutTransactionTicketActionStep(String step) {
+  switch (step) {
+    case "Started": return CheckInOutTransactionTicketActionStep.Started;
+    case "Completed": return CheckInOutTransactionTicketActionStep.Completed;
+    case "Error": 
+    default:
+      return CheckInOutTransactionTicketActionStep.Error;
+  }
+}
 
 class StepTransactionTicketAction extends TicketAction {
   CheckInOutTransactionTicketActionStep step;
+  Response res;
+  dynamic error;
   StepTransactionTicketAction({@required CheckInOutTransactionTicketActionStep step,
                                @required String type}): 
     step = step, super(type); 
+
+  Map<String, dynamic> toJson() => {
+    ...super.toJson(),
+    "step": asStringCheckInOutTransactionTicketActionStep(step),
+    "error": error.toString(),
+    "res": res.toString(),
+  };
 }
 
 class CheckInTransactionTicketAction extends StepTransactionTicketAction {
-  Response res;
-  dynamic error;
-  CheckInTransactionTicketAction({@required step}):
-    super(type: 'CheckInTransactionTicketAction', step: step);
 
-  Map<String, dynamic> toJson() => {
-    "error": error.toString(),
-    "res": res.toString(),
-    "type": type,
-  };
+  CheckInTransactionTicketAction({@required step}):
+    super(type: "CheckInTransactionTicketAction", step: step);
+
+  static CheckInTransactionTicketAction fromJson(dynamic json) {
+    return CheckInTransactionTicketAction(step: fromStringCheckInOutTransactionTicketActionStep(json['step']));
+  } 
 
   Future<dynamic> run({
     @required String url,
@@ -325,11 +377,9 @@ class CheckInTransactionTicketAction extends StepTransactionTicketAction {
 
 class CheckOutTransactionTicketAction extends StepTransactionTicketAction {
   final String uuid;
-  Response res;
-  dynamic error;
   CheckOutTransactionTicketAction({@required step, @required String uuid})
       : uuid = uuid,
-        super(type: 'CheckInTransactionTicketAction', step: step);
+        super(type: "CheckOutTransactionTicketAction", step: step);
 
   Future<dynamic> run({
     @required String url,
@@ -343,10 +393,15 @@ class CheckOutTransactionTicketAction extends StepTransactionTicketAction {
     });
   }
 
+  static CheckOutTransactionTicketAction fromJson(dynamic json) {
+    return CheckOutTransactionTicketAction(
+      uuid: json['uuid'],
+      step: fromStringCheckInOutTransactionTicketActionStep(json['step']));
+  } 
+
   Map<String, dynamic> toJson() => {
-    "error": error.toString(),
-    "res": res.toString(),
-    "type": type,
+    ...super.toJson(),
+    "uuid": uuid
   };
 }
 
@@ -364,13 +419,28 @@ class ConferenceTicket extends ConfotorMsg {
         ticketAndCheckIns = ticketAndCheckIns,
         actions = actions;
 
+
+  static _actionsFromJson(dynamic actions) {
+    final List<TicketAction> my = [];
+    if (actions is List) {
+      actions.forEach((ajson) => my.add(TicketAction.fromJson(ajson)));
+    }
+    return my;
+  }
+
   static ConferenceTicket fromJson(dynamic json) {
     return ConferenceTicket(
         checkInList: CheckInList.fromJson(json['checkInList']),
         ticketAndCheckIns:
             TicketAndCheckIns.fromJson(json['ticketAndCheckIns']),
-        actions: actionsFromJson(json['actions']));
+        actions: _actionsFromJson(json['actions']));
   }
+
+  Map<String, dynamic> toJson() => {
+    "checkInList": checkInList,
+    "ticketAndCheckIns": ticketAndCheckIns,
+    "actions": actions
+  };
 
   bool get issuedFromMe {
     final action = actions.reversed.firstWhere((action) {
@@ -393,13 +463,6 @@ class ConferenceTicket extends ConfotorMsg {
     }, orElse: () => null) != null;
   }
 
-  static actionsFromJson(dynamic actions) {
-    final List<TicketAction> my = [];
-    if (actions is List) {
-      // actions.forEach((ajson) => )
-    }
-    return my;
-  }
 
 
   TicketAndCheckInsState get state {

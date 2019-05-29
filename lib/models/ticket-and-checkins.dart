@@ -41,7 +41,7 @@ class TicketAndCheckIns {
     @required List<CheckInItem> checkInItems,
     // @required List<CheckInAction> checkInActions,
     @required Ticket ticket,
-    @required TicketAndCheckInsState state
+    // @required TicketAndCheckInsState state
    }): checkInItems = checkInItems, 
       //  checkInActions = checkInActions, 
        ticket = ticket; 
@@ -72,7 +72,7 @@ class TicketAndCheckIns {
       //  checkInActions: [], 
        checkInItems: ciis,
        ticket: Ticket(id: json['ticket']['id']),
-       state: ticketAndCheckInsStateFromString(json['state'])
+      //  state: ticketAndCheckInsStateFromString(json['state'])
     );
     return my._updateFromJson(json);
   }

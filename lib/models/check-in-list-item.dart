@@ -14,7 +14,7 @@ class CheckInList extends ConferenceKey {
   int total_entries;
 
   CheckInList({@required String url}): super(url) {
-    print('CheckInList:$url');
+    // print('CheckInList:$url');
     if (this.url == null) {
       throw Exception('CheckInList: tried with null url');
     }

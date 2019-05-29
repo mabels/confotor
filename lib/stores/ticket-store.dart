@@ -4,7 +4,6 @@ import 'package:confotor/models/check-in-item.dart';
 import 'package:confotor/models/check-in-list-item.dart';
 import 'package:confotor/models/ticket-and-checkins.dart';
 import 'package:confotor/models/ticket.dart';
-import 'package:confotor/msgs/msgs.dart';
 import 'package:confotor/stores/ticket-and-checkins-store.dart';
 import 'package:flutter/foundation.dart';
 

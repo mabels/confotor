@@ -14,7 +14,7 @@ description: A Confotor
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.2.2 <3.0.0"
 
 dependencies:
   flutter:
@@ -30,6 +30,7 @@ dependencies:
   sprintf: ^4.0.2
   uuid: 2.0.0
   path: any
+  # reflectable: ^2.0.12
 
 dev_dependencies:
   flutter_test:

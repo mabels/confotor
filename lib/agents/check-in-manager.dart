@@ -4,10 +4,8 @@ import 'dart:ui';
 import 'package:confotor/components/confotor-app.dart';
 import 'package:confotor/models/found-tickets.dart';
 import 'package:confotor/models/ticket-and-checkins.dart';
-import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
 import 'package:confotor/stores/last-found-tickets-store.dart';
-import 'package:confotor/stores/ticket-and-checkins-store.dart';
 import 'package:meta/meta.dart';
 
 class CheckInManager {
