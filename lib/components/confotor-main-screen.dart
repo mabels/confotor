@@ -4,6 +4,8 @@ import 'package:confotor/models/found-tickets.dart';
 import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/scan-msg.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter_svg/svg.dart';
 import './confotor-app.dart';
 // import 'active-area.dart';
 import 'confotor-drawer.dart';
@@ -65,8 +67,8 @@ class ConfotorMainScreenState extends State<ConfotorMainScreen> {
                   //height: MediaQuery.of(context).size.height - (60 + 100),
                   color: Color(0xff303f62),
                   child: toggleQrScan
-                      ? QrScan(appState: appState)
-                      : TicketListArea(appState: appState))),
+                       ? QrScan(appState: appState)
+                       : TicketListArea(appState: appState))),
           // Align(
           //     alignment: Alignment.bottomCenter,
           //     child: Container(

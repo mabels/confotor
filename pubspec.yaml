@@ -30,6 +30,7 @@ dependencies:
   sprintf: ^4.0.2
   uuid: 2.0.0
   path: any
+  flutter_svg: 0.12.4
   # reflectable: ^2.0.12
 
 dev_dependencies:
@@ -42,6 +43,9 @@ dev_dependencies:
 
 # The following section is specific to Flutter.
 flutter:
+  assets:
+    - assets/cssconf.png
+    - assets/jsconf.png
   #plugin:
   #  androidPackage: co.apperto.fastqrreaderview
   #  pluginClass: FastQrReaderViewPlugin

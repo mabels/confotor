@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
+
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:confotor/models/found-tickets.dart';
 import 'package:confotor/models/ticket-and-checkins.dart';
 import 'package:confotor/msgs/msgs.dart';
-import 'package:confotor/msgs/scan-msg.dart';
 import 'package:flutter/material.dart';
 
 import 'confotor-app.dart';
@@ -51,8 +51,25 @@ class TicketListAreaState extends State<TicketListArea> {
   }
 
   actionText(ConferenceTicket tac, String stateText) {
-    return Text(
-        "${stateText}[${tac.checkInList.shortEventTitle}(${tac.ticketAndCheckIns.ticket.reference})]");
+    switch (tac.checkInList.shortEventTitle) {
+      case 'CSSconf':
+        return Column(children: [
+          Image.asset('assets/cssconf.png', height: 60),
+          // SvgPicture.asset('assets/jsconf.svg',
+          //     semanticsLabel: tac.checkInList.shortEventTitle),
+          Text("${stateText}[(${tac.ticketAndCheckIns.ticket.reference})]")
+        ]);
+      case 'JSConf':
+        return Column(children: [
+          Image.asset('assets/jsconf.png', height: 60),
+          // SvgPicture.asset('assets/jsconf.svg',
+          //     semanticsLabel: tac.checkInList.shortEventTitle),
+          Text("${stateText}[(${tac.ticketAndCheckIns.ticket.reference})]")
+        ]);
+      default:
+        return Text(
+            "${stateText}[${tac.checkInList.shortEventTitle}(${tac.ticketAndCheckIns.ticket.reference})]");
+    }
   }
 
   subTitle(FoundTickets foundTickets) {
@@ -75,10 +92,10 @@ class TicketListAreaState extends State<TicketListArea> {
                 child: actionText(conferenceTicket, "Checkout"),
                 color: Colors.green,
                 onPressed: () {
-                    this
-                        .appState
-                        .bus
-                        .add(RequestCheckOutTicket(ticket: conferenceTicket));
+                  this
+                      .appState
+                      .bus
+                      .add(RequestCheckOutTicket(ticket: conferenceTicket));
                 });
           } else {
             return RaisedButton(
@@ -132,7 +149,7 @@ class TicketListAreaState extends State<TicketListArea> {
               color: Colors.purple);
           break;
       }
-    }).toList());
+    }).map((p) => Padding(padding: EdgeInsets.all(3),child: p)).toList());
   }
 
   @override
