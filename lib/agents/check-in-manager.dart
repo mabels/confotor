@@ -38,6 +38,9 @@ class CheckInManager {
             break;
         }
       }
+      if (msg is ResetLastFoundTickets) {
+        appState.bus.add(_lastFoundTicketsStore.reset().toLastFoundTickets());
+      }
       if (msg is JsonObject) {
         if (msg.json['lastFoundTickets'] != null) {
           jsonLastFoundTicketsStore = LastFoundTickets.fromJson(msg.json['lastFoundTickets']);

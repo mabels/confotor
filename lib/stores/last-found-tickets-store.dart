@@ -24,6 +24,11 @@ class LastFoundTicketsStore {
     return LastFoundTickets(last: last, maxLen: maxLen);
   }
 
+  LastFoundTicketsStore reset() {
+    last.clear();
+    return this;
+  }
+
   LastFoundTicketsStore update(LastFoundTickets lft) {
     maxLen = lft.maxLen;
     lft.last.reversed.forEach((lt) => updateFoundTickets(lt));

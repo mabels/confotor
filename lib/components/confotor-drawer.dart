@@ -1,7 +1,6 @@
 // import 'package:confotor/actions/scan-check-in-list-action.dart';
 import 'dart:async';
 
-import 'package:confotor/models/conference.dart';
 import 'package:confotor/models/conferences.dart';
 import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
@@ -11,6 +10,13 @@ import './confotor-app.dart';
 
 List<Widget> staticDrawer({ConfotorAppState appState}) {
   return [
+        ListTile(
+        key: Key('Reset Last TicketList'),
+        title: Text('Reset Last TicketList',
+          style: TextStyle(color: Colors.deepOrange)),
+        onTap: () {
+          appState.bus.add(ResetLastFoundTickets());
+        })
     // ListTile(
     //     key: Key('AddCheckInList'),
     //     title: Text('Add Check-In List',

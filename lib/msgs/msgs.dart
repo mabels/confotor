@@ -516,3 +516,6 @@ class JsonObjectError extends FileError {
       : str = str,
         super(error: error, fileName: fileName);
 }
+
+class ResetLastFoundTickets extends ConfotorMsg {
+}
