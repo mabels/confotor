@@ -43,7 +43,8 @@ class CheckInManager {
       }
       if (msg is JsonObject) {
         if (msg.json['lastFoundTickets'] != null) {
-          jsonLastFoundTicketsStore = LastFoundTickets.fromJson(msg.json['lastFoundTickets']);
+          jsonLastFoundTicketsStore =
+              LastFoundTickets.fromJson(msg.json['lastFoundTickets']);
           // jsonLastFoundTicketsStore.last.map((i) => i.conferenceTickets.)
           // appState.bus.add(RequestUpdateConference(checkInList: jsonLastFoundTicketsStore.))
         }
@@ -55,12 +56,13 @@ class CheckInManager {
           msg.conferences.conferences.forEach((cf) {
             jsonLastFoundTicketsStore.last.reversed.toList().forEach((ft) {
               final cts = Map.fromEntries(ft.conferenceTickets
-                        .where((ct) => ct.checkInList.url == cf.checkInList.url)
-                        .map((ct) => MapEntry(ct.ticketAndCheckIns.ticket.id, ct)));
+                  .where((ct) => ct.checkInList.url == cf.checkInList.url)
+                  .map((ct) => MapEntry(ct.ticketAndCheckIns.ticket.id, ct)));
               cf.ticketAndCheckInsList.forEach((tac) {
                 if (cts.containsKey(tac.ticket.id)) {
                   _lastFoundTicketsStore.updateFoundTickets(ft);
-                  jsonLastFoundTicketsStore.last.removeWhere((i) => i.containsSlug(ft));
+                  jsonLastFoundTicketsStore.last
+                      .removeWhere((i) => i.containsSlug(ft));
                 }
               });
             });
@@ -74,24 +76,28 @@ class CheckInManager {
       }
 
       if (msg is RequestCheckInTicket) {
-        print('RequestCheckInTicket:${msg.conferenceTicket.checkInList.event_title}:${msg.conferenceTicket.ticketAndCheckIns.ticket.email}');
-        _lastFoundTicketsStore.doCheckIn(msg.conferenceTicket); 
+        print(
+            'RequestCheckInTicket:${msg.conferenceTicket.checkInList.event_title}:${msg.conferenceTicket.ticketAndCheckIns.ticket.email}');
+        _lastFoundTicketsStore.doCheckIn(msg.conferenceTicket);
       }
 
       if (msg is RequestCheckOutTicket) {
-        print('RequestCheckOutTicket:${msg.conferenceTicket.checkInList.event_title}:${msg.conferenceTicket.ticketAndCheckIns.ticket.email}');
-        _lastFoundTicketsStore.doCheckOut(msg.conferenceTicket); 
+        print(
+            'RequestCheckOutTicket:${msg.conferenceTicket.checkInList.event_title}:${msg.conferenceTicket.ticketAndCheckIns.ticket.email}');
+        _lastFoundTicketsStore.doCheckOut(msg.conferenceTicket);
       }
 
       if (msg is FoundTickets) {
         appState.bus.add(_lastFoundTicketsStore
             .updateFoundTickets(msg)
             .toLastFoundTickets());
-        msg.conferenceTickets.forEach((ct) {
-          if (ct.state == TicketAndCheckInsState.Issueable) {
-            appState.bus.add(RequestCheckInTicket(ticket: ct));
-          }
-        });
+        if (msg.autoCheckinable) {
+          msg.conferenceTickets.forEach((ct) {
+            if (ct.state == TicketAndCheckInsState.Issueable) {
+              appState.bus.add(RequestCheckInTicket(ticket: ct));
+            }
+          });
+        }
       }
 
       if (msg is RequestLastFoundTickets) {

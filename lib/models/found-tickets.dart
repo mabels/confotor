@@ -18,6 +18,10 @@ class FoundTickets extends ConfotorMsg {
     return conferenceTickets.map((t) => t.ticketAndCheckIns.ticket.slug).toList();
   }
 
+  bool get autoCheckinable {
+    return conferenceTickets.length == Set.from(conferenceTickets.map((i) => i.checkInList.url)).length;
+  }
+
   bool containsSlug(FoundTickets oth) {
     final mySlugs = Set.from(this.slugs);
     return oth.conferenceTickets.firstWhere((o) => mySlugs.contains(o.ticketAndCheckIns.ticket.slug),
