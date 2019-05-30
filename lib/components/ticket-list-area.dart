@@ -57,14 +57,16 @@ class TicketListAreaState extends State<TicketListArea> {
           //Image.asset('assets/cssconf.png', height: 60),
           // SvgPicture.asset('assets/jsconf.svg',
           //     semanticsLabel: tac.checkInList.shortEventTitle),
-          Text("CSSconf EU ${stateText} [${tac.ticketAndCheckIns.ticket.reference}]")
+          Text(
+              "CSSconf EU ${stateText} [${tac.ticketAndCheckIns.ticket.reference}]")
         ]);
       case 'JSConf':
         return Column(children: [
           //Image.asset('assets/jsconf.png', height: 60),
           // SvgPicture.asset('assets/jsconf.svg',
           //     semanticsLabel: tac.checkInList.shortEventTitle),
-          Text("JSConf EU ${stateText} [${tac.ticketAndCheckIns.ticket.reference}]")
+          Text(
+              "JSConf EU ${stateText} [${tac.ticketAndCheckIns.ticket.reference}]")
         ]);
       default:
         return Text(
@@ -74,82 +76,82 @@ class TicketListAreaState extends State<TicketListArea> {
 
   subTitle(FoundTickets foundTickets) {
     return Column(
-        children: foundTickets.conferenceTickets.map((conferenceTicket) {
-      if (conferenceTicket.runningAction) {
-        return RaisedButton(
-            textColor: Colors.white,
-            splashColor: Colors.pinkAccent,
-            child: actionText(conferenceTicket, "Running"),
-            color: Colors.pink,
-            onPressed: () {});
-      }
-      switch (conferenceTicket.state) {
-        case TicketAndCheckInsState.Used:
-          if (conferenceTicket.issuedFromMe) {
-            return RaisedButton(
-                textColor: Colors.white,
-                splashColor: Colors.pinkAccent,
-                child: actionText(conferenceTicket, "checked in successfully "),
-                color: Colors.green,
-                onPressed: () {
-                  this
-                      .appState
-                      .bus
-                      .add(RequestCheckOutTicket(ticket: conferenceTicket));
-                });
-          } else {
-            return RaisedButton(
-                textColor: Colors.white,
-                splashColor: Colors.pinkAccent,
-                child: actionText(conferenceTicket, "is already used "),
-                color: Colors.red,
-                onPressed: () {
-                  if (++checkoutPressCounter % 5 == 0) {
-                    this
-                        .appState
-                        .bus
-                        .add(RequestCheckOutTicket(ticket: conferenceTicket));
+        children: foundTickets.conferenceTickets
+            .map((conferenceTicket) {
+              if (conferenceTicket.runningAction) {
+                return RaisedButton(
+                    textColor: Colors.white,
+                    splashColor: Colors.pinkAccent,
+                    child: actionText(conferenceTicket, "Running"),
+                    color: Colors.pink,
+                    onPressed: () {});
+              }
+              switch (conferenceTicket.state) {
+                case TicketAndCheckInsState.Used:
+                  if (conferenceTicket.issuedFromMe) {
+                    return RaisedButton(
+                        textColor: Colors.white,
+                        splashColor: Colors.pinkAccent,
+                        child: actionText(
+                            conferenceTicket, "checked in successfully "),
+                        color: Colors.green,
+                        onPressed: () {
+                          this.appState.bus.add(
+                              RequestCheckOutTicket(ticket: conferenceTicket));
+                        });
+                  } else {
+                    return RaisedButton(
+                        textColor: Colors.white,
+                        splashColor: Colors.pinkAccent,
+                        child: actionText(conferenceTicket, "is already used "),
+                        color: Colors.red,
+                        onPressed: () {
+                          if (++checkoutPressCounter % 5 == 0) {
+                            this.appState.bus.add(RequestCheckOutTicket(
+                                ticket: conferenceTicket));
+                          }
+                        });
                   }
-                });
-          }
-          break;
+                  break;
 
-        // case TicketAndCheckInsState.Issued:
-        //   return RaisedButton(
-        //       textColor: Colors.white,
-        //       splashColor: Colors.pinkAccent,
-        //       child: actionText(conferenceTicket, "Ticket is checked in"),
-        //       color: Colors.green,
-        //       onPressed: () {
-        //         this
-        //             .appState
-        //             .bus
-        //             .add(RequestCheckOutTicket(ticket: conferenceTicket));
-        //       });
-        //   break;
+                // case TicketAndCheckInsState.Issued:
+                //   return RaisedButton(
+                //       textColor: Colors.white,
+                //       splashColor: Colors.pinkAccent,
+                //       child: actionText(conferenceTicket, "Ticket is checked in"),
+                //       color: Colors.green,
+                //       onPressed: () {
+                //         this
+                //             .appState
+                //             .bus
+                //             .add(RequestCheckOutTicket(ticket: conferenceTicket));
+                //       });
+                //   break;
 
-        case TicketAndCheckInsState.Issueable:
-          return RaisedButton(
-              textColor: Colors.white,
-              splashColor: Colors.pinkAccent,
-              child: actionText(conferenceTicket, "Ticket is not checked in"),
-              color: Colors.blue,
-              onPressed: () {
-                this
-                    .appState
-                    .bus
-                    .add(RequestCheckInTicket(ticket: conferenceTicket));
-              });
-          break;
-        default:
-          return RaisedButton(
-              textColor: Colors.white,
-              splashColor: Colors.pinkAccent,
-              child: actionText(conferenceTicket, conferenceTicket.shortState),
-              color: Colors.purple);
-          break;
-      }
-    }).map((p) => Padding(padding: EdgeInsets.all(3),child: p)).toList());
+                case TicketAndCheckInsState.Issueable:
+                  return RaisedButton(
+                      textColor: Colors.white,
+                      splashColor: Colors.pinkAccent,
+                      child: actionText(
+                          conferenceTicket, "Ticket is not checked in"),
+                      color: Colors.blue,
+                      onPressed: () {
+                        this.appState.bus.add(
+                            RequestCheckInTicket(ticket: conferenceTicket));
+                      });
+                  break;
+                default:
+                  return RaisedButton(
+                      textColor: Colors.white,
+                      splashColor: Colors.pinkAccent,
+                      child: actionText(
+                          conferenceTicket, conferenceTicket.shortState),
+                      color: Colors.purple);
+                  break;
+              }
+            })
+            .map((p) => Padding(padding: EdgeInsets.all(3), child: p))
+            .toList());
   }
 
   @override
@@ -158,14 +160,13 @@ class TicketListAreaState extends State<TicketListArea> {
     if (lastFoundTickets == null) {
       return ListView(children: <Widget>[]);
     } else {
-      // print('Build:${lastFoundTickets.last.length}');
+      print('Build:${lastFoundTickets.last.length}');
       return ListView(
           children: lastFoundTickets.last.map((foundTickets) {
         if (foundTickets.hasFound) {
           return Card(
               color: Colors.white70,
               child: ListTile(
-                  key: Key(foundTickets.slug),
                   title: Text(foundTickets.name,
                       style: TextStyle(
                           fontSize: 24.0,
@@ -179,7 +180,7 @@ class TicketListAreaState extends State<TicketListArea> {
               child: ListTile(
                   title: Container(
                       color: Colors.red,
-                      child: Text("No Ticket found from Scan"))));
+                      child: Text("No Ticket found from Scan[${foundTickets.scan}]"))));
         }
       }).toList());
     }

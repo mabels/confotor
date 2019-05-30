@@ -5,16 +5,27 @@ import 'package:meta/meta.dart';
 
 class FoundTickets extends ConfotorMsg {
   final List<ConferenceTicket> conferenceTickets;
+  final String scan;
 
-  FoundTickets({@required List<ConferenceTicket> conferenceTickets}): 
-    conferenceTickets = conferenceTickets;
+  FoundTickets({
+    @required String scan,
+    @required List<ConferenceTicket> conferenceTickets
+  }): 
+    conferenceTickets = conferenceTickets,
+    scan = scan;
 
-  get hasFound {
-    return conferenceTickets.isNotEmpty;
+  List<String> get slugs {
+    return conferenceTickets.map((t) => t.ticketAndCheckIns.ticket.slug).toList();
   }
-  get slug {
-    return hasFound ? conferenceTickets.first.ticketAndCheckIns.ticket.slug : "Not Found";
+
+  bool containsSlug(FoundTickets oth) {
+    final mySlugs = Set.from(this.slugs);
+    return oth.conferenceTickets.firstWhere((o) => mySlugs.contains(o.ticketAndCheckIns.ticket.slug),
+      orElse: () => null) != null;
   }
+
+  get hasFound => conferenceTickets.isNotEmpty;
+
   get name {
     return hasFound ? "${conferenceTickets.first.ticketAndCheckIns.ticket.first_name} ${conferenceTickets.first.ticketAndCheckIns.ticket.last_name}" : "John Doe";
   }
@@ -25,11 +36,12 @@ class FoundTickets extends ConfotorMsg {
       final List<dynamic> cts = json['conferenceTickets'];
       cts.forEach((ct) => conferenceTickets.add(ConferenceTicket.fromJson(ct)));
     }
-    return FoundTickets(conferenceTickets: conferenceTickets);
+    return FoundTickets(conferenceTickets: conferenceTickets, scan: json['scan']);
   }
 
   Map<String, dynamic> toJson() => {
-    "conferenceTickets": conferenceTickets
+    "conferenceTickets": conferenceTickets,
+    "scan": scan
   };
 
 }

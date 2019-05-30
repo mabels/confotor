@@ -49,10 +49,11 @@ class LastFoundTicketsStore {
         });
       });
     });
+    return this;
   }
 
   LastFoundTicketsStore updateFoundTickets(FoundTickets oth) {
-    final idx = last.indexWhere((t) => t.slug == oth.slug);
+    final idx = last.indexWhere((t) => t.containsSlug(oth));
     if (idx >= 0) {
       last.removeAt(idx);
     }

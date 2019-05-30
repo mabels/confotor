@@ -60,7 +60,7 @@ class CheckInManager {
               cf.ticketAndCheckInsList.forEach((tac) {
                 if (cts.containsKey(tac.ticket.id)) {
                   _lastFoundTicketsStore.updateFoundTickets(ft);
-                  jsonLastFoundTicketsStore.last.removeWhere((i) => i.slug == ft.slug);
+                  jsonLastFoundTicketsStore.last.removeWhere((i) => i.containsSlug(ft));
                 }
               });
             });

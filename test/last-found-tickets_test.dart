@@ -50,13 +50,14 @@ void main() {
             ticketAndCheckIns: TicketAndCheckIns(
                 checkInItems: [],
                 ticket: Ticket(id: 1)))
-      ])
+      ], scan: "xx")
     ]);
     final String str = json.encode(lastFoundTickets.toJson());
     // print(str);
     final dynamic my = json.decode(str);
     final ref = LastFoundTickets.fromJson(my);
     expect(ref.last.length, 1);
+    expect(ref.last.first.scan, 'xx');
     final ct = ref.last.first.conferenceTickets.first;
     expect(ct.checkInList.url, 'x');
     expect(ct.ticketAndCheckIns.checkInItems.length, 0);

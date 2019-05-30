@@ -99,7 +99,7 @@ class ConferencesStore {
         });
       });
     }
-    return FoundTickets(conferenceTickets: ret);
+    return FoundTickets(conferenceTickets: ret, scan: slug);
   }
 
   Future<File> get fileName async {

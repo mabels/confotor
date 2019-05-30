@@ -161,9 +161,7 @@ class ConferencesAgent {
         }).catchError((e) {
           final found = _conferences.findTickets(msg.barcode, BarcodeScannedTicketAction(barcode: msg.barcode));
           // print( 'FoundTickets:${msg.barcode}:${found.conferenceTickets.length}');
-          if (found.conferenceTickets.isNotEmpty) {
-            appState.bus.add(found);
-          }
+          appState.bus.add(found);
         });
       }
 
