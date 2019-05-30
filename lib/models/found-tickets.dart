@@ -18,7 +18,7 @@ class FoundTickets extends ConfotorMsg {
     return conferenceTickets.map((t) => t.ticketAndCheckIns.ticket.slug).toList();
   }
 
-  bool get autoCheckinable {
+  bool get unambiguous {
     return conferenceTickets.length == Set.from(conferenceTickets.map((i) => i.checkInList.url)).length;
   }
 

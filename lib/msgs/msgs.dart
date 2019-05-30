@@ -278,6 +278,8 @@ class TicketAction {
         return CheckInTransactionTicketAction.fromJson(json);
       case "CheckOutTransactionTicketAction":
         return CheckOutTransactionTicketAction.fromJson(json);
+      case "AmbiguousAction":
+        return AmbiguousAction.fromJson(json);
       default:
         return TicketAction(json['type']);
     }
@@ -288,6 +290,23 @@ class TicketAction {
   Map<String, dynamic> toJson() => {
     "type": type.toString()
   };
+}
+
+class  AmbiguousAction extends TicketAction {
+  final String barcode;
+  AmbiguousAction({@required barcode})
+      : barcode = barcode,
+        super("AmbiguousAction");
+
+  static AmbiguousAction fromJson(dynamic json) {
+    return AmbiguousAction(barcode: json['barcode']);
+  } 
+
+  Map<String, dynamic> toJson() => {
+    ...super.toJson(),
+    "barcode": barcode,
+  };
+
 }
 
 class BarcodeScannedTicketAction extends TicketAction {
@@ -518,4 +537,7 @@ class JsonObjectError extends FileError {
 }
 
 class ResetLastFoundTickets extends ConfotorMsg {
+}
+
+class RequestAmbiguousLastFoundTickets extends ConfotorMsg {
 }

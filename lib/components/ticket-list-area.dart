@@ -23,6 +23,7 @@ class TicketListAreaState extends State<TicketListArea> {
   LastFoundTickets lastFoundTickets;
   final ConfotorAppState appState;
   StreamSubscription subscription;
+  Timer timer;
   int checkoutPressCounter = 0;
 
   TicketListAreaState({ConfotorAppState appState}) : appState = appState;
@@ -42,11 +43,13 @@ class TicketListAreaState extends State<TicketListArea> {
       }
     });
     appState.bus.add(RequestLastFoundTickets());
+    timer = Timer.periodic(Duration(milliseconds: 1500), (_) => checkoutPressCounter = 0);
   }
 
   @override
   dispose() {
     super.dispose();
+    timer.cancel();
     subscription.cancel();
   }
 

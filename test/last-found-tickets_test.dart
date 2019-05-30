@@ -36,6 +36,7 @@ void main() {
       FoundTickets(conferenceTickets: [
         ConferenceTicket(
             actions: [
+              AmbiguousAction(barcode: 'x'),
               BarcodeScannedTicketAction(barcode: 'x'),
               CheckInTransactionTicketAction(
                   step: CheckInOutTransactionTicketActionStep.Completed),
@@ -62,13 +63,17 @@ void main() {
     expect(ct.checkInList.url, 'x');
     expect(ct.ticketAndCheckIns.checkInItems.length, 0);
     expect(ct.ticketAndCheckIns.ticket.id, 1);
-    expect(ct.actions.length, 5);
+    expect(ct.actions.length, 6);
     // print(ct.actions);
-    BarcodeScannedTicketAction baction = ct.actions[0];
-    CheckInTransactionTicketAction ccomplete = ct.actions[1];
-    CheckInTransactionTicketAction cstarted = ct.actions[2];
-    CheckInTransactionTicketAction cerror = ct.actions[3];
-    CheckOutTransactionTicketAction cout = ct.actions[4];
+    AmbiguousAction aaction = ct.actions[0];
+    BarcodeScannedTicketAction baction = ct.actions[1];
+    CheckInTransactionTicketAction ccomplete = ct.actions[2];
+    CheckInTransactionTicketAction cstarted = ct.actions[3];
+    CheckInTransactionTicketAction cerror = ct.actions[4];
+    CheckOutTransactionTicketAction cout = ct.actions[5];
+    expect(aaction.type, "AmbiguousAction");
+    expect(aaction.barcode, 'x');
+    expect(baction.type, "BarcodeScannedTicketAction");
     expect(baction.barcode, 'x');
     expect(ccomplete.type, "CheckInTransactionTicketAction");
     expect(ccomplete.step, CheckInOutTransactionTicketActionStep.Completed);

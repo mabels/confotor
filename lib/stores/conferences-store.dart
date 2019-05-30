@@ -5,6 +5,7 @@ import 'package:confotor/components/confotor-app.dart';
 import 'package:confotor/models/conference.dart';
 import 'package:confotor/models/conferences.dart';
 import 'package:confotor/models/found-tickets.dart';
+import 'package:confotor/models/ticket.dart';
 import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
 import 'package:meta/meta.dart';
@@ -55,6 +56,19 @@ class ConferencesStore {
     return _conferences.remove(key.url);
   }
 
+  List<FoundTickets> calculateAmbiguousTickets() {
+    final List<FoundTickets> ret = [];
+    _conferences.values.forEach((conf) {
+      conf.ticketStore.values.map((i) => i.slug).forEach((slug) {
+        final fts = findTickets(slug, AmbiguousAction(barcode: slug));
+        if (!fts.unambiguous) {
+          ret.add(fts);
+        }
+      });
+    });
+    return ret;
+  }
+
   FoundTickets findTickets(String slug, TicketAction taction) {
     final List<ConferenceTicket> ret = [];
     final inConf = _conferences.values.firstWhere((conf) {
@@ -77,29 +91,41 @@ class ConferencesStore {
       _conferences.values.where((c) => c.url != inConf.url).forEach((conf) {
         conf.ticketStore.values.forEach((tac) {
           final ticket = tac.ticket;
-          if (ticket.registration_reference ==
-              ref.ticketAndCheckIns.ticket.registration_reference) {
-            ret.add(ConferenceTicket(checkInList: conf.checkInList,
-                                     ticketAndCheckIns: tac.toTicketAndCheckIns(),
-                                     actions: [taction]));
-            return;
-          }
-          if (ticket.email == ref.ticketAndCheckIns.ticket.email) {
-            if (ticket.company_name == ref.ticketAndCheckIns.ticket.company_name) {
-              if (ticket.first_name == ref.ticketAndCheckIns.ticket.first_name) {
-                if (ticket.last_name == ref.ticketAndCheckIns.ticket.last_name) {
-                  ret.add(ConferenceTicket(checkInList: conf.checkInList,
-                                           ticketAndCheckIns: tac.toTicketAndCheckIns(),
-                                           actions: [taction]));
-                }
-              }
+
+          if (ticket.first_name == ref.ticketAndCheckIns.ticket.first_name) {
+            if (ticket.last_name == ref.ticketAndCheckIns.ticket.last_name) {
+              ret.add(ConferenceTicket(checkInList: conf.checkInList,
+                                        ticketAndCheckIns: tac.toTicketAndCheckIns(),
+                                        actions: [taction]));
             }
-            return;
           }
         });
       });
     }
+    if (ret.length > _conferences.length) {
+      // filter registration_reference
+      _removeFrom(ret, _filterTicket(ret, (Ticket t) => t.registration_reference));
+    }
+    if (ret.length > _conferences.length) {
+      // filter email
+      _removeFrom(ret, _filterTicket(ret, (Ticket t) => t.email));
+    }
     return FoundTickets(conferenceTickets: ret, scan: slug);
+  }
+
+  _removeFrom(List<ConferenceTicket> ref, List<ConferenceTicket> toRemove) {
+    ref.removeWhere((ct) => 
+      toRemove.firstWhere((tct) => ct == tct, orElse: () => null) != null);
+  }
+
+  _filterTicket(List<ConferenceTicket> ret, dynamic map(Ticket t)) {
+    final ref = map(ret.first.ticketAndCheckIns.ticket);
+    final tail = ret.getRange(1, ret.length).toList();
+    final found = tail.where((o) => map(o.ticketAndCheckIns.ticket) == ref);
+    if (found.isNotEmpty) {
+      return tail.where((o) => map(o.ticketAndCheckIns.ticket) != ret).toList();
+    }
+    return found;
   }
 
   Future<File> get fileName async {

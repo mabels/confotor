@@ -16,7 +16,14 @@ List<Widget> staticDrawer({ConfotorAppState appState}) {
           style: TextStyle(color: Colors.deepOrange)),
         onTap: () {
           appState.bus.add(ResetLastFoundTickets());
-        })
+        }),
+        ListTile(
+        key: Key('Ambiguous TicketList'),
+        title: Text('Ambiguous TicketList',
+          style: TextStyle(color: Colors.deepOrange)),
+        onTap: () {
+          appState.bus.add(RequestAmbiguousLastFoundTickets());
+        }) 
     // ListTile(
     //     key: Key('AddCheckInList'),
     //     title: Text('Add Check-In List',

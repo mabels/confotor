@@ -154,6 +154,10 @@ class ConferencesAgent {
         });
       }
 
+      if (msg is RequestAmbiguousLastFoundTickets) {
+        _conferences.calculateAmbiguousTickets().forEach((fts) => appState.bus.add(fts));
+      }
+
       if (msg is QrScanMsg) {
         CheckInList.fetch(msg.barcode).then((checkInList) {
           // print('CheckInList:then:${msg.barcode}');
