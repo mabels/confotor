@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import 'package:confotor/models/found-tickets.dart';
 import 'package:confotor/models/ticket-and-checkins.dart';
 import 'package:confotor/msgs/msgs.dart';
-import 'package:flutter/material.dart';
 
 import 'confotor-app.dart';
 
@@ -18,8 +19,9 @@ class TicketListArea extends StatefulWidget {
 }
 
 class TicketListAreaState extends State<TicketListArea> {
-  LastFoundTickets lastFoundTickets;
+  final dateFormatter = DateFormat('H:mm:ss yyyy-MM-dd');
   final ConfotorAppState appState;
+  LastFoundTickets lastFoundTickets;
   StreamSubscription subscription;
   Timer timer;
   int checkoutPressCounter = 0;
@@ -46,7 +48,8 @@ class TicketListAreaState extends State<TicketListArea> {
       }
     });
     appState.bus.add(RequestLastFoundTickets());
-    timer = Timer.periodic(Duration(milliseconds: 1500), (_) => checkoutPressCounter = 0);
+    timer = Timer.periodic(
+        Duration(milliseconds: 1500), (_) => checkoutPressCounter = 0);
   }
 
   @override
@@ -106,10 +109,18 @@ class TicketListAreaState extends State<TicketListArea> {
                               RequestCheckOutTicket(ticket: conferenceTicket));
                         });
                   } else {
+                    final createdAt = conferenceTicket.ticketAndCheckIns.lastCheckedIn.created_at;
+                    final ago = DateTime.now().difference(createdAt);
                     return RaisedButton(
                         textColor: Colors.white,
                         splashColor: Colors.pinkAccent,
-                        child: actionText(conferenceTicket, "is already used "),
+                        child: Column(
+                          children: [
+                            actionText(conferenceTicket, "is already used "),
+                            Text(
+                              '${ago.inMinutes}min ago ' + dateFormatter.format(createdAt)
+                            ),
+                          ]),
                         color: Colors.red,
                         onPressed: () {
                           if (++checkoutPressCounter % 5 == 0) {
@@ -165,14 +176,14 @@ class TicketListAreaState extends State<TicketListArea> {
     List<Widget> withLane = [];
     if (appState.lane != null) {
       withLane.add(Card(
-              color: Colors.white,
-              child: ListTile(
-                  title: Text('Lane ${appState.lane.start}-${appState.lane.end}',
-                      style: TextStyle(
-                          fontSize: 24.0,
-                          color: Color(0xFF303f62),
-                          fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center))));
+          color: Colors.white,
+          child: ListTile(
+              title: Text('Lane ${appState.lane.start}-${appState.lane.end}',
+                  style: TextStyle(
+                      fontSize: 24.0,
+                      color: Color(0xFF303f62),
+                      fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center))));
     }
     // print('Build:${lastFoundTickets}');
     if (lastFoundTickets == null) {
@@ -184,12 +195,30 @@ class TicketListAreaState extends State<TicketListArea> {
           return Card(
               color: Colors.white70,
               child: ListTile(
-                  title: Text(foundTickets.name,
-                      style: TextStyle(
-                          fontSize: 24.0,
-                          color: Color(0xFF303f62),
-                          fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center),
+                  title: RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      style: DefaultTextStyle.of(context).style,
+                      children: <TextSpan>[
+                        TextSpan(
+                            text: foundTickets.conferenceTickets.first
+                                .ticketAndCheckIns.ticket.first_name + ' ',
+                            style: TextStyle(
+                                fontSize: 24.0,
+                                color: Color(0xFF303f62),
+                                fontWeight: FontWeight.bold)),
+                        TextSpan(
+                          text: foundTickets.conferenceTickets.first
+                              .ticketAndCheckIns.ticket.last_name,
+                          style: TextStyle(
+                              fontSize: 24.0,
+                              color: Color(0xFF303f62),
+                              fontWeight: FontWeight.normal),
+                          /* textAlign: TextAlign.center */
+                        ),
+                      ],
+                    ),
+                  ),
                   subtitle: subTitle(foundTickets)));
         } else {
           return Card(
@@ -197,12 +226,11 @@ class TicketListAreaState extends State<TicketListArea> {
               child: ListTile(
                   title: Container(
                       color: Colors.red,
-                      child: Text("No Ticket found from Scan[${foundTickets.scan}]"))));
+                      child: Text(
+                          "No Ticket found from Scan[${foundTickets.scan}]"))));
         }
       }));
-      return ListView(
-          children: withLane
-      );
+      return ListView(children: withLane);
     }
   }
 }

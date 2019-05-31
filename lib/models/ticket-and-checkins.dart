@@ -61,6 +61,12 @@ class TicketAndCheckIns {
   //   return state.toString().split(".").last;
   // }
 
+  CheckInItem get lastCheckedIn {
+    final toSort = checkInItems.where((cii) => cii.deleted_at == null).toList();
+    toSort.sort((a, b) => a.created_at.compareTo(b.created_at));
+    return toSort.last;
+  }
+
   static TicketAndCheckIns fromJson(dynamic json) {
     final List<CheckInItem> ciis = [];
     if (json['checkInItems'] is List) {

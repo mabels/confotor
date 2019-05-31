@@ -465,6 +465,7 @@ class ConferenceTicket extends ConfotorMsg {
     "actions": actions
   };
 
+
   bool get issuedFromMe {
     final action = actions.reversed.firstWhere((action) {
       return action is CheckInTransactionTicketAction ||
