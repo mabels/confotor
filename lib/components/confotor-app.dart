@@ -3,6 +3,7 @@ import 'package:confotor/agents/check-in-list-agent.dart';
 import 'package:confotor/agents/check-in-manager.dart';
 import 'package:confotor/agents/conferences-agent.dart';
 import 'package:confotor/agents/tickets-agent.dart';
+import 'package:confotor/msgs/msgs.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import '../confotor-bus.dart';
@@ -30,6 +31,7 @@ class ConfotorAppState extends State<ConfotorApp> {
   TicketsAgent ticketsAgent;
   CheckInListAgent checkInListAgent;
   CheckInManager checkInManager;
+  Lane lane;
 
   Future<String> getLocalPath() async {
     final directory = await getApplicationDocumentsDirectory();

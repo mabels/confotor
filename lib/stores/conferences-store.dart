@@ -57,19 +57,23 @@ class ConferencesStore {
   }
 
   List<FoundTickets> calculateAmbiguousTickets() {
+    print('calculateAmbiguousTickets:start');
     final List<FoundTickets> ret = [];
     _conferences.values.forEach((conf) {
       conf.ticketStore.values.map((i) => i.slug).forEach((slug) {
-        final fts = findTickets(slug, AmbiguousAction(barcode: slug));
+        final fts = findTickets(slug: slug, 
+          taction: AmbiguousAction(barcode: slug));
         if (!fts.unambiguous) {
           ret.add(fts);
         }
       });
     });
+    print('calculateAmbiguousTickets:done:${ret.length}');
     return ret;
   }
 
-  FoundTickets findTickets(String slug, TicketAction taction) {
+  FoundTickets findTickets({@required String slug, 
+    @required TicketAction taction, Lane lane}) {
     final List<ConferenceTicket> ret = [];
     final inConf = _conferences.values.firstWhere((conf) {
       // print('findTickets:${item.url}:${item.ticketsCount}:$slug');
@@ -110,7 +114,7 @@ class ConferencesStore {
       // filter email
       _removeFrom(ret, _filterTicket(ret, (Ticket t) => t.email));
     }
-    return FoundTickets(conferenceTickets: ret, scan: slug);
+    return FoundTickets(conferenceTickets: ret, scan: slug, lane: lane);
   }
 
   _removeFrom(List<ConferenceTicket> ref, List<ConferenceTicket> toRemove) {
@@ -121,7 +125,7 @@ class ConferencesStore {
   _filterTicket(List<ConferenceTicket> ret, dynamic map(Ticket t)) {
     final ref = map(ret.first.ticketAndCheckIns.ticket);
     final tail = ret.getRange(1, ret.length).toList();
-    final found = tail.where((o) => map(o.ticketAndCheckIns.ticket) == ref);
+    final found = tail.where((o) => map(o.ticketAndCheckIns.ticket) == ref).toList();
     if (found.isNotEmpty) {
       return tail.where((o) => map(o.ticketAndCheckIns.ticket) != ret).toList();
     }

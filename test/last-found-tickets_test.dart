@@ -33,11 +33,13 @@ void main() {
   // });
   test('Serialize', () {
     LastFoundTickets lastFoundTickets = LastFoundTickets(last: [
-      FoundTickets(conferenceTickets: [
+      FoundTickets(
+        lane: Lane('G-U'),
+        conferenceTickets: [
         ConferenceTicket(
             actions: [
               AmbiguousAction(barcode: 'x'),
-              BarcodeScannedTicketAction(barcode: 'x'),
+              BarcodeScannedTicketAction(barcode: 'x', lane: Lane('A-c')),
               CheckInTransactionTicketAction(
                   step: CheckInOutTransactionTicketActionStep.Completed),
               CheckInTransactionTicketAction(
@@ -58,6 +60,7 @@ void main() {
     final dynamic my = json.decode(str);
     final ref = LastFoundTickets.fromJson(my);
     expect(ref.last.length, 1);
+    expect(ref.last.first.lane.toString(), 'G-U');
     expect(ref.last.first.scan, 'xx');
     final ct = ref.last.first.conferenceTickets.first;
     expect(ct.checkInList.url, 'x');
@@ -75,6 +78,7 @@ void main() {
     expect(aaction.barcode, 'x');
     expect(baction.type, "BarcodeScannedTicketAction");
     expect(baction.barcode, 'x');
+    expect(baction.lane.toString(), 'A-C');
     expect(ccomplete.type, "CheckInTransactionTicketAction");
     expect(ccomplete.step, CheckInOutTransactionTicketActionStep.Completed);
     expect(cstarted.type, "CheckInTransactionTicketAction");

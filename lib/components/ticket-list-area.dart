@@ -1,7 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter_svg/flutter_svg.dart';
-
 import 'package:confotor/models/found-tickets.dart';
 import 'package:confotor/models/ticket-and-checkins.dart';
 import 'package:confotor/msgs/msgs.dart';
@@ -39,6 +37,11 @@ class TicketListAreaState extends State<TicketListArea> {
         // appState.bus.add(CloseQrScan());
         setState(() {
           lastFoundTickets = msg;
+        });
+      }
+      if (msg is SelectLane) {
+        setState(() {
+          appState.lane = msg.lane;
         });
       }
     });
@@ -159,13 +162,24 @@ class TicketListAreaState extends State<TicketListArea> {
 
   @override
   Widget build(BuildContext context) {
+    List<Widget> withLane = [];
+    if (appState.lane != null) {
+      withLane.add(Card(
+              color: Colors.white,
+              child: ListTile(
+                  title: Text('Lane ${appState.lane.start}-${appState.lane.end}',
+                      style: TextStyle(
+                          fontSize: 24.0,
+                          color: Color(0xFF303f62),
+                          fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center))));
+    }
     // print('Build:${lastFoundTickets}');
     if (lastFoundTickets == null) {
       return ListView(children: <Widget>[]);
     } else {
-      print('Build:${lastFoundTickets.last.length}');
-      return ListView(
-          children: lastFoundTickets.last.map((foundTickets) {
+      // print('Build:${lastFoundTickets.last.length}');
+      withLane.addAll(lastFoundTickets.last.map((foundTickets) {
         if (foundTickets.hasFound) {
           return Card(
               color: Colors.white70,
@@ -185,7 +199,10 @@ class TicketListAreaState extends State<TicketListArea> {
                       color: Colors.red,
                       child: Text("No Ticket found from Scan[${foundTickets.scan}]"))));
         }
-      }).toList());
+      }));
+      return ListView(
+          children: withLane
+      );
     }
   }
 }

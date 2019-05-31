@@ -311,17 +311,21 @@ class  AmbiguousAction extends TicketAction {
 
 class BarcodeScannedTicketAction extends TicketAction {
   final String barcode;
-  BarcodeScannedTicketAction({@required barcode})
+  final Lane lane;
+  BarcodeScannedTicketAction({@required String barcode, @required Lane lane})
       : barcode = barcode,
+        lane = lane,
         super("BarcodeScannedTicketAction");
 
   static BarcodeScannedTicketAction fromJson(dynamic json) {
-    return BarcodeScannedTicketAction(barcode: json['barcode']);
+    return BarcodeScannedTicketAction(barcode: json['barcode'], 
+      lane: json['lane'] == null ? null : Lane(json['lane']));
   } 
 
   Map<String, dynamic> toJson() => {
     ...super.toJson(),
     "barcode": barcode,
+    "lane": lane == null ? null : lane.toString()
   };
 
 }
@@ -540,4 +544,35 @@ class ResetLastFoundTickets extends ConfotorMsg {
 }
 
 class RequestAmbiguousLastFoundTickets extends ConfotorMsg {
+}
+
+class Lane {
+  final String start;
+  final String end;
+  Lane(String range): 
+    start = range == null ? null : range.substring(0, 1).toUpperCase(),
+    end = range == null ? null : range.substring(range.length - 1, range.length).toUpperCase();
+
+  @override
+  String toString() {
+    return '$start-$end';
+  }
+
+  static Lane fromJson(dynamic json) {
+    return Lane(json);
+  }
+
+  bool isNameInLane(String name) {
+    final s = [start, name.toUpperCase().substring(0, 1), end];
+    s.sort();
+    print('isNameInLane:${s.first}:$start:$end:${s.last}:$name');
+    return s.first == start && end == s.last;
+  }
+
+  String toJson() => toString();
+}
+
+class SelectLane extends ConfotorMsg {
+  final Lane lane;
+  SelectLane({Lane lane}): lane = lane;
 }

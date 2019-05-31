@@ -91,7 +91,7 @@ class CheckInManager {
         appState.bus.add(_lastFoundTicketsStore
             .updateFoundTickets(msg)
             .toLastFoundTickets());
-        if (msg.unambiguous) {
+        if (msg.unambiguous && msg.isInTicketLane) {
           msg.conferenceTickets.forEach((ct) {
             if (ct.state == TicketAndCheckInsState.Issueable) {
               appState.bus.add(RequestCheckInTicket(ticket: ct));

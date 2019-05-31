@@ -10,6 +10,7 @@ import 'package:confotor/msgs/msgs.dart';
 import 'package:confotor/msgs/scan-msg.dart';
 import 'package:confotor/stores/conferences-store.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart';
 
 class ConferencesAgent {
   final ConfotorAppState appState;
@@ -88,7 +89,7 @@ class ConferencesAgent {
             checkInList: _conferences.remove(msg.conference)));
         appState.bus
             .add(ConferencesMsg(conferences: _conferences.toConferences()));
-      } 
+      }
       // else if (msg is FindTicket) {
       //   appState.bus.add(_conferences.findTickets(msg.slug));
       // }
@@ -96,7 +97,8 @@ class ConferencesAgent {
       if (msg is CheckInItemPageMsg) {
         try {
           if (msg.items.length == 1) {
-            print('UpdateCheckInItem:${msg.items.length}:${json.encode(msg.items)}');
+            print(
+                'UpdateCheckInItem:${msg.items.length}:${json.encode(msg.items)}');
           }
           final conference = _conferences.updateCheckInItemPage(msg);
           if (msg.items.length > 0) {
@@ -155,22 +157,38 @@ class ConferencesAgent {
       }
 
       if (msg is RequestAmbiguousLastFoundTickets) {
-        _conferences.calculateAmbiguousTickets().forEach((fts) => appState.bus.add(fts));
+        _conferences
+            .calculateAmbiguousTickets()
+            .forEach((fts) => appState.bus.add(fts));
       }
 
       if (msg is QrScanMsg) {
-        CheckInList.fetch(msg.barcode).then((checkInList) {
-          // print('CheckInList:then:${msg.barcode}');
-          appState.bus.add(RequestUpdateConference(checkInList: checkInList));
-        }).catchError((e) {
-          final found = _conferences.findTickets(msg.barcode, BarcodeScannedTicketAction(barcode: msg.barcode));
+        if (msg.barcode.contains('passbook.tito.io')) {
+          final parsed = Uri.parse(msg.barcode);
+          // print('fetch:$url:$parsed');
+          final found = _conferences.findTickets(
+              slug: basename(parsed.path),
+              taction: BarcodeScannedTicketAction(
+                  barcode: msg.barcode, lane: appState.lane),
+              lane: appState.lane);
           // print( 'FoundTickets:${msg.barcode}:${found.conferenceTickets.length}');
           appState.bus.add(found);
-        });
+        } else {
+          CheckInList.fetch(msg.barcode).then((checkInList) {
+            // print('CheckInList:then:${msg.barcode}');
+            appState.bus.add(RequestUpdateConference(checkInList: checkInList));
+          }).catchError((e) {
+            final found = _conferences.findTickets(
+                slug: msg.barcode,
+                taction: BarcodeScannedTicketAction(
+                    barcode: msg.barcode, lane: appState.lane),
+                lane: appState.lane);
+            // print( 'FoundTickets:${msg.barcode}:${found.conferenceTickets.length}');
+            appState.bus.add(found);
+          });
+        }
       }
 
-     
-      if (msg is ConferencesMsg) {}
     });
     /* Boot Application by reading file */
     _conferences.readConferences();

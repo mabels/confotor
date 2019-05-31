@@ -5,17 +5,27 @@ import 'package:meta/meta.dart';
 
 class FoundTickets extends ConfotorMsg {
   final List<ConferenceTicket> conferenceTickets;
+  final Lane lane;
   final String scan;
 
   FoundTickets({
     @required String scan,
+    @required Lane lane,
     @required List<ConferenceTicket> conferenceTickets
   }): 
     conferenceTickets = conferenceTickets,
+    lane = lane,
     scan = scan;
 
   List<String> get slugs {
     return conferenceTickets.map((t) => t.ticketAndCheckIns.ticket.slug).toList();
+  }
+
+  bool get isInTicketLane {
+    if (lane == null) {
+      return true;
+    }
+    return lane.isNameInLane(conferenceTickets.first.ticketAndCheckIns.ticket.first_name);
   }
 
   bool get unambiguous {
@@ -40,12 +50,13 @@ class FoundTickets extends ConfotorMsg {
       final List<dynamic> cts = json['conferenceTickets'];
       cts.forEach((ct) => conferenceTickets.add(ConferenceTicket.fromJson(ct)));
     }
-    return FoundTickets(conferenceTickets: conferenceTickets, scan: json['scan']);
+    return FoundTickets(conferenceTickets: conferenceTickets, scan: json['scan'], lane: Lane.fromJson(json['lane']));
   }
 
   Map<String, dynamic> toJson() => {
     "conferenceTickets": conferenceTickets,
-    "scan": scan
+    "scan": scan,
+    "lane": lane
   };
 
 }
