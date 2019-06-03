@@ -28,6 +28,7 @@ dependencies:
   sprintf: ^4.0.2
   uuid: 2.0.0
   path: any
+  flutter_mobx: ^0.2.0+1
 
 dev_dependencies:
   flutter_test:
