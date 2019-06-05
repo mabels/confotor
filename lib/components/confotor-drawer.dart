@@ -2,9 +2,11 @@
 import 'dart:async';
 
 import 'package:confotor/models/conferences.dart';
+import 'package:confotor/models/lane.dart';
 import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import './confotor-app.dart';
 // import 'confotor-msg.dart';
 
@@ -20,25 +22,25 @@ class ConfotorDrawer extends StatefulWidget {
 }
 
 final List<Lane> lanes = [
-    Lane('a-c'),
-    Lane('d-h'),
-    Lane('i-k'),
-    Lane('l-m'),
-    Lane('n-r'),
-    Lane('s-z')
-  ];
-class ConfotorDrawerState extends State<ConfotorDrawer> {
+  Lane('a-c'),
+  Lane('d-h'),
+  Lane('i-k'),
+  Lane('l-m'),
+  Lane('n-r'),
+  Lane('s-z')
+];
 
+class ConfotorDrawerState extends State<ConfotorDrawer> {
   final ConfotorAppState appState;
-  StreamSubscription subscription;
-  Conferences conferences;
+  // StreamSubscription subscription;
 
   ConfotorDrawerState({ConfotorAppState appState}) : appState = appState;
 
   _refreshSection(
       {ConfotorAppState appState, List<Widget> drawer, Conferences confs}) {
     List<Widget> children = [];
-    if (confs.conferences.isNotEmpty) {
+
+    if (appState.conferencesAgent.conferences.conferences.isNotEmpty) {
       children.add(ListTile(
           key: Key('RefreshTickets'),
           title: Text('Refresh Tickets',
@@ -50,7 +52,7 @@ class ConfotorDrawerState extends State<ConfotorDrawer> {
       confs.conferences.forEach((conf) => children.add(ListTile(
           key: Key(conf.checkInList.url),
           title: Text(
-              "${conf.checkInList.eventTitle}(${conf.ticketAndCheckInsList.length}-${conf.checkInItemLength})",
+              "${conf.checkInList.item.value.eventTitle}(${conf.ticketAndCheckInsList.length}-${conf.checkInItemLength})",
               style: TextStyle(color: Colors.deepOrange)),
           onTap: () {
             appState.bus
@@ -79,7 +81,7 @@ class ConfotorDrawerState extends State<ConfotorDrawer> {
       confs.conferences.forEach((conf) => children.add(ListTile(
           key: Key(conf.checkInList.url),
           title: Text(
-              "${conf.checkInList.eventTitle}(${conf.ticketAndCheckInsList.length}-${conf.checkInItemLength})",
+              "${conf.checkInList.item.value.eventTitle}(${conf.ticketAndCheckInsList.length}-${conf.checkInItemLength})",
               style: TextStyle(color: Colors.deepOrange)),
           onLongPress: () {
             appState.bus
@@ -150,37 +152,40 @@ class ConfotorDrawerState extends State<ConfotorDrawer> {
   @override
   void initState() {
     super.initState();
-    subscription = appState.bus.stream.listen((msg) {
-      if (msg is ConferencesMsg) {
-        print('Conferences:${msg.conferences.conferences.length}');
-        setState(() {
-          conferences = msg.conferences;
-        });
-      }
-      if (msg is SelectLane) {
-        setState(() {});
-      }
-    });
-    appState.bus.add(RequestConferencesMsg());
+    // subscription = appState.bus.stream.listen((msg) {
+    //   if (msg is ConferencesMsg) {
+    //     print('Conferences:${msg.conferences.conferences.length}');
+    //     setState(() {
+    //       conferences = msg.conferences;
+    //     });
+    //   }
+    //   if (msg is SelectLane) {
+    //     setState(() {});
+    //   }
+    // });
+    // appState.bus.add(RequestConferencesMsg());
   }
 
   @override
   void dispose() {
     super.dispose();
-    subscription.cancel();
+    // subscription.cancel();
   }
 
   @override
   Widget build(BuildContext context) {
-    print('build:Drawer:${appState.lane}');
-    final items =
-        _staticDrawer(appState: appState, selectedLane: appState.lane);
-    if (conferences != null) {
-      _refreshSection(appState: appState, drawer: items, confs: conferences);
-      _removeSection(appState: appState, drawer: items, confs: conferences);
-    }
     return Drawer(
         child: Container(
-            color: Color(0xFF303f62), child: ListView(children: items)));
+            color: Color(0xFF303f62),
+            child: Observer(builder: (_) {
+              final items = _staticDrawer(
+                  appState: appState, selectedLane: appState.lane);
+              final conferences = appState.conferencesAgent.conferences;
+              _refreshSection(
+                  appState: appState, drawer: items, confs: conferences);
+              _removeSection(
+                  appState: appState, drawer: items, confs: conferences);
+              return ListView(children: items);
+            })));
   }
 }

@@ -80,10 +80,10 @@ class CheckInObserverError extends ConfotorMsg
         transaction = transaction;
 }
 
-class AppLifecycleMsg extends ConfotorMsg {
-  final AppLifecycleState state;
-  AppLifecycleMsg({@required AppLifecycleState state}) : state = state;
-}
+// class AppLifecycleMsg extends ConfotorMsg {
+//   final AppLifecycleState state;
+//   AppLifecycleMsg({@required AppLifecycleState state}) : state = state;
+// }
 
 class ConferencesMsg extends ConfotorMsg {
   final Conferences conferences;

@@ -31,7 +31,8 @@ dependencies:
   sprintf: ^4.0.2
   uuid: 2.0.0
   path: any
-  flutter_svg: 0.12.4
+  # flutter_svg: 0.12.4
+  flutter_mobx: ^0.2.0+1
   # reflectable: ^2.0.12
 
 dev_dependencies:

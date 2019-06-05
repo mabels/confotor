@@ -19,35 +19,35 @@ class TicketListArea extends StatefulWidget {
 }
 
 class TicketListAreaState extends State<TicketListArea> {
-  final dateFormatter = DateFormat('H:mm:ss yyyy-MM-dd');
-  final ConfotorAppState appState;
+  static final dateFormatter = DateFormat('H:mm:ss yyyy-MM-dd');
+  final ConfotorAppState _appState;
   LastFoundTickets lastFoundTickets;
-  StreamSubscription subscription;
+  // StreamSubscription subscription;
   Timer timer;
   int checkoutPressCounter = 0;
 
-  TicketListAreaState({ConfotorAppState appState}) : appState = appState;
+  TicketListAreaState({ConfotorAppState appState}) : _appState = appState;
 
   @override
   void initState() {
     super.initState();
-    // print('TicketListAreaState:initState');
-    subscription = appState.bus.stream.listen((msg) {
-      if (msg is LastFoundTickets) {
-        //  print('LastFoundTickets:CloseQrScan:${json.encode(msg.last.first.conferenceTickets.first.ticketAndCheckIns.checkInItems)}');
-        print('LastFoundTickets:Redraw');
-        // appState.bus.add(CloseQrScan());
-        setState(() {
-          lastFoundTickets = msg;
-        });
-      }
-      if (msg is SelectLane) {
-        setState(() {
-          appState.lane = msg.lane;
-        });
-      }
-    });
-    appState.bus.add(RequestLastFoundTickets());
+    // // print('TicketListAreaState:initState');
+    // subscription = _appState.bus.stream.listen((msg) {
+    //   if (msg is LastFoundTickets) {
+    //     //  print('LastFoundTickets:CloseQrScan:${json.encode(msg.last.first.conferenceTickets.first.ticketAndCheckIns.checkInItems)}');
+    //     print('LastFoundTickets:Redraw');
+    //     // appState.bus.add(CloseQrScan());
+    //     setState(() {
+    //       lastFoundTickets = msg;
+    //     });
+    //   }
+    //   if (msg is SelectLane) {
+    //     setState(() {
+    //       _appState.lane = msg.lane;
+    //     });
+    //   }
+    // });
+    // _appState.bus.add(RequestLastFoundTickets());
     timer = Timer.periodic(
         Duration(milliseconds: 1500), (_) => checkoutPressCounter = 0);
   }
@@ -56,7 +56,7 @@ class TicketListAreaState extends State<TicketListArea> {
   dispose() {
     super.dispose();
     timer.cancel();
-    subscription.cancel();
+    // subscription.cancel();
   }
 
   actionText(ConferenceTicket tac, String stateText) {
@@ -105,7 +105,7 @@ class TicketListAreaState extends State<TicketListArea> {
                             conferenceTicket, "checked in successfully "),
                         color: Colors.green,
                         onPressed: () {
-                          this.appState.bus.add(
+                          this._appState.bus.add(
                               RequestCheckOutTicket(ticket: conferenceTicket));
                         });
                   } else {
@@ -124,7 +124,7 @@ class TicketListAreaState extends State<TicketListArea> {
                         color: Colors.red,
                         onPressed: () {
                           if (++checkoutPressCounter % 5 == 0) {
-                            this.appState.bus.add(RequestCheckOutTicket(
+                            this._appState.bus.add(RequestCheckOutTicket(
                                 ticket: conferenceTicket));
                           }
                         });
@@ -153,7 +153,7 @@ class TicketListAreaState extends State<TicketListArea> {
                           conferenceTicket, "Ticket is not checked in"),
                       color: Colors.blue,
                       onPressed: () {
-                        this.appState.bus.add(
+                        this._appState.bus.add(
                             RequestCheckInTicket(ticket: conferenceTicket));
                       });
                   break;
@@ -174,11 +174,11 @@ class TicketListAreaState extends State<TicketListArea> {
   @override
   Widget build(BuildContext context) {
     List<Widget> withLane = [];
-    if (appState.lane != null) {
+    if (_appState.lane != null) {
       withLane.add(Card(
           color: Colors.white,
           child: ListTile(
-              title: Text('Lane ${appState.lane.start}-${appState.lane.end}',
+              title: Text('Lane ${_appState.lane.start}-${_appState.lane.end}',
                   style: TextStyle(
                       fontSize: 24.0,
                       color: Color(0xFF303f62),

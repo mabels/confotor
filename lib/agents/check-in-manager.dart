@@ -7,26 +7,31 @@ import 'package:confotor/models/found-tickets.dart';
 import 'package:confotor/models/ticket-and-checkins.dart';
 import 'package:confotor/msgs/msgs.dart';
 import 'package:confotor/stores/last-found-tickets-store.dart';
+import 'package:mobx/mobx.dart';
 
 class CheckInManager {
   final ConfotorAppState appState;
-  StreamSubscription subscription;
+  // StreamSubscription subscription;
   final LastFoundTicketsStore _lastFoundTicketsStore;
   LastFoundTickets jsonLastFoundTicketsStore;
+  ReactionDisposer appLifecycleDisposer;
 
   CheckInManager({@required ConfotorAppState appState})
       : appState = appState,
-        _lastFoundTicketsStore = LastFoundTicketsStore(appState: appState);
+        _lastFoundTicketsStore = LastFoundTicketsStore(_appState: appState);
 
   stop() {
-    subscription.cancel();
+    // subscription.cancel();
+    appLifecycleDisposer();
+
   }
 
   start() {
-    subscription = this.appState.bus.stream.listen((msg) {
-      if (msg is AppLifecycleMsg) {
-        switch (msg.state) {
-          // case AppLifecycleState.inactive:
+    appLifecycleDisposer = reaction<AppLifecycleState>((_) {
+      return appState.appLifecycleAgent.state.value;
+    }, 
+      (state) {
+        switch (state) {
           case AppLifecycleState.suspending:
           case AppLifecycleState.paused:
             _lastFoundTicketsStore.write();
@@ -37,7 +42,9 @@ class CheckInManager {
           case AppLifecycleState.inactive:
             break;
         }
-      }
+      });
+
+
       if (msg is ResetLastFoundTickets) {
         appState.bus.add(_lastFoundTicketsStore.reset().toLastFoundTickets());
       }

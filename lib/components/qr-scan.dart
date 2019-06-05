@@ -75,9 +75,8 @@ class QrScanState extends State<QrScan> {
     super.initState();
     availableCameras().then((cameras) {
       controller = _controller(cameras);
-      subscription = _appState.bus.listen((msg) {
-        if (msg is AppLifecycleMsg) {
-          switch (msg.state) {
+      _appState.appLifecycleAgent.action((state) {
+          switch (state) {
             // case AppLifecycleState.inactive:
             case AppLifecycleState.paused:
               if (controller != null) controller.stopScanning();
@@ -94,8 +93,7 @@ class QrScanState extends State<QrScan> {
             case AppLifecycleState.inactive:
               break;
           }
-        }
-      });
+        });
       _start(cameras);
     }).catchError((e) {});
   }

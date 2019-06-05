@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:confotor/models/conference.dart';
-import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:mobx/mobx.dart';
 
 class CheckInListItem {
   final String eventTitle;
@@ -79,16 +79,16 @@ class CheckInListItem {
 
 
 class CheckInList extends ConferenceKey {
-  CheckInListItem item;
+  final Observable<CheckInListItem> item;
 
   CheckInList({@required String url,
                @required CheckInListItem checkInListItem
               }):
-              item = checkInListItem,
+              item = Observable(checkInListItem),
               super(url);
 
   bool operator ==(dynamic o) {
-    return o is CheckInList && url == o.url && item == o.item;
+    return o is CheckInList && url == o.url && item.value == o.item.value;
   }
 
   static CheckInList fromJson(dynamic json) {
@@ -99,7 +99,7 @@ class CheckInList extends ConferenceKey {
 
   Map<String, dynamic> toJson() => {
     "url": url,
-    "checkInListItem": item
+    "checkInListItem": item.value
   };
 
   static Future<CheckInList> fetch(String url, { client: HttpClient }) async {

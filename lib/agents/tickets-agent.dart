@@ -9,12 +9,13 @@ import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:mobx/mobx.dart';
 
 enum TicketsStatus { Initial, Page, Ready, Error }
 
 class TicketObserver {
   final ConfotorAppState appState;
-  final CheckInList checkInList;
+  final Observable<CheckInList> checkInList;
   Timer timer;
 
   // static TicketObserver fetch(
@@ -24,7 +25,7 @@ class TicketObserver {
   //   return tickets;
   // }
 
-  TicketObserver({ConfotorAppState appState, CheckInList checkInList})
+  TicketObserver({ConfotorAppState appState, Observable<CheckInList> checkInList})
       : appState = appState,
         checkInList = checkInList;
 
@@ -105,22 +106,20 @@ class TicketObserver {
 
 class TicketsAgent {
   final ConfotorAppState appState;
-  final Map<String /* url */, TicketObserver> observers = new Map();
+  final Map<String /* url */, TicketObserver> observers = Map();
 
-  StreamSubscription subscription;
+  // StreamSubscription subscription;
 
   TicketsAgent({@required ConfotorAppState appState}) : appState = appState;
 
   stop() {
-    subscription.cancel();
+    // subscription.cancel();
   }
 
   start() {
     print('TicketAgent:start');
-    subscription = this.appState.bus.stream.listen((msg) {
-
-      if (msg is AppLifecycleMsg) {
-        switch (msg.state) {
+    appState.appLifecycleAgent.action((state) {
+        switch (state) {
           // case AppLifecycleState.inactive:
           case AppLifecycleState.paused:
             observers.values.forEach((o) {
@@ -136,7 +135,11 @@ class TicketsAgent {
           case AppLifecycleState.inactive:
             break;
         }
-      }
+  });
+
+  appState.checkInListAgent.
+
+
 
       if (msg is UpdatedConference) {
         // print('TicketsAgent:UpdatedConference:${msg.checkInList.url}');

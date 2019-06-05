@@ -1,19 +1,24 @@
-import 'package:confotor/msgs/msgs.dart';
+import 'package:mobx/mobx.dart';
 
-import '../components/confotor-app.dart';
 import 'package:flutter/material.dart';
 
 
-class AppLifecycleAgent with WidgetsBindingObserver {
-  final ConfotorAppState appState;
+class AppLifecycleAgent with WidgetsBindingObserver, Store {
+  final Observable<AppLifecycleState> state = Observable(AppLifecycleState.inactive);
   final WidgetsBinding binding = WidgetsBinding.instance;
+  final List<void a(AppLifecycleState state)> actions = [];
 
-  AppLifecycleAgent({ConfotorAppState appState}): appState = appState;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    print("AppLifeCycleAgent:state:$state");
-    appState.bus.add(AppLifecycleMsg(state: state));
+    Action(() {
+      this.state.value = state;
+    })();
+  }
+
+  void action(void a(AppLifecycleState state)) {
+    actions.add(a);
+    
   }
 
   AppLifecycleAgent start() {

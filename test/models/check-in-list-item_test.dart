@@ -30,18 +30,18 @@ void main() {
     final str = json.encode(cil);
     final refCil = CheckInList.fromJson(json.decode(str));
     expect(cil.url, refCil.url);
-    expect(cil.item.eventTitle, refCil.item.eventTitle);
-    expect(cil.item.expiresAt, refCil.item.expiresAt);
-    expect(cil.item.expiresAtTimestamp, refCil.item.expiresAtTimestamp);
-    expect(cil.item.ticketsUrl, refCil.item.ticketsUrl);
-    expect(cil.item.checkinListUrl, refCil.item.checkinListUrl);
-    expect(cil.item.syncUrl, refCil.item.syncUrl);
-    expect(cil.item.totalPages, refCil.item.totalPages);
-    expect(cil.item.totalEntries, refCil.item.totalEntries);
+    expect(cil.item.value.eventTitle, refCil.item.value.eventTitle);
+    expect(cil.item.value.expiresAt, refCil.item.value.expiresAt);
+    expect(cil.item.value.expiresAtTimestamp, refCil.item.value.expiresAtTimestamp);
+    expect(cil.item.value.ticketsUrl, refCil.item.value.ticketsUrl);
+    expect(cil.item.value.checkinListUrl, refCil.item.value.checkinListUrl);
+    expect(cil.item.value.syncUrl, refCil.item.value.syncUrl);
+    expect(cil.item.value.totalPages, refCil.item.value.totalPages);
+    expect(cil.item.value.totalEntries, refCil.item.value.totalEntries);
   });
   test('shortEventTitle', () {
-    expect(testCheckInList(eventTitle: 'qqq qqq').item.shortEventTitle, 'qqq');
-    expect(testCheckInList(eventTitle: 'qqq').item.shortEventTitle, 'qqq');
+    expect(testCheckInList(eventTitle: 'qqq qqq').item.value.shortEventTitle, 'qqq');
+    expect(testCheckInList(eventTitle: 'qqq').item.value.shortEventTitle, 'qqq');
   });
 
   test('fetch', () async {
@@ -53,13 +53,13 @@ void main() {
     }));
     expect(cil.url, 'test://url');
 
-    expect(cil.item.eventTitle, refCil.item.eventTitle);
-    expect(cil.item.expiresAt, refCil.item.expiresAt);
-    expect(cil.item.expiresAtTimestamp, refCil.item.expiresAtTimestamp);
-    expect(cil.item.ticketsUrl, refCil.item.ticketsUrl);
-    expect(cil.item.checkinListUrl, refCil.item.checkinListUrl);
-    expect(cil.item.syncUrl, refCil.item.syncUrl);
-    expect(cil.item.totalPages, refCil.item.totalPages);
-    expect(cil.item.totalEntries, refCil.item.totalEntries);
+    expect(cil.item.value.eventTitle, refCil.item.value.eventTitle);
+    expect(cil.item.value.expiresAt, refCil.item.value.expiresAt);
+    expect(cil.item.value.expiresAtTimestamp, refCil.item.value.expiresAtTimestamp);
+    expect(cil.item.value.ticketsUrl, refCil.item.value.ticketsUrl);
+    expect(cil.item.value.checkinListUrl, refCil.item.value.checkinListUrl);
+    expect(cil.item.value.syncUrl, refCil.item.value.syncUrl);
+    expect(cil.item.value.totalPages, refCil.item.value.totalPages);
+    expect(cil.item.value.totalEntries, refCil.item.value.totalEntries);
   });
 }

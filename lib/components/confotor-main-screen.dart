@@ -5,7 +5,8 @@ import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/scan-msg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:mobx/mobx.dart';
 import './confotor-app.dart';
 // import 'active-area.dart';
 import 'confotor-drawer.dart';
@@ -21,7 +22,7 @@ class ConfotorMainScreen extends StatefulWidget {
 
 class ConfotorMainScreenState extends State<ConfotorMainScreen> {
   final ConfotorAppState appState;
-  bool toggleQrScan = false;
+  final Observable<bool> _toggleQrScan = Observable(false);
 
   ConfotorMainScreenState({@required ConfotorAppState appState})
       : appState = appState;
@@ -33,18 +34,18 @@ class ConfotorMainScreenState extends State<ConfotorMainScreen> {
       if (msg is LastFoundTickets || msg is RequestUpdateConference) {
         print('LastFoundTickets:toggleQrScan:$msg');
         appState.bus.add(StopQrScanMsg());
-        setState(() => toggleQrScan = false);
+        setState(Action(() => _toggleQrScan.value = false));
       }
     });
   }
 
   _scanAction() {
-    if (!toggleQrScan) {
+    if (!_toggleQrScan.value) {
       appState.bus.add(RequestQrScanMsg());
-      setState(() => toggleQrScan = true);
+      setState(Action(() => _toggleQrScan.value = true));
     } else {
       appState.bus.add(StopQrScanMsg());
-      setState(() => toggleQrScan = false);
+      setState(Action(() => _toggleQrScan.value = false));
     }
   }
 
@@ -66,9 +67,10 @@ class ConfotorMainScreenState extends State<ConfotorMainScreen> {
               child: Container(
                   //height: MediaQuery.of(context).size.height - (60 + 100),
                   color: Color(0xff303f62),
-                  child: toggleQrScan
+                  child: Observer(builder: (_) => 
+                      _toggleQrScan.value
                        ? QrScan(appState: appState)
-                       : TicketListArea(appState: appState))),
+                       : TicketListArea(appState: appState)))),
           // Align(
           //     alignment: Alignment.bottomCenter,
           //     child: Container(
@@ -79,10 +81,10 @@ class ConfotorMainScreenState extends State<ConfotorMainScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _scanAction,
-        icon: Icon(toggleQrScan ? Icons.list : Icons.camera),
-        label: Text("${toggleQrScan ? 'Ticket List' : 'Scan On'}",
+        icon: Observer(builder: (_) => Icon(_toggleQrScan.value ? Icons.list : Icons.camera)),
+        label: Observer(builder: (_) => Text("${_toggleQrScan.value ? 'Ticket List' : 'Scan On'}",
             style: TextStyle(color: Color(0xFFf3ecda))),
-      ),
+      )),
       // bottomNavigationBar: BottomNavigationBar(
       //     backgroundColor: Color(0xff303f62),
       //     items: <BottomNavigationBarItem>[

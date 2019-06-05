@@ -8,28 +8,25 @@ import 'package:confotor/models/conferences.dart';
 import 'package:confotor/models/ticket-action.dart';
 import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
-import 'package:confotor/msgs/scan-msg.dart';
-import 'package:confotor/stores/conferences-store.dart';
+import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 class ConferencesAgent {
   final ConfotorAppState appState;
-  final ConferencesStore _conferences;
+  final Conferences conferences = Conferences(conferences: []);
   StreamSubscription subscription;
 
   ConferencesAgent({@required ConfotorAppState appState})
-      : appState = appState,
-        _conferences = ConferencesStore(appState: appState);
+      : appState = appState;
 
   stop() {
     subscription.cancel();
   }
 
   start() {
-    subscription = this.appState.bus.stream.listen((msg) {
-      if (msg is AppLifecycleMsg) {
-        switch (msg.state) {
+    appState.appLifecycleAgent.action((state) {
+        switch (state) {
           // case AppLifecycleState.inactive:
           case AppLifecycleState.suspending:
           case AppLifecycleState.paused:
@@ -41,7 +38,10 @@ class ConferencesAgent {
           case AppLifecycleState.inactive:
             break;
         }
-      }
+      });
+  }
+
+
       if (msg is JsonObject) {
         if (msg.json['conferences'] != null) {
           final conferences = Conferences.fromJson(msg.json['conferences']);

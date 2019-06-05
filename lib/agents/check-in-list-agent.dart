@@ -9,20 +9,23 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
 
+import 'package:mobx/mobx.dart';
+
 class CheckInListObserver {
   final ConfotorAppState appState;
-  final CheckInList checkInList;
+  final Observable<CheckInList> checkInList;
   Timer timer;
   // int count = 0;
   DateTime since;
   DateTime nextSince;
 
-  CheckInListObserver(
-      {@required ConfotorAppState appState, @required CheckInList checkInList})
-      : checkInList = checkInList,
-        appState = appState;
+  CheckInListObserver({
+      @required ConfotorAppState appState,
+      @required CheckInList checkInList})
+      : appState = appState,
+        checkInList = Observable(checkInList);
 
-  getPage(int page, String transaction) {
+  getPage(CheckInList checkInList, int page, String transaction) {
     final url = checkInList.checkInUrl(
         since: since == null ? 0 : since.millisecondsSinceEpoch / 1000,
         page: page);
@@ -53,7 +56,7 @@ class CheckInListObserver {
       // print('getPage:$url:$page:pos:1');
       if (items.isNotEmpty) {
         // print('getPage:$url:$page:pos:2');
-        getPage(page + 1, transaction);
+        getPage(checkInList, page + 1, transaction);
       } else {
         // print('getPage:$url:$page:pos:3:$nextSince');
         since = nextSince;
@@ -69,7 +72,7 @@ class CheckInListObserver {
   CheckInListObserver start({int seconds = 5}) {
     stop();
     timer = new Timer(Duration(seconds: seconds), () {
-      getPage(1, appState.uuid.v4()); // paged api triggered by page 1
+      getPage(this.checkInList.value, 1, appState.uuid.v4()); // paged api triggered by page 1
     });
     return this;
   }
@@ -84,18 +87,18 @@ class CheckInListObserver {
 class CheckInListAgent {
   final ConfotorAppState appState;
   final Map<String /* url */, CheckInListObserver> observers = new Map();
-  StreamSubscription subscription;
+  // StreamSubscription subscription;
+  ReactionDisposer appLifecycleDisposer;
 
   CheckInListAgent({@required ConfotorAppState appState}) : appState = appState;
 
   stop() {
-    subscription.cancel();
+    appLifecycleDisposer();
   }
 
   CheckInListAgent start() {
-    subscription = this.appState.bus.listen((msg) {
-      if (msg is AppLifecycleMsg) {
-        switch (msg.state) {
+    appState.appLifecycleAgent.action((state) {
+        switch (state) {
           // case AppLifecycleState.inactive:
           case AppLifecycleState.paused:
             observers.values.forEach((o) {
@@ -111,7 +114,12 @@ class CheckInListAgent {
           case AppLifecycleState.inactive:
             break;
         }
-      }
+      });
+  }
+
+  addConference()
+
+    subscription = this.appState.bus.listen((msg) {
       if (msg is UpdatedConference) {
         // print('CheckInListAgent:UpdatedConference:${msg.checkInList.url}');
         if (!observers.containsKey(msg.checkInList.url)) {
