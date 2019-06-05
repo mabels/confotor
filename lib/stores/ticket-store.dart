@@ -1,7 +1,6 @@
 import 'package:confotor/components/confotor-app.dart';
 import 'package:confotor/models/check-in-action.dart';
 import 'package:confotor/models/check-in-item.dart';
-import 'package:confotor/models/check-in-list-item.dart';
 import 'package:confotor/models/ticket-and-checkins.dart';
 import 'package:confotor/models/ticket.dart';
 import 'package:confotor/stores/ticket-and-checkins-store.dart';
@@ -13,7 +12,6 @@ class TicketStore {
   TicketStoreStatus ticketsStatus = TicketStoreStatus.Initial;
   final Map<int, TicketAndCheckInsStore> _ticketAndCheckIns = new Map();
   final ConfotorAppState appState;
-  // final CheckInList _checkInListItem;
 
   TicketStore({@required ConfotorAppState appState}) : appState = appState;
 
@@ -52,12 +50,12 @@ class TicketStore {
       // print('updateCheckInItems:${ciims.length}:${ciim.toJson()}');
       try {
         _ticketAndCheckIns
-            .putIfAbsent(ciim.ticket_id,
-                () => TicketAndCheckInsStore(id: ciim.ticket_id))
+            .putIfAbsent(ciim.ticketId,
+                () => TicketAndCheckInsStore(id: ciim.ticketId))
             .checkInItems
             .update([ciim]);
       } catch (e) {
-        print('updateTickets:${ciims.length}:${ciim.ticket_id}:$e');
+        print('updateTickets:${ciims.length}:${ciim.ticketId}:$e');
         throw e;
       }
     });

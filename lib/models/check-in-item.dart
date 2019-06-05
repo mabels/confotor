@@ -1,48 +1,78 @@
+import 'package:meta/meta.dart';
 
 class CheckInItem {
-  int  id;
-  String uuid;
-  int ticket_id;
-  DateTime created_at;
-  DateTime updated_at;
-  DateTime deleted_at;
+  final int id;
+  final String uuid;
+  final int ticketId;
+  final DateTime createdAt;
+  DateTime updatedAt;
+  DateTime deletedAt;
+
+  CheckInItem({
+      @required int id,
+      @required String uuid,
+      @required int ticketId,
+      @required DateTime createdAt,
+      DateTime updatedAt,
+      DateTime deletedAt})
+      : id = id,
+        uuid = uuid,
+        ticketId = ticketId,
+        createdAt = createdAt,
+        updatedAt = updatedAt,
+        deletedAt = deletedAt;
+
+  bool operator ==(o) {
+    return o is CheckInItem &&
+       o.id == id &&
+       o.uuid == uuid &&
+       o.ticketId == ticketId &&
+       o.createdAt == createdAt &&
+       o.updatedAt == updatedAt &&
+       o.deletedAt == deletedAt;
+  }
 
   static CheckInItem fromJson(dynamic json) {
-    final ret = CheckInItem();
-    ret.id = json['id'];
-    ret.uuid = json['uuid'];
-    ret.ticket_id = json['ticket_id'];
-    ret.created_at = json["created_at"] == null ? null : DateTime.parse(json["created_at"]);
-    ret.updated_at = json["updated_at"] == null ? null : DateTime.parse(json["updated_at"]);
-    ret.deleted_at = json["deleted_at"] == null ? null : DateTime.parse(json["deleted_at"]);
-    return ret;
+    return CheckInItem(
+        id: json['id'],
+        uuid: json['uuid'],
+        ticketId: json['ticket_id'],
+        createdAt: json["created_at"] == null
+            ? null
+            : DateTime.parse(json["created_at"]),
+        updatedAt: json["updated_at"] == null
+            ? null
+            : DateTime.parse(json["updated_at"]),
+        deletedAt: json["deleted_at"] == null
+            ? null
+            : DateTime.parse(json["deleted_at"]));
   }
 
   update(CheckInItem up) {
-    id = up.id;
-    uuid = up.uuid;
-    ticket_id = up.ticket_id;
-    created_at = up.created_at;
-    updated_at = up.updated_at;
-    deleted_at = up.deleted_at;
+    updatedAt = up.updatedAt;
+    deletedAt = up.deletedAt;
   }
 
   Map<String, dynamic> toJson() => {
-    "id": id,
-    "uuid": uuid,
-    "ticket_id": ticket_id,
-    "created_at": created_at != null ? created_at.toIso8601String() : null,
-    "updated_at": deleted_at != null ? updated_at.toIso8601String() : null,
-    "deleted_at": deleted_at != null ? deleted_at.toIso8601String() : null
-  };
+        "id": id,
+        "uuid": uuid,
+        "ticket_id": ticketId,
+        "created_at": createdAt != null ? createdAt.toIso8601String() : null,
+        "updated_at": updatedAt != null ? updatedAt.toIso8601String() : null,
+        "deleted_at": deletedAt != null ? deletedAt.toIso8601String() : null
+      };
 
   DateTime get maxDate {
-    var max = created_at;
-    if (updated_at != null && updated_at.compareTo(max) > 0) {
-      max = updated_at;
+    var max = createdAt;
+    if (updatedAt != null) {
+      if (max == null || updatedAt.compareTo(max) > 0) {
+        max = updatedAt;
+      } 
     }
-    if (deleted_at != null && deleted_at.compareTo(max) > 0) {
-      max = deleted_at;
+    if (deletedAt != null) {
+      if (max == null || deletedAt.compareTo(max) > 0) {
+        max = deletedAt;
+      }
     }
     return max;
   }

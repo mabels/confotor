@@ -2,7 +2,6 @@ import 'package:confotor/models/conference.dart';
 import 'package:confotor/msgs/confotor-msg.dart';
 import 'package:meta/meta.dart';
 
-// const List<Conference> conferencesEmpty = [];
 class Conferences extends ConfotorMsg {
   final List<Conference> conferences;
 
@@ -13,7 +12,7 @@ class Conferences extends ConfotorMsg {
     if (!(o is List)) {
       o = [];
     }
-    final confs = Conferences(conferences: o.map((conf) => 
+    final confs = Conferences(conferences: o.map((conf) =>
       Conference.fromJson(conf))
       .toList());
     return confs;

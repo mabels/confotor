@@ -81,39 +81,6 @@ class CheckInListObserver {
   }
 }
 
-// class CheckedTicket extends ConfotorMsg {
-//   final FoundTicket foundTicket;
-//   final http.Response res;
-//   CheckedTicket({FoundTicket foundTicket, http.Response res}):
-//     foundTicket = foundTicket,
-//     res = res;
-// }
-
-// class CheckedTicketError extends ConfotorMsg implements ConfotorErrorMsg {
-//   final dynamic error;
-//   CheckedTicketError({FoundTicket foundTicket, http.Response res, dynamic error}):
-//     error = error;
-// }
-
-// class CheckedInTicket extends CheckedTicket {
-//   final CheckedInResponse checkedIn;
-
-//   CheckedInTicket({FoundTicket foundTicket, http.Response res}):
-//     checkedIn = CheckedInResponse.create(res),
-//     super(foundTicket: foundTicket, res: res);
-// }
-
-// class CheckedOutTicket extends CheckedTicket {
-//   CheckedOutTicket({FoundTicket foundTicket, http.Response res}):
-//     super(foundTicket: foundTicket, res: res);
-// }
-
-// class RequestCheckOutTicket extends ConfotorMsg {
-//   final FoundTicket foundTicket;
-//   RequestCheckOutTicket({FoundTicket foundTicket}):
-//     foundTicket = foundTicket;
-// }
-
 class CheckInListAgent {
   final ConfotorAppState appState;
   final Map<String /* url */, CheckInListObserver> observers = new Map();
@@ -167,75 +134,6 @@ class CheckInListAgent {
         }
       }
 
-      // if (msg is RequestCheckOutTicket) {
-      //   final FoundTicket ft = msg.foundTicket;
-      //   if (ft.checkedIns.last is CheckedInTicket) {
-      //     http.delete(ft.checkInListItem.checkOutUrl(ft.checkedIns.last.checkedIn.uuid)).then((res) {
-      //         this.appState.bus.add(CheckedOutTicket(foundTicket: ft, res: res));
-      //       }).catchError((e) {
-      //         this.appState.bus.add(CheckedTicketError(foundTicket: ft, error: e));
-      //       });
-      //   }
-      // }
-      // if (msg is CheckedInTicket) {
-      //   final CheckedInTicket cit = msg;
-      //   if (!observers.containsKey(cit.foundTicket.checkInListItem.url)) {
-      //     observers[cit.foundTicket.checkInListItem.url].start(seconds: 0);
-      //   }
-      // }
-      // if (msg is ConferenceKeysMsg) {
-      //   final ConferenceKeysMsg cils = msg;
-      //   cils.conferenceKeys.forEach((cil) {
-      //     print('CheckInAgent:CheckInListsMsg:${cil.url}');
-      //     if (!observers.containsKey(cil.url)) {
-      //       observers[cil.url] = CheckInObserver(appState: appState, checkInListItem: cil).start(seconds: 0);
-      //     }
-      //   });
-      // }
-      // if (msg is FoundTickets) {
-      //   final FoundTickets fts = msg;
-      //   fts.ticketConferenceKeys.indexWhere((ft) {
-      //     if (ft.ticketAndCheckIns.state == TicketAndCheckInsState.Issueable) {
-      //       print('checkIn:${ft.conferenceKey.checkInUrl()}:${ft.ticketAndCheckIns.id}');
-      //       http.post(ft.conferenceKey.checkInUrl(),
-      //         headers: {
-      //            "Accept": "application/json",
-      //            "Content-Type": "application/json"
-      //         },
-      //         body: convert.jsonEncode({
-      //             "checkin": {
-      //               "ticket_id": ft.ticketAndCheckIns.id
-      //             }
-      //           })
-      //       ).then((res) {
-      //         // print('Checkout:${res.statusCode}:${res.body}');
-      //         this.appState.bus.add(CheckedInTicket(foundTicket: ft, res: res));
-      //       }).catchError((e) {
-      //         this.appState.bus.add(CheckedTicketError(foundTicket: ft, error: e));
-      //       });
-      //       return true;
-      //     }
-      //     return false;
-      //   });
-      // }
-      //     curl --request DELETE \
-      // --url 'https://checkin.tito.io/checkin_lists/wech/checkins/6e16a93c-df5e-4105-b535-28e029027696' \
-      // --header 'Accept: application/json' \
-      // --header 'Content-Type: application/json'
-      // if (msg is CheckInListsMsg) {
-      //   // msg.lists
-      //   //   .where((i) => i.ticketsStatus == CheckInListItemTicketsStatus.Fetched)
-      //   //   .where((i) => !observers.containsKey(i.url))
-      //   //   .forEach((i) {
-      //   //     observers.putIfAbsent(i.url, CheckInObserver.start(i));
-      //   //   });
-      //   observers.values.forEach((cio) {
-
-      //   });
-
-      //   msg.lists.
-      //     .where((i) => i.ticketsStatus == CheckInListItemTicketsStatus.Fetched)
-      // }
     });
     return this;
   }

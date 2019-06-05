@@ -50,7 +50,7 @@ class ConfotorDrawerState extends State<ConfotorDrawer> {
       confs.conferences.forEach((conf) => children.add(ListTile(
           key: Key(conf.checkInList.url),
           title: Text(
-              "${conf.checkInList.event_title}(${conf.ticketAndCheckInsList.length}-${conf.checkInItemLength})",
+              "${conf.checkInList.eventTitle}(${conf.ticketAndCheckInsList.length}-${conf.checkInItemLength})",
               style: TextStyle(color: Colors.deepOrange)),
           onTap: () {
             appState.bus
@@ -79,7 +79,7 @@ class ConfotorDrawerState extends State<ConfotorDrawer> {
       confs.conferences.forEach((conf) => children.add(ListTile(
           key: Key(conf.checkInList.url),
           title: Text(
-              "${conf.checkInList.event_title}(${conf.ticketAndCheckInsList.length}-${conf.checkInItemLength})",
+              "${conf.checkInList.eventTitle}(${conf.ticketAndCheckInsList.length}-${conf.checkInItemLength})",
               style: TextStyle(color: Colors.deepOrange)),
           onLongPress: () {
             appState.bus

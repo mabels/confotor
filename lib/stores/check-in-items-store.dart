@@ -1,6 +1,5 @@
 
 import 'package:confotor/models/check-in-item.dart';
-import 'package:confotor/models/ticket-and-checkins.dart';
 
 class CheckInItemsStore {
   final Map<String /*uuid*/, CheckInItem> _checkInItems = Map();

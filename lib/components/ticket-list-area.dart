@@ -109,7 +109,7 @@ class TicketListAreaState extends State<TicketListArea> {
                               RequestCheckOutTicket(ticket: conferenceTicket));
                         });
                   } else {
-                    final createdAt = conferenceTicket.ticketAndCheckIns.lastCheckedIn.created_at;
+                    final createdAt = conferenceTicket.ticketAndCheckIns.lastCheckedIn.createdAt;
                     final ago = DateTime.now().difference(createdAt);
                     return RaisedButton(
                         textColor: Colors.white,
@@ -190,7 +190,7 @@ class TicketListAreaState extends State<TicketListArea> {
       return ListView(children: <Widget>[]);
     } else {
       // print('Build:${lastFoundTickets.last.length}');
-      withLane.addAll(lastFoundTickets.last.map((foundTickets) {
+      withLane.addAll(lastFoundTickets.values.map((foundTickets) {
         if (foundTickets.hasFound) {
           return Card(
               color: Colors.white70,
@@ -202,14 +202,14 @@ class TicketListAreaState extends State<TicketListArea> {
                       children: <TextSpan>[
                         TextSpan(
                             text: foundTickets.conferenceTickets.first
-                                .ticketAndCheckIns.ticket.first_name + ' ',
+                                .ticketAndCheckIns.ticket.firstName + ' ',
                             style: TextStyle(
                                 fontSize: 24.0,
                                 color: Color(0xFF303f62),
                                 fontWeight: FontWeight.bold)),
                         TextSpan(
                           text: foundTickets.conferenceTickets.first
-                              .ticketAndCheckIns.ticket.last_name,
+                              .ticketAndCheckIns.ticket.lastName,
                           style: TextStyle(
                               fontSize: 24.0,
                               color: Color(0xFF303f62),

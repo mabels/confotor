@@ -7,9 +7,12 @@ import 'package:confotor/models/check-in-item.dart';
 import 'package:confotor/models/check-in-list-item.dart';
 import 'package:confotor/models/conference.dart';
 import 'package:confotor/models/conferences.dart';
+import 'package:confotor/models/lane.dart';
+import 'package:confotor/models/ticket-action.dart';
 import 'package:confotor/models/ticket-and-checkins.dart';
 import 'package:confotor/models/ticket.dart';
 import 'package:confotor/msgs/confotor-msg.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart';
@@ -264,170 +267,6 @@ class AddCheckInAction extends ConfotorMsg {
 //   FindTicket({@required String slug}): slug = slug;
 //}
 
-class TicketAction {
-  final String type;
-  TicketAction(String type) : type = type;
-
-  static Map<Type, Function> registered = Map(); 
-
-  static TicketAction fromJson(dynamic json) {
-    switch (json['type']) {
-      case "BarcodeScannedTicketAction":
-        return BarcodeScannedTicketAction.fromJson(json);
-      case "CheckInTransactionTicketAction":
-        return CheckInTransactionTicketAction.fromJson(json);
-      case "CheckOutTransactionTicketAction":
-        return CheckOutTransactionTicketAction.fromJson(json);
-      case "AmbiguousAction":
-        return AmbiguousAction.fromJson(json);
-      default:
-        return TicketAction(json['type']);
-    }
-    // return ta.fromJson(json);
-  }
-
-  @mustCallSuper
-  Map<String, dynamic> toJson() => {
-    "type": type.toString()
-  };
-}
-
-class  AmbiguousAction extends TicketAction {
-  final String barcode;
-  AmbiguousAction({@required barcode})
-      : barcode = barcode,
-        super("AmbiguousAction");
-
-  static AmbiguousAction fromJson(dynamic json) {
-    return AmbiguousAction(barcode: json['barcode']);
-  } 
-
-  Map<String, dynamic> toJson() => {
-    ...super.toJson(),
-    "barcode": barcode,
-  };
-
-}
-
-class BarcodeScannedTicketAction extends TicketAction {
-  final String barcode;
-  final Lane lane;
-  BarcodeScannedTicketAction({@required String barcode, @required Lane lane})
-      : barcode = barcode,
-        lane = lane,
-        super("BarcodeScannedTicketAction");
-
-  static BarcodeScannedTicketAction fromJson(dynamic json) {
-    return BarcodeScannedTicketAction(barcode: json['barcode'], 
-      lane: json['lane'] == null ? null : Lane(json['lane']));
-  } 
-
-  Map<String, dynamic> toJson() => {
-    ...super.toJson(),
-    "barcode": barcode,
-    "lane": lane == null ? null : lane.toString()
-  };
-
-}
-// registerTicketAction(type: BarcodeScannedTicketAction, fromJson);
-
-enum CheckInOutTransactionTicketActionStep { Started, Completed, Error }
-String asStringCheckInOutTransactionTicketActionStep(CheckInOutTransactionTicketActionStep step) {
-  switch (step) {
-    case CheckInOutTransactionTicketActionStep.Started: return "Started";
-    case CheckInOutTransactionTicketActionStep.Completed: return "Completed";
-    case CheckInOutTransactionTicketActionStep.Error:
-    default:
-      return "Error";
-  }
-}
-
-CheckInOutTransactionTicketActionStep fromStringCheckInOutTransactionTicketActionStep(String step) {
-  switch (step) {
-    case "Started": return CheckInOutTransactionTicketActionStep.Started;
-    case "Completed": return CheckInOutTransactionTicketActionStep.Completed;
-    case "Error": 
-    default:
-      return CheckInOutTransactionTicketActionStep.Error;
-  }
-}
-
-class StepTransactionTicketAction extends TicketAction {
-  CheckInOutTransactionTicketActionStep step;
-  Response res;
-  dynamic error;
-  StepTransactionTicketAction({@required CheckInOutTransactionTicketActionStep step,
-                               @required String type}): 
-    step = step, super(type); 
-
-  Map<String, dynamic> toJson() => {
-    ...super.toJson(),
-    "step": asStringCheckInOutTransactionTicketActionStep(step),
-    "error": error.toString(),
-    "res": res.toString(),
-  };
-}
-
-class CheckInTransactionTicketAction extends StepTransactionTicketAction {
-
-  CheckInTransactionTicketAction({@required step}):
-    super(type: "CheckInTransactionTicketAction", step: step);
-
-  static CheckInTransactionTicketAction fromJson(dynamic json) {
-    return CheckInTransactionTicketAction(step: fromStringCheckInOutTransactionTicketActionStep(json['step']));
-  } 
-
-  Future<dynamic> run({
-    @required String url,
-    @required int ticketId
-  }) {
-    return http.post(url, headers: {
-              "Accept": "application/json",
-              "Content-Type": "application/json"
-            },
-            body: json.encode({
-              "checkin": {"ticket_id": ticketId}
-            }))
-        .then((res) {
-      step = CheckInOutTransactionTicketActionStep.Completed;
-      this.res = res;
-    }).catchError((e) {
-      step = CheckInOutTransactionTicketActionStep.Error;
-      this.error = error;
-    });
-  }
-}
-
-class CheckOutTransactionTicketAction extends StepTransactionTicketAction {
-  final String uuid;
-  CheckOutTransactionTicketAction({@required step, @required String uuid})
-      : uuid = uuid,
-        super(type: "CheckOutTransactionTicketAction", step: step);
-
-  Future<dynamic> run({
-    @required String url,
-  }) {
-    return http.delete(url).then((res) {
-      step = CheckInOutTransactionTicketActionStep.Completed;
-      this.res = res;
-    }).catchError((e) {
-      step = CheckInOutTransactionTicketActionStep.Error;
-      this.error = error;
-    });
-  }
-
-  static CheckOutTransactionTicketAction fromJson(dynamic json) {
-    return CheckOutTransactionTicketAction(
-      uuid: json['uuid'],
-      step: fromStringCheckInOutTransactionTicketActionStep(json['step']));
-  } 
-
-  Map<String, dynamic> toJson() => {
-    ...super.toJson(),
-    "uuid": uuid
-  };
-}
-
 class ConferenceTicket extends ConfotorMsg {
   final CheckInList checkInList;
   final TicketAndCheckIns ticketAndCheckIns;
@@ -442,6 +281,12 @@ class ConferenceTicket extends ConfotorMsg {
         ticketAndCheckIns = ticketAndCheckIns,
         actions = actions;
 
+  bool operator ==(o) {
+    return o is ConferenceTicket &&
+     o.checkInList == checkInList &&
+     o.ticketAndCheckIns == ticketAndCheckIns &&
+     listEquals(o.actions, actions);
+  }
 
   static _actionsFromJson(dynamic actions) {
     final List<TicketAction> my = [];
@@ -471,7 +316,7 @@ class ConferenceTicket extends ConfotorMsg {
       return action is CheckInTransactionTicketAction ||
              action is CheckOutTransactionTicketAction;
     }, orElse: () => null);
-    return action is CheckInTransactionTicketAction && 
+    return action is CheckInTransactionTicketAction &&
            action.step == CheckInOutTransactionTicketActionStep.Completed;
   }
 
@@ -491,7 +336,7 @@ class ConferenceTicket extends ConfotorMsg {
 
   TicketAndCheckInsState get state {
     // ticketAndCheckIns.checkInItems.forEach((ci) => print('cii:${ticketAndCheckIns.ticket.reference}:${json.encode(ci)}'));
-    final open = ticketAndCheckIns.checkInItems.firstWhere((i) => i.deleted_at == null, orElse: () => null);
+    final open = ticketAndCheckIns.checkInItems.firstWhere((i) => i.deletedAt == null, orElse: () => null);
     if (open != null) {
       return TicketAndCheckInsState.Used;
     }
@@ -545,32 +390,6 @@ class ResetLastFoundTickets extends ConfotorMsg {
 }
 
 class RequestAmbiguousLastFoundTickets extends ConfotorMsg {
-}
-
-class Lane {
-  final String start;
-  final String end;
-  Lane(String range): 
-    start = range == null ? null : range.substring(0, 1).toUpperCase(),
-    end = range == null ? null : range.substring(range.length - 1, range.length).toUpperCase();
-
-  @override
-  String toString() {
-    return '$start-$end';
-  }
-
-  static Lane fromJson(dynamic json) {
-    return Lane(json);
-  }
-
-  bool isNameInLane(String name) {
-    final s = [start, name.toUpperCase().substring(0, 1), end];
-    s.sort();
-    print('isNameInLane:${s.first}:$start:$end:${s.last}:$name');
-    return s.first == start && end == s.last;
-  }
-
-  String toJson() => toString();
 }
 
 class SelectLane extends ConfotorMsg {

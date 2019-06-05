@@ -31,7 +31,7 @@ class LastFoundTicketsStore {
 
   LastFoundTicketsStore update(LastFoundTickets lft) {
     maxLen = lft.maxLen;
-    lft.last.reversed.forEach((lt) => updateFoundTickets(lt));
+    lft.values.reversed.forEach((lt) => updateFoundTickets(lt));
     return this;
   }
 
@@ -52,17 +52,7 @@ class LastFoundTicketsStore {
     return this;
   }
 
-  LastFoundTicketsStore updateFoundTickets(FoundTickets oth) {
-    final idx = last.indexWhere((t) => t.containsSlug(oth));
-    if (idx >= 0) {
-      last.removeAt(idx);
-    }
-    this.last.insert(0, oth);
-    for (var i = maxLen; i < last.length; i++) {
-      last.removeLast();
-    }
-    return this;
-  }
+
 
   Future<File> get fileName async {
     final path = await appState.getLocalPath();
@@ -110,7 +100,7 @@ class LastFoundTicketsStore {
           return found != null;
         }
         final toDelete = found.ticketAndCheckIns.checkInItems
-            .where((i) => i.deleted_at == null)
+            .where((i) => i.deletedAt == null)
             .toList();
         if (toDelete.isNotEmpty) {
           _doCheckoutList(found, toDelete);

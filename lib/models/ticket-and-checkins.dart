@@ -1,6 +1,7 @@
 
 import 'package:confotor/models/check-in-item.dart';
 import 'package:confotor/models/ticket.dart';
+import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 
 enum TicketAndCheckInsState {
@@ -15,7 +16,7 @@ TicketAndCheckInsState ticketAndCheckInsStateFromString(String s) {
     case 'Used': return TicketAndCheckInsState.Used;
     case 'Issueable': return TicketAndCheckInsState.Issueable;
     // case 'Issued': return TicketAndCheckInsState.Issued;
-    case 'Error': 
+    case 'Error':
     default:
       return TicketAndCheckInsState.Error;
   }
@@ -32,19 +33,19 @@ String ticketAndCheckInsStateToString(TicketAndCheckInsState s) {
 
 class TicketAndCheckIns {
   final List<CheckInItem> checkInItems;
-  // final List<CheckInAction> checkInActions;
   final Ticket ticket;
-  // final TicketAndCheckInsState state;
 
   TicketAndCheckIns({
     @required List<CheckInItem> checkInItems,
-    // @required List<CheckInAction> checkInActions,
     @required Ticket ticket,
-    // @required TicketAndCheckInsState state
-   }): checkInItems = checkInItems, 
-      //  checkInActions = checkInActions, 
-       ticket = ticket; 
-      //  state = state;
+   }): checkInItems = checkInItems,
+       ticket = ticket;
+
+  bool operator ==(o) {
+    return o is TicketAndCheckIns &&
+      listEquals(o.checkInItems, checkInItems) &&
+      o.ticket == ticket;
+  }
 
   updateCheckInItems(List<CheckInItem> ciis) {
     final lookup = Map.fromEntries(ciis.map((cii) => MapEntry(cii.uuid, cii)));
@@ -62,8 +63,8 @@ class TicketAndCheckIns {
   // }
 
   CheckInItem get lastCheckedIn {
-    final toSort = checkInItems.where((cii) => cii.deleted_at == null).toList();
-    toSort.sort((a, b) => a.created_at.compareTo(b.created_at));
+    final toSort = checkInItems.where((cii) => cii.deletedAt == null).toList();
+    toSort.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     return toSort.last;
   }
 
@@ -74,28 +75,22 @@ class TicketAndCheckIns {
       ciis.addAll(ljson.map((o) => CheckInItem.fromJson(o)));
     }
     final my = TicketAndCheckIns(
-      //  checkInActions: [], 
+      //  checkInActions: [],
        checkInItems: ciis,
-       ticket: Ticket(id: json['ticket']['id']),
+       ticket: Ticket.fromJson(json['ticket']),
       //  state: ticketAndCheckInsStateFromString(json['state'])
     );
-    return my._updateFromJson(json);
+    return my;
   }
 
-  TicketAndCheckIns _updateFromJson(dynamic json) {
-    ticket.updateFromJson(json['ticket']);
-    var loop = [];
-    // if (json['checkInActions'] != null) {
-      // loop = json['checkInActions'];
-    // }
-    // loop.forEach((i) => checkInActions.add(CheckInAction.fromJson(i)));
-    // loop = [];
-    if (json['checkInItems'] != null) {
-      loop = json['checkInItems'];
-    }
-    loop.forEach((i) => checkInItems.add(CheckInItem.fromJson(i)));
-    return this;
-  }
+  // TicketAndCheckIns _updateFromJson(dynamic json) {
+  //   var loop = [];
+  //   if (json['checkInItems'] != null) {
+  //     loop = json['checkInItems'];
+  //   }
+  //   loop.forEach((i) => checkInItems.add(CheckInItem.fromJson(i)));
+  //   return this;
+  // }
 
   Map<String, dynamic> toJson() => {
         "checkInItems": checkInItems,

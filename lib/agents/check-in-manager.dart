@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:ui';
+import 'package:meta/meta.dart';
 
 import 'package:confotor/components/confotor-app.dart';
 import 'package:confotor/models/found-tickets.dart';
 import 'package:confotor/models/ticket-and-checkins.dart';
 import 'package:confotor/msgs/msgs.dart';
 import 'package:confotor/stores/last-found-tickets-store.dart';
-import 'package:meta/meta.dart';
 
 class CheckInManager {
   final ConfotorAppState appState;
@@ -54,20 +54,20 @@ class CheckInManager {
         _lastFoundTicketsStore.updateFromConferences(msg.conferences);
         if (jsonLastFoundTicketsStore != null) {
           msg.conferences.conferences.forEach((cf) {
-            jsonLastFoundTicketsStore.last.reversed.toList().forEach((ft) {
+            jsonLastFoundTicketsStore.values.reversed.toList().forEach((ft) {
               final cts = Map.fromEntries(ft.conferenceTickets
                   .where((ct) => ct.checkInList.url == cf.checkInList.url)
                   .map((ct) => MapEntry(ct.ticketAndCheckIns.ticket.id, ct)));
               cf.ticketAndCheckInsList.forEach((tac) {
                 if (cts.containsKey(tac.ticket.id)) {
                   _lastFoundTicketsStore.updateFoundTickets(ft);
-                  jsonLastFoundTicketsStore.last
+                  jsonLastFoundTicketsStore.values
                       .removeWhere((i) => i.containsSlug(ft));
                 }
               });
             });
           });
-          if (jsonLastFoundTicketsStore.last.isEmpty) {
+          if (jsonLastFoundTicketsStore.values.isEmpty) {
             print('lastFoundTicketCompleted');
             jsonLastFoundTicketsStore = null;
           }
@@ -77,13 +77,13 @@ class CheckInManager {
 
       if (msg is RequestCheckInTicket) {
         print(
-            'RequestCheckInTicket:${msg.conferenceTicket.checkInList.event_title}:${msg.conferenceTicket.ticketAndCheckIns.ticket.email}');
+            'RequestCheckInTicket:${msg.conferenceTicket.checkInList.eventTitle}:${msg.conferenceTicket.ticketAndCheckIns.ticket.email}');
         _lastFoundTicketsStore.doCheckIn(msg.conferenceTicket);
       }
 
       if (msg is RequestCheckOutTicket) {
         print(
-            'RequestCheckOutTicket:${msg.conferenceTicket.checkInList.event_title}:${msg.conferenceTicket.ticketAndCheckIns.ticket.email}');
+            'RequestCheckOutTicket:${msg.conferenceTicket.checkInList.eventTitle}:${msg.conferenceTicket.ticketAndCheckIns.ticket.email}');
         _lastFoundTicketsStore.doCheckOut(msg.conferenceTicket);
       }
 

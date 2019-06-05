@@ -1,7 +1,10 @@
 
 import 'package:confotor/msgs/confotor-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
+import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
+
+import 'lane.dart';
 
 class FoundTickets extends ConfotorMsg {
   final List<ConferenceTicket> conferenceTickets;
@@ -12,10 +15,17 @@ class FoundTickets extends ConfotorMsg {
     @required String scan,
     @required Lane lane,
     @required List<ConferenceTicket> conferenceTickets
-  }): 
+  }):
     conferenceTickets = conferenceTickets,
     lane = lane,
     scan = scan;
+
+  bool operator ==(o) {
+    return o is FoundTickets &&
+      listEquals(conferenceTickets, o.conferenceTickets) &&
+      lane == o.lane &&
+      scan == scan;
+  }
 
   List<String> get slugs {
     return conferenceTickets.map((t) => t.ticketAndCheckIns.ticket.slug).toList();
@@ -25,7 +35,7 @@ class FoundTickets extends ConfotorMsg {
     if (lane == null) {
       return true;
     }
-    return lane.isNameInLane(conferenceTickets.first.ticketAndCheckIns.ticket.first_name);
+    return lane.isNameInLane(conferenceTickets.first.ticketAndCheckIns.ticket.firstName);
   }
 
   bool get unambiguous {
@@ -41,7 +51,7 @@ class FoundTickets extends ConfotorMsg {
   get hasFound => conferenceTickets.isNotEmpty;
 
   get name {
-    return hasFound ? "${conferenceTickets.first.ticketAndCheckIns.ticket.first_name} ${conferenceTickets.first.ticketAndCheckIns.ticket.last_name}" : "John Doe";
+    return hasFound ? "${conferenceTickets.first.ticketAndCheckIns.ticket.firstName} ${conferenceTickets.first.ticketAndCheckIns.ticket.lastName}" : "John Doe";
   }
 
   static FoundTickets fromJson(dynamic json) {
@@ -62,17 +72,21 @@ class FoundTickets extends ConfotorMsg {
 }
 
 class LastFoundTickets extends ConfotorMsg {
-  final List<FoundTickets> last;
-  final int maxLen;
+  final List<FoundTickets> _last = [];
+  int _maxLen;
 
   LastFoundTickets({
     @required List<FoundTickets> last,
     int maxLen = 20
-    }): last = List.from(last), maxLen = maxLen;
+    }) : _maxLen = maxLen {
+      last.reversed.forEach((fts) => append(fts));
+    }
 
   LastFoundTickets clone() {
-    return LastFoundTickets(last: last, maxLen: maxLen);
+    return LastFoundTickets(last: _last, maxLen: _maxLen);
   }
+
+  Iterable<FoundTickets> get values => _last;
 
   static LastFoundTickets fromJson(dynamic json) {
     final List<FoundTickets> last = [];
@@ -87,9 +101,33 @@ class LastFoundTickets extends ConfotorMsg {
     return LastFoundTickets(last: last, maxLen: maxLen);
   }
 
+  FoundTickets get first => _last.first;
+  FoundTickets get last => _last.last;
+
+  int get length => _last.length;
+
+  int get maxLen => _maxLen;
+
+  set maxLen(int v) {
+    _maxLen = v;
+    // toList need we modify last in append
+    this._last.toList().reversed.forEach((fts) => append(fts));
+  }
+
+  append(FoundTickets oth) {
+    final idx = _last.indexWhere((t) => t.containsSlug(oth));
+    if (idx >= 0) {
+      _last.removeAt(idx);
+    }
+    this._last.insert(0, oth);
+    for (var i = maxLen, olen = _last.length; i < olen; i++) {
+      _last.removeLast();
+    }
+    return this;
+  }
 
   Map<String, dynamic> toJson() => {
-    "last": last,
+    "last": _last,
     "maxLen": maxLen
   };
 

@@ -5,6 +5,8 @@ import 'package:confotor/components/confotor-app.dart';
 import 'package:confotor/models/conference.dart';
 import 'package:confotor/models/conferences.dart';
 import 'package:confotor/models/found-tickets.dart';
+import 'package:confotor/models/lane.dart';
+import 'package:confotor/models/ticket-action.dart';
 import 'package:confotor/models/ticket.dart';
 import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
@@ -61,7 +63,7 @@ class ConferencesStore {
     final List<FoundTickets> ret = [];
     _conferences.values.forEach((conf) {
       conf.ticketStore.values.map((i) => i.slug).forEach((slug) {
-        final fts = findTickets(slug: slug, 
+        final fts = findTickets(slug: slug,
           taction: AmbiguousAction(barcode: slug));
         if (!fts.unambiguous) {
           ret.add(fts);
@@ -72,7 +74,7 @@ class ConferencesStore {
     return ret;
   }
 
-  FoundTickets findTickets({@required String slug, 
+  FoundTickets findTickets({@required String slug,
     @required TicketAction taction, Lane lane}) {
     final List<ConferenceTicket> ret = [];
     final inConf = _conferences.values.firstWhere((conf) {
@@ -96,8 +98,8 @@ class ConferencesStore {
         conf.ticketStore.values.forEach((tac) {
           final ticket = tac.ticket;
 
-          if (ticket.first_name == ref.ticketAndCheckIns.ticket.first_name) {
-            if (ticket.last_name == ref.ticketAndCheckIns.ticket.last_name) {
+          if (ticket.firstName == ref.ticketAndCheckIns.ticket.firstName) {
+            if (ticket.lastName == ref.ticketAndCheckIns.ticket.lastName) {
               ret.add(ConferenceTicket(checkInList: conf.checkInList,
                                         ticketAndCheckIns: tac.toTicketAndCheckIns(),
                                         actions: [taction]));
@@ -108,7 +110,7 @@ class ConferencesStore {
     }
     if (ret.length > _conferences.length) {
       // filter registration_reference
-      _removeFrom(ret, _filterTicket(ret, (Ticket t) => t.registration_reference));
+      _removeFrom(ret, _filterTicket(ret, (Ticket t) => t.registrationReference));
     }
     if (ret.length > _conferences.length) {
       // filter email
@@ -118,7 +120,7 @@ class ConferencesStore {
   }
 
   _removeFrom(List<ConferenceTicket> ref, List<ConferenceTicket> toRemove) {
-    ref.removeWhere((ct) => 
+    ref.removeWhere((ct) =>
       toRemove.firstWhere((tct) => ct == tct, orElse: () => null) != null);
   }
 

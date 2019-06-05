@@ -2,67 +2,93 @@ import 'package:meta/meta.dart';
 
 class Ticket {
   final int id;
-  String slug;
-  String first_name;
-  String last_name;
+  final String slug;
+  final String reference;
+  final String registrationReference;
+  final String createdAt;
+  String firstName;
+  String lastName;
   String email;
-  String company_name;
-  String reference;
-  String registration_reference;
-  String created_at;
-  String updated_at;
+  String companyName;
+  String updatedAt;
 
-  Ticket({@required int id}) : id = id;
+  Ticket(
+      {@required int id,
+      @required String slug,
+      @required String reference,
+      @required String registrationReference,
+      @required String createdAt,
+      String firstName,
+      String lastName,
+      String email,
+      String companyName,
+      String updatedAt})
+      : id = id,
+        slug = slug,
+        reference = reference,
+        registrationReference = registrationReference,
+        createdAt = createdAt,
+        firstName = firstName,
+        lastName = lastName,
+        email = email,
+        companyName = companyName,
+        updatedAt = updatedAt;
 
-  update(Ticket oth) {
-    if (id != oth.id) {
-      // && slug == oth.slug && reference == oth.reference
-      // && registration_reference == oth.registration_reference)) {
-      throw Exception("try update Ticket does not match");
-    }
-    slug = oth.slug;
-    reference = oth.reference;
-    registration_reference = oth.registration_reference;
-    first_name = oth.first_name;
-    last_name = oth.last_name;
-    email = oth.email;
-    company_name = oth.company_name;
-    created_at = oth.created_at;
-    updated_at = oth.updated_at;
+  bool operator ==(o) {
+    return o is Ticket &&
+      o.id == id &&
+      o.slug == slug &&
+      o.reference == reference &&
+      o.registrationReference == registrationReference &&
+      o.createdAt == createdAt &&
+      o.firstName == firstName &&
+      o.lastName == lastName  &&
+      o.email == email &&
+      o.companyName == companyName &&
+      o.updatedAt == updatedAt;
   }
+
+  // update(Ticket oth) {
+  //   if (id != oth.id) {
+  //     // && slug == oth.slug && reference == oth.reference
+  //     // && registration_reference == oth.registration_reference)) {
+  //     throw Exception("try update Ticket does not match");
+  //   }
+  //   slug = oth.slug;
+  //   reference = oth.reference;
+  //   registrationReference = oth.registrationReference;
+  //   firstName = oth.firstName;
+  //   lastName = oth.lastName;
+  //   email = oth.email;
+  //   companyName = oth.companyName;
+  //   createdAt = oth.createdAt;
+  //   updatedAt = oth.updatedAt;
+  // }
 
   static Ticket fromJson(dynamic json) {
-    return Ticket(id: json['id']).updateFromJson(json);
-  }
-
-  updateFromJson(dynamic json) {
-    if (id != json['id']) {
-      // && slug == oth.slug && reference == oth.reference
-      // && registration_reference == oth.registration_reference)) {
-      throw Exception("try update Ticket does not match");
-    }
-    slug = json['slug'];
-    first_name = json['first_name'];
-    last_name = json['last_name'];
-    email = json['email'];
-    company_name = json['company_name'];
-    reference = json['reference'];
-    registration_reference = json['registration_reference'];
-    created_at = json['created_at'];
-    updated_at = json['updated_at'];
-    return this;
+    return Ticket(
+        id: json['id'],
+        slug: json['slug'],
+        firstName: json['first_name'],
+        lastName: json['last_name'],
+        email: json['email'],
+        companyName: json['company_name'],
+        reference: json['reference'],
+        registrationReference: json['registration_reference'],
+        createdAt: json['created_at'],
+        updatedAt: json['updated_at']);
   }
 
   Map<String, dynamic> toJson() => {
         "id": id,
         "slug": slug,
-        "first_name": first_name,
-        "last_name": last_name,
+        "first_name": firstName,
+        "last_name": lastName,
         "email": email,
-        "company_name": company_name,
+        "company_name": companyName,
         "reference": reference,
-        "registration_reference": registration_reference,
-        "created_at": created_at,
-        "updated_at": updated_at,
+        "registration_reference": registrationReference,
+        "created_at": createdAt,
+        "updated_at": updatedAt,
       };
 }

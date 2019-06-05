@@ -57,7 +57,6 @@ class Conference {
                       ticketAndCheckInsList: ticketAndCheckInsList);
   }
 
-  @override
   get url => checkInList.url;
 
   toJson() => {
