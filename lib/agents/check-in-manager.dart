@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:ui';
 import 'package:meta/meta.dart';
 
@@ -6,7 +5,6 @@ import 'package:confotor/components/confotor-app.dart';
 import 'package:confotor/models/found-tickets.dart';
 import 'package:confotor/models/ticket-and-checkins.dart';
 import 'package:confotor/msgs/msgs.dart';
-import 'package:confotor/stores/last-found-tickets-store.dart';
 import 'package:mobx/mobx.dart';
 
 class CheckInManager {
@@ -29,7 +27,7 @@ class CheckInManager {
   start() {
     appLifecycleDisposer = reaction<AppLifecycleState>((_) {
       return appState.appLifecycleAgent.state.value;
-    }, 
+    },
       (state) {
         switch (state) {
           case AppLifecycleState.suspending:

@@ -2,60 +2,23 @@ import 'package:confotor/models/ticket-and-checkins.dart';
 import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 import 'package:mobx/mobx.dart';
-import 'package:path/path.dart';
 
 import 'check-in-list-item.dart';
 
-abstract class ConferenceKey {
-  final String url;
+part 'conference.g.dart';
 
-  ConferenceKey(String url): url = url {
-    // print('ConferenceKey:$url');
-  }
-
-  String get listId {
-    final url = Uri.parse(this.url);
-    return basename(url.path).split('.').first;
-    // https://ti.to/jsconfeu/jsconf-eu-x-2019/checkin_lists/xxxxxxxxx.json;
-  }
-
-  String ticketsUrl(int page) {
-    // https://ti.to/jsconfeu/jsconf-eu-x-2019/checkin_lists/hello/tickets.json
-    return 'https://checkin.tito.io/checkin_lists/$listId/tickets?page=$page';
-  }
-
-  String checkInUrl({since: 0, page: 0}) {
-    return 'https://checkin.tito.io/checkin_lists/$listId/checkins?since=$since&page=$page';
-  }
-
-  String checkOutUrl(String uuid) {
-    return "https://checkin.tito.io/checkin_lists/$listId/checkins/$uuid";
-  }
-}
-
-class Conference {
-  final Observable<Exception> error;
-  final CheckInList checkInList;
-  final ObservableList<TicketAndCheckIns> ticketAndCheckInsList;
+// This is the class used by rest of your codebase
+class Conference extends ConferenceBase with _$Conference {
 
   Conference({
-    @required CheckInList checkInList, 
+    @required CheckInList checkInList,
     @required Iterable<TicketAndCheckIns> ticketAndCheckInsList,
-    Exception error}):
-    error = Observable(error),
-    checkInList = checkInList,
-    ticketAndCheckInsList = ObservableList.of(ticketAndCheckInsList);
+    dynamic error}):
+    super(checkInList: checkInList,
+          ticketAndCheckInsList: ticketAndCheckInsList,
+          error: error);
 
-  @computed
-  get checkInItemLength {
-    final i = ticketAndCheckInsList.map((t) => t.checkInItems.length);
-    if (i.isEmpty) {
-      return 0;
-    }
-    return i.reduce((a, b) => a + b);
-  }
-
-  static Conference fromJson(dynamic json) {
+    static Conference fromJson(dynamic json) {
     final List<TicketAndCheckIns> ticketAndCheckInsList = [];
     if (json['ticketAndCheckInsList'] != null) {
       List<dynamic> my = json['ticketAndCheckInsList'];
@@ -66,13 +29,44 @@ class Conference {
         ticketAndCheckInsList: ticketAndCheckInsList,
         error: json['error']);
   }
+}
 
+abstract class ConferenceBase with Store {
+  final Observable<dynamic> _error;
+  final CheckInList checkInList;
+  final ObservableList<TicketAndCheckIns> ticketAndCheckInsList;
+
+  ConferenceBase({
+    @required CheckInList checkInList,
+    @required Iterable<TicketAndCheckIns> ticketAndCheckInsList,
+    dynamic error}):
+    _error = Observable(error),
+    checkInList = checkInList,
+    ticketAndCheckInsList = ObservableList.of(
+        ticketAndCheckInsList == null ? [] : ticketAndCheckInsList);
+
+  @computed
+  get checkInItemLength {
+    final i = ticketAndCheckInsList.map((t) => t.checkInItems.length);
+    if (i.isEmpty) {
+      return 0;
+    }
+    return i.reduce((a, b) => a + b);
+  }
+
+  @computed
   get url => checkInList.url;
+
+  @computed
+  get error => _error.value;
+
+  @action
+  set error(dynamic error) => _error.value = error;
 
   toJson() => {
     "checkInListItem": checkInList,
     "ticketStore": ticketAndCheckInsList,
-    "error": error.value
+    "error": _error.value
   };
 
 

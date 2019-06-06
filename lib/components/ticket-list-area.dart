@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:intl/intl.dart';
 
 import 'package:confotor/models/found-tickets.dart';
@@ -59,8 +60,8 @@ class TicketListAreaState extends State<TicketListArea> {
     // subscription.cancel();
   }
 
-  actionText(ConferenceTicket tac, String stateText) {
-    switch (tac.checkInList.shortEventTitle) {
+  _actionText(ConferenceTicket tac, String stateText) {
+    switch (tac.checkInList.item.shortEventTitle) {
       case 'CSSconf':
         return Column(children: [
           //Image.asset('assets/cssconf.png', height: 60),
@@ -79,11 +80,11 @@ class TicketListAreaState extends State<TicketListArea> {
         ]);
       default:
         return Text(
-            "${stateText}[${tac.checkInList.shortEventTitle}(${tac.ticketAndCheckIns.ticket.reference})]");
+            "${stateText}[${tac.checkInList.item.shortEventTitle}(${tac.ticketAndCheckIns.ticket.reference})]");
     }
   }
 
-  subTitle(FoundTickets foundTickets) {
+  _subTitle(FoundTickets foundTickets) {
     return Column(
         children: foundTickets.conferenceTickets
             .map((conferenceTicket) {
@@ -91,7 +92,7 @@ class TicketListAreaState extends State<TicketListArea> {
                 return RaisedButton(
                     textColor: Colors.white,
                     splashColor: Colors.pinkAccent,
-                    child: actionText(conferenceTicket, "Running"),
+                    child: _actionText(conferenceTicket, "Running"),
                     color: Colors.pink,
                     onPressed: () {});
               }
@@ -101,7 +102,7 @@ class TicketListAreaState extends State<TicketListArea> {
                     return RaisedButton(
                         textColor: Colors.white,
                         splashColor: Colors.pinkAccent,
-                        child: actionText(
+                        child: _actionText(
                             conferenceTicket, "checked in successfully "),
                         color: Colors.green,
                         onPressed: () {
@@ -116,7 +117,7 @@ class TicketListAreaState extends State<TicketListArea> {
                         splashColor: Colors.pinkAccent,
                         child: Column(
                           children: [
-                            actionText(conferenceTicket, "is already used "),
+                            _actionText(conferenceTicket, "is already used "),
                             Text(
                               '${ago.inMinutes}min ago ' + dateFormatter.format(createdAt)
                             ),
@@ -149,7 +150,7 @@ class TicketListAreaState extends State<TicketListArea> {
                   return RaisedButton(
                       textColor: Colors.white,
                       splashColor: Colors.pinkAccent,
-                      child: actionText(
+                      child: _actionText(
                           conferenceTicket, "Ticket is not checked in"),
                       color: Colors.blue,
                       onPressed: () {
@@ -161,7 +162,7 @@ class TicketListAreaState extends State<TicketListArea> {
                   return RaisedButton(
                       textColor: Colors.white,
                       splashColor: Colors.pinkAccent,
-                      child: actionText(
+                      child: _actionText(
                           conferenceTicket, conferenceTicket.shortState),
                       color: Colors.purple);
                   break;
@@ -194,7 +195,7 @@ class TicketListAreaState extends State<TicketListArea> {
         if (foundTickets.hasFound) {
           return Card(
               color: Colors.white70,
-              child: ListTile(
+              child: Observer(builder: (_) => ListTile(
                   title: RichText(
                     textAlign: TextAlign.center,
                     text: TextSpan(
@@ -219,7 +220,7 @@ class TicketListAreaState extends State<TicketListArea> {
                       ],
                     ),
                   ),
-                  subtitle: subTitle(foundTickets)));
+                  subtitle: _subTitle(foundTickets))));
         } else {
           return Card(
               color: Colors.red,

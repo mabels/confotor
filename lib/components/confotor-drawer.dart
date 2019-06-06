@@ -40,7 +40,7 @@ class ConfotorDrawerState extends State<ConfotorDrawer> {
       {ConfotorAppState appState, List<Widget> drawer, Conferences confs}) {
     List<Widget> children = [];
 
-    if (appState.conferencesAgent.conferences.conferences.isNotEmpty) {
+    if (appState.conferencesAgent.conferences.isNotEmpty) {
       children.add(ListTile(
           key: Key('RefreshTickets'),
           title: Text('Refresh Tickets',

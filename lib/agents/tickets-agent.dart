@@ -15,7 +15,7 @@ enum TicketsStatus { Initial, Page, Ready, Error }
 
 class TicketObserver {
   final ConfotorAppState appState;
-  final Observable<CheckInList> checkInList;
+  // final Observable<CheckInList> checkInList;
   Timer timer;
 
   // static TicketObserver fetch(
@@ -25,9 +25,8 @@ class TicketObserver {
   //   return tickets;
   // }
 
-  TicketObserver({ConfotorAppState appState, Observable<CheckInList> checkInList})
-      : appState = appState,
-        checkInList = checkInList;
+  TicketObserver({ConfotorAppState appState}) : appState = appState;
+        // checkInList = checkInList;
 
   getPages(int page, String transaction) {
     final url = this.checkInList.ticketsUrl(page);
@@ -137,28 +136,28 @@ class TicketsAgent {
         }
   });
 
-  appState.checkInListAgent.
+  // appState.checkInListAgent.
 
 
 
-      if (msg is UpdatedConference) {
-        // print('TicketsAgent:UpdatedConference:${msg.checkInList.url}');
-        if (!observers.containsKey(msg.checkInList.url)) {
-          // print('TicketsAgent:UpdatedConference:${msg.checkInList.url}:create');
-          observers[msg.checkInList.url] = TicketObserver(
-              appState: appState, checkInList: msg.checkInList);
-          observers[msg.checkInList.url].start(hours: 0);
-        }
-      }
+  //     if (msg is UpdatedConference) {
+  //       // print('TicketsAgent:UpdatedConference:${msg.checkInList.url}');
+  //       if (!observers.containsKey(msg.checkInList.url)) {
+  //         // print('TicketsAgent:UpdatedConference:${msg.checkInList.url}:create');
+  //         observers[msg.checkInList.url] = TicketObserver(
+  //             appState: appState, checkInList: msg.checkInList);
+  //         observers[msg.checkInList.url].start(hours: 0);
+  //       }
+  //     }
 
-      if (msg is RemovedConference) {
-        if (observers.containsKey(msg.checkInList.url)) {
-          observers[msg.checkInList.url].stop();
-          observers.remove(msg.checkInList.url);
-        }
-      }
-    });
-  }
+  //     if (msg is RemovedConference) {
+  //       if (observers.containsKey(msg.checkInList.url)) {
+  //         observers[msg.checkInList.url].stop();
+  //         observers.remove(msg.checkInList.url);
+  //       }
+  //     }
+  //   });
+  // }
 }
 
 //   if (msg is ConferenceKeysMsg) {

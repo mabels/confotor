@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:confotor/models/check-in-list-item.dart';
-import 'package:confotor/models/conference.dart';
+import 'package:confotor/models/conference-key.dart';
 import 'package:confotor/models/ticket-and-checkins.dart';
 import 'package:confotor/models/ticket.dart';
 import 'package:meta/meta.dart';

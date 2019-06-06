@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 
+import 'fix-http-client.dart';
 import 'lane.dart';
 
 class TicketAction {
@@ -128,8 +130,8 @@ class CheckInTransactionTicketAction extends StepTransactionTicketAction {
   }
 
   Future<dynamic> run(
-      {@required String url, @required int ticketId, client: HttpClient}) {
-    return client
+      {@required String url, @required int ticketId, BaseClient client }) {
+    return fixHttpClient(client)
         .post(url,
             headers: {
               "Accept": "application/json",
@@ -159,8 +161,8 @@ class CheckOutTransactionTicketAction extends StepTransactionTicketAction {
       : uuid = uuid,
         super(type: "CheckOutTransactionTicketAction", step: step);
 
-  Future<dynamic> run({@required String url, client: HttpClient}) {
-    return client.delete(url).then((res) {
+  Future<dynamic> run({@required String url, BaseClient client }) {
+    return fixHttpClient(client).delete(url).then((res) {
       if (200 <= res.statusCode && res.statusCode < 300) {
         step = CheckInOutTransactionTicketActionStep.Completed;
         this.res = res;

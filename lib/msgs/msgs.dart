@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:confotor/models/check-in-action.dart';
 import 'package:confotor/models/check-in-item.dart';
 import 'package:confotor/models/check-in-list-item.dart';
+import 'package:confotor/models/conference-key.dart';
 import 'package:confotor/models/conference.dart';
 import 'package:confotor/models/conferences.dart';
 import 'package:confotor/models/lane.dart';

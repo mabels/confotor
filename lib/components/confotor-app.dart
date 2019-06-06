@@ -4,7 +4,6 @@ import 'package:confotor/agents/check-in-manager.dart';
 import 'package:confotor/agents/conferences-agent.dart';
 import 'package:confotor/agents/tickets-agent.dart';
 import 'package:confotor/models/lane.dart';
-import 'package:confotor/msgs/msgs.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import '../confotor-bus.dart';
@@ -45,7 +44,7 @@ class ConfotorAppState extends State<ConfotorApp> {
 
     // FirebaseApp.initializeApp();
 
-    this.appLifecycleAgent = AppLifecycleAgent(_appState: this).start();
+    this.appLifecycleAgent = AppLifecycleAgent().start();
     this.conferencesAgent = ConferencesAgent(appState: this).start();
     this.ticketsAgent = TicketsAgent(appState: this).start();
     this.checkInListAgent = CheckInListAgent(appState: this).start();

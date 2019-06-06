@@ -1,8 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:confotor/models/conference.dart';
+import 'package:confotor/models/conference-key.dart';
+import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 import 'package:mobx/mobx.dart';
+
+import 'fix-http-client.dart';
+
+part 'check-in-list-item.g.dart';
 
 class CheckInListItem {
   final String eventTitle;
@@ -59,9 +64,7 @@ class CheckInListItem {
         totalEntries: json['total_entries']);
   }
 
-  get shortEventTitle {
-    return eventTitle.split(" ").first;
-  }
+  String get shortEventTitle => eventTitle.split(" ").first;
 
   Map<String, dynamic> toJson() {
     return {
@@ -77,19 +80,14 @@ class CheckInListItem {
   }
 }
 
-
-class CheckInList extends ConferenceKey {
-  final Observable<CheckInListItem> item;
+class CheckInList extends CheckInListBase with _$CheckInList {
 
   CheckInList({@required String url,
                @required CheckInListItem checkInListItem
-              }):
-              item = Observable(checkInListItem),
-              super(url);
-
-  bool operator ==(dynamic o) {
-    return o is CheckInList && url == o.url && item.value == o.item.value;
-  }
+              }): super(
+                url: url,
+                checkInListItem: checkInListItem
+              );
 
   static CheckInList fromJson(dynamic json) {
     return CheckInList(
@@ -97,12 +95,8 @@ class CheckInList extends ConferenceKey {
         checkInListItem: CheckInListItem.fromJson(json['checkInListItem']));
   }
 
-  Map<String, dynamic> toJson() => {
-    "url": url,
-    "checkInListItem": item.value
-  };
 
-  static Future<CheckInList> fetch(String url, { client: HttpClient }) async {
+  static Future<CheckInList> fetch(String url, { BaseClient client }) async {
     try {
       final parsed = Uri.parse(url);
       // print('fetch:$url:$parsed');
@@ -113,7 +107,7 @@ class CheckInList extends ConferenceKey {
       // print('fetch:$url:$e');
       throw e;
     }
-    final response = await client.get(url);
+    final response = await fixHttpClient(client).get(url);
     if (200 <= response.statusCode && response.statusCode < 300) {
       final jsonResponse = json.decode(response.body);
       return CheckInList(
@@ -123,4 +117,32 @@ class CheckInList extends ConferenceKey {
     }
     throw Exception('CheckInList:fetch:${response.statusCode}:$url');
   }
+}
+
+abstract class CheckInListBase extends ConferenceKey with Store {
+  final Observable<CheckInListItem> _item;
+
+  CheckInListBase({@required String url,
+               @required CheckInListItem checkInListItem
+              }):
+              _item = Observable(checkInListItem),
+              super(url);
+
+  @computed
+  CheckInListItem get item => _item.value;
+
+  @computed
+  set item(CheckInListItem i) => _item.value = i;
+
+  bool operator ==(dynamic o) {
+    return (o is CheckInList || o is CheckInListBase)
+       && url == o.url && _item.value == o._item.value;
+  }
+
+  Map<String, dynamic> toJson() => {
+    "url": url,
+    "checkInListItem": _item.value
+  };
+
+
 }
