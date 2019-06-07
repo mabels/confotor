@@ -46,13 +46,13 @@ class ConfotorDrawerState extends State<ConfotorDrawer> {
           title: Text('Refresh Tickets',
               style: TextStyle(color: Colors.deepOrange)),
           onTap: () {
-            confs.conferences.forEach((conf) => appState.bus
+            confs.values.forEach((conf) => appState.bus
                 .add(RequestUpdateConference(checkInList: conf.checkInList)));
           }));
-      confs.conferences.forEach((conf) => children.add(ListTile(
+      confs.values.forEach((conf) => children.add(ListTile(
           key: Key(conf.checkInList.url),
           title: Text(
-              "${conf.checkInList.item.value.eventTitle}(${conf.ticketAndCheckInsList.length}-${conf.checkInItemLength})",
+              "${conf.checkInList.item.eventTitle}(${conf.ticketAndCheckInsList.length}-${conf.checkInItemLength})",
               style: TextStyle(color: Colors.deepOrange)),
           onTap: () {
             appState.bus
@@ -65,7 +65,7 @@ class ConfotorDrawerState extends State<ConfotorDrawer> {
   _removeSection(
       {ConfotorAppState appState, List<Widget> drawer, Conferences confs}) {
     List<Widget> children = [];
-    if (confs.conferences.isNotEmpty) {
+    if (confs.isNotEmpty) {
       children.add(ListTile(
           key: Key('RemoveTickets'),
           title: Text('Remove Tickets',
@@ -73,15 +73,15 @@ class ConfotorDrawerState extends State<ConfotorDrawer> {
           onLongPress: () {
             // Navigator.of(appState.context).pop();
             // checkInListScan(bus: appState.bus);
-            confs.conferences.forEach((conf) => appState.bus
+            confs.values.forEach((conf) => appState.bus
                 .add(RequestRemoveConference(conference: conf.checkInList)));
             // Navigator.of(context).push(MaterialPageRoute(
             //   builder: (BuildContext context) => ScanScreen()));
           }));
-      confs.conferences.forEach((conf) => children.add(ListTile(
+      confs.values.forEach((conf) => children.add(ListTile(
           key: Key(conf.checkInList.url),
           title: Text(
-              "${conf.checkInList.item.value.eventTitle}(${conf.ticketAndCheckInsList.length}-${conf.checkInItemLength})",
+              "${conf.checkInList.item.eventTitle}(${conf.ticketAndCheckInsList.length}-${conf.checkInItemLength})",
               style: TextStyle(color: Colors.deepOrange)),
           onLongPress: () {
             appState.bus

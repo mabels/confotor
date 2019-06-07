@@ -9,20 +9,21 @@ part 'conference.g.dart';
 
 // This is the class used by rest of your codebase
 class Conference extends ConferenceBase with _$Conference {
+  Conference(
+      {@required CheckInList checkInList,
+      @required Iterable<TicketAndCheckIns> ticketAndCheckInsList,
+      dynamic error})
+      : super(
+            checkInList: checkInList,
+            ticketAndCheckInsList: ticketAndCheckInsList,
+            error: error);
 
-  Conference({
-    @required CheckInList checkInList,
-    @required Iterable<TicketAndCheckIns> ticketAndCheckInsList,
-    dynamic error}):
-    super(checkInList: checkInList,
-          ticketAndCheckInsList: ticketAndCheckInsList,
-          error: error);
-
-    static Conference fromJson(dynamic json) {
+  static Conference fromJson(dynamic json) {
     final List<TicketAndCheckIns> ticketAndCheckInsList = [];
     if (json['ticketAndCheckInsList'] != null) {
       List<dynamic> my = json['ticketAndCheckInsList'];
-      my.forEach((j) => ticketAndCheckInsList.add(TicketAndCheckIns.fromJson(j)));
+      my.forEach(
+          (j) => ticketAndCheckInsList.add(TicketAndCheckIns.fromJson(j)));
     }
     return Conference(
         checkInList: CheckInList.fromJson(json['checkInListItem']),
@@ -36,14 +37,14 @@ abstract class ConferenceBase with Store {
   final CheckInList checkInList;
   final ObservableList<TicketAndCheckIns> ticketAndCheckInsList;
 
-  ConferenceBase({
-    @required CheckInList checkInList,
-    @required Iterable<TicketAndCheckIns> ticketAndCheckInsList,
-    dynamic error}):
-    _error = Observable(error),
-    checkInList = checkInList,
-    ticketAndCheckInsList = ObservableList.of(
-        ticketAndCheckInsList == null ? [] : ticketAndCheckInsList);
+  ConferenceBase(
+      {@required CheckInList checkInList,
+      @required Iterable<TicketAndCheckIns> ticketAndCheckInsList,
+      dynamic error})
+      : _error = Observable(error),
+        checkInList = checkInList,
+        ticketAndCheckInsList = ObservableList.of(
+            ticketAndCheckInsList == null ? [] : ticketAndCheckInsList);
 
   @computed
   get checkInItemLength {
@@ -64,10 +65,8 @@ abstract class ConferenceBase with Store {
   set error(dynamic error) => _error.value = error;
 
   toJson() => {
-    "checkInListItem": checkInList,
-    "ticketStore": ticketAndCheckInsList,
-    "error": _error.value
-  };
-
-
+        "checkInListItem": checkInList,
+        "ticketStore": ticketAndCheckInsList,
+        "error": _error.value
+      };
 }

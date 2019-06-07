@@ -86,18 +86,18 @@ class CheckInListObserver {
 
 class CheckInListAgent {
   final ConfotorAppState appState;
-  final Map<String /* url */, CheckInListObserver> observers = new Map();
+  final Map<String /* url */, CheckInListObserver> observers = Map();
   // StreamSubscription subscription;
-  ReactionDisposer appLifecycleDisposer;
+  ReactionDisposer _appLifecycleDisposer;
 
   CheckInListAgent({@required ConfotorAppState appState}) : appState = appState;
 
   stop() {
-    appLifecycleDisposer();
+    _appLifecycleDisposer();
   }
 
   CheckInListAgent start() {
-    appState.appLifecycleAgent.action((state) {
+    _appLifecycleDisposer = reaction((_) => appState.appLifecycleAgent.state, (state) {
         switch (state) {
           // case AppLifecycleState.inactive:
           case AppLifecycleState.paused:
@@ -115,7 +115,9 @@ class CheckInListAgent {
             break;
         }
       });
+      return this;
   }
+
 
   addConference()
 

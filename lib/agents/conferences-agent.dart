@@ -6,20 +6,21 @@ import 'package:confotor/models/conferences.dart';
 import 'package:confotor/msgs/scan-msg.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
+import 'package:mobx/mobx.dart';
 
 class ConferencesAgent {
   final ConfotorAppState appState;
   final Conferences conferences = Conferences(conferences: []);
-  StreamSubscription subscription;
+  ReactionDisposer appLifecycleDisposer;
 
   ConferencesAgent({@required ConfotorAppState appState}) : appState = appState;
 
   stop() {
-    subscription.cancel();
+    appLifecycleDisposer();
   }
 
   start() {
-    appState.appLifecycleAgent.action((state) {
+    appLifecycleDisposer = reaction((_) => appState.appLifecycleAgent.state, (state) {
       switch (state) {
         // case AppLifecycleState.inactive:
         case AppLifecycleState.suspending:
@@ -33,6 +34,7 @@ class ConferencesAgent {
           break;
       }
     });
+
 
     appState.bus.listen((msg) {
       if (msg is QrScanMsg) {

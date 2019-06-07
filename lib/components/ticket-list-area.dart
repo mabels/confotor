@@ -61,27 +61,8 @@ class TicketListAreaState extends State<TicketListArea> {
   }
 
   _actionText(ConferenceTicket tac, String stateText) {
-    switch (tac.checkInList.item.shortEventTitle) {
-      case 'CSSconf':
-        return Column(children: [
-          //Image.asset('assets/cssconf.png', height: 60),
-          // SvgPicture.asset('assets/jsconf.svg',
-          //     semanticsLabel: tac.checkInList.shortEventTitle),
-          Text(
-              "CSSconf EU ${stateText} [${tac.ticketAndCheckIns.ticket.reference}]")
-        ]);
-      case 'JSConf':
-        return Column(children: [
-          //Image.asset('assets/jsconf.png', height: 60),
-          // SvgPicture.asset('assets/jsconf.svg',
-          //     semanticsLabel: tac.checkInList.shortEventTitle),
-          Text(
-              "JSConf EU ${stateText} [${tac.ticketAndCheckIns.ticket.reference}]")
-        ]);
-      default:
-        return Text(
-            "${stateText}[${tac.checkInList.item.shortEventTitle}(${tac.ticketAndCheckIns.ticket.reference})]");
-    }
+    return Text(
+            "${tac.checkInList.item.shortEventTitle} [$stateText] [${tac.ticketAndCheckIns.ticket.reference}]");
   }
 
   _subTitle(FoundTickets foundTickets) {

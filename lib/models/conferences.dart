@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:confotor/models/conference.dart';
-import 'package:confotor/msgs/confotor-msg.dart';
 import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 import 'package:mobx/mobx.dart';

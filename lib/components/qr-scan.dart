@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:confotor/msgs/confotor-msg.dart';
-import 'package:confotor/msgs/msgs.dart';
 import 'package:confotor/msgs/scan-msg.dart';
 import 'package:flutter/material.dart';
 import 'package:fast_qr_reader_view/fast_qr_reader_view.dart';
+import 'package:mobx/mobx.dart';
 
 import 'confotor-app.dart';
 
@@ -28,7 +28,8 @@ class QrScanState extends State<QrScan> {
   final String id;
   QRReaderController controller;
   String lastCode;
-  StreamSubscription subscription;
+  ReactionDisposer _appLicecycleDisposer;
+  // StreamSubscription subscription;
 
   QrScanState({@required ConfotorAppState appState})
       : _appState = appState,
@@ -66,16 +67,13 @@ class QrScanState extends State<QrScan> {
     return controller;
   }
 
-  void _start(List<CameraDescription> cameras) {
-;
-  }
-
   @override
   void initState() {
     super.initState();
     availableCameras().then((cameras) {
       controller = _controller(cameras);
-      _appState.appLifecycleAgent.action((state) {
+      _appLicecycleDisposer = reaction((_) => _appState.appLifecycleAgent.state,
+        (state) {
           switch (state) {
             // case AppLifecycleState.inactive:
             case AppLifecycleState.paused:
@@ -88,23 +86,24 @@ class QrScanState extends State<QrScan> {
             case AppLifecycleState.suspending:
             case AppLifecycleState.resumed:
               controller = _controller(cameras);
-              _start(cameras);
+              // _start(cameras);
               break;
             case AppLifecycleState.inactive:
               break;
           }
         });
-      _start(cameras);
+      // _start(cameras);
     }).catchError((e) {});
   }
 
   @override
   void dispose() {
     super.dispose();
-    if (subscription != null) {
-      subscription.cancel();
-      subscription = null;
-    }
+    _appLicecycleDisposer();
+    // if (subscription != null) {
+    //   subscription.cancel();
+    //   subscription = null;
+    // }
     if (controller != null) {
       controller.dispose();
       controller = null;

@@ -3,10 +3,9 @@ import 'dart:convert' as convert;
 import 'dart:ui';
 
 import 'package:confotor/components/confotor-app.dart';
-import 'package:confotor/models/check-in-list-item.dart';
 import 'package:confotor/models/ticket.dart';
-import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:mobx/mobx.dart';
@@ -14,9 +13,9 @@ import 'package:mobx/mobx.dart';
 enum TicketsStatus { Initial, Page, Ready, Error }
 
 class TicketObserver {
-  final ConfotorAppState appState;
+  final ConfotorAppState _appState;
   // final Observable<CheckInList> checkInList;
-  Timer timer;
+  Timer _timer;
 
   // static TicketObserver fetch(
   //     {ConfotorAppState appState, ConferenceKey conference}) {
@@ -25,19 +24,20 @@ class TicketObserver {
   //   return tickets;
   // }
 
-  TicketObserver({ConfotorAppState appState}) : appState = appState;
-        // checkInList = checkInList;
+  TicketObserver({ConfotorAppState appState}) : _appState = appState;
+  // checkInList = checkInList;
 
   getPages(int page, String transaction) {
     final url = this.checkInList.ticketsUrl(page);
     print('TicketAgent:getPages:$url:$page:$transaction');
     http.get(url).then((response) {
-      print('TicketAgent:getPages:$url:$page:$transaction:${response.statusCode}');
+      print(
+          'TicketAgent:getPages:$url:$page:$transaction:${response.statusCode}');
       if (200 <= response.statusCode && response.statusCode < 300) {
         Iterable jsonResponse = convert.jsonDecode(response.body);
         // this.tickets.addAll(tickets);
         final items = jsonResponse.map((f) => Ticket.fromJson(f));
-        this.appState.bus.add(TicketPageMsg(
+        this._appState.bus.add(TicketPageMsg(
             transaction: transaction,
             checkInList: this.checkInList,
             items: items.toList(),
@@ -48,32 +48,39 @@ class TicketObserver {
           getPages(page + 1, transaction);
         }
       } else {
-        print("TicketsError:ResponseCode:getPage:${url}:${response.statusCode}");
-        this.appState.bus.add(TicketsError(
-            conference: this.checkInList, url: url, response: response,
-            error: Exception("ResponseCode:getPage:${url}:${response.statusCode}"),
+        print(
+            "TicketsError:ResponseCode:getPage:${url}:${response.statusCode}");
+        this._appState.bus.add(TicketsError(
+            conference: this.checkInList,
+            url: url,
+            response: response,
+            error:
+                Exception("ResponseCode:getPage:${url}:${response.statusCode}"),
             transaction: transaction));
       }
     }).catchError((e) {
       print("TicketsError:ResponseCode:getPage:${url}:${e}");
-      this.appState.bus.add(
-          TicketsError(conference: this.checkInList, url: url, error: e, transaction: transaction));
+      this._appState.bus.add(TicketsError(
+          conference: this.checkInList,
+          url: url,
+          error: e,
+          transaction: transaction));
     });
   }
 
   TicketObserver start({int hours = 4}) {
     stop();
     print('TicketObserver:start:$hours');
-    timer = new Timer(Duration(hours: hours), () {
+    _timer = new Timer(Duration(hours: hours), () {
       print('TicketObserver:start:$hours:getPages:');
-      getPages(1, appState.uuid.v4()); // paged api triggered by page 1
+      getPages(1, _appState.uuid.v4()); // paged api triggered by page 1
     });
     return this;
   }
 
   stop() {
-    if (timer != null) {
-      timer.cancel();
+    if (_timer != null) {
+      _timer.cancel();
     }
   }
 }
@@ -103,13 +110,22 @@ class TicketObserver {
 //   }
 // }
 
+class Transaction<T> {
+  String transaction;
+  final T value;
+  Transaction({
+    @required T value,
+    String transaction
+  }): value = value, transaction = transaction;
+}
+
 class TicketsAgent {
-  final ConfotorAppState appState;
-  final Map<String /* url */, TicketObserver> observers = Map();
+  final ConfotorAppState _appState;
+  final Map<String /* url */, Transaction<TicketObserver>> _observers = Map();
 
   // StreamSubscription subscription;
 
-  TicketsAgent({@required ConfotorAppState appState}) : appState = appState;
+  TicketsAgent({@required ConfotorAppState appState}) : _appState = appState;
 
   stop() {
     // subscription.cancel();
@@ -117,28 +133,32 @@ class TicketsAgent {
 
   start() {
     print('TicketAgent:start');
-    appState.appLifecycleAgent.action((state) {
-        switch (state) {
-          // case AppLifecycleState.inactive:
-          case AppLifecycleState.paused:
-            observers.values.forEach((o) {
-              o.stop();
-            });
-            break;
-          case AppLifecycleState.suspending:
-          case AppLifecycleState.resumed:
-            observers.values.forEach((o) {
-              o.start(hours: 0);
-            });
-            break;
-          case AppLifecycleState.inactive:
-            break;
-        }
-  });
+    reaction((_) => _appState.appLifecycleAgent.state, (state) {
+      switch (state) {
+        // case AppLifecycleState.inactive:
+        case AppLifecycleState.paused:
+          _observers.values.forEach((o) {
+            o.value.stop();
+          });
+          break;
+        case AppLifecycleState.suspending:
+        case AppLifecycleState.resumed:
+          _observers.values.forEach((o) {
+            o.value.start(hours: 0);
+          });
+          break;
+        case AppLifecycleState.inactive:
+          break;
+      }
+    });
+    reaction((_) => _appState.conferencesAgent.conferences.values, (vs) {
+      final transaction = _appState.uuid.v4();
+      // remove unsed
+      _observers.removeWhere((_, o) => o.transaction != transaction);
+    });
+  }
 
   // appState.checkInListAgent.
-
-
 
   //     if (msg is UpdatedConference) {
   //       // print('TicketsAgent:UpdatedConference:${msg.checkInList.url}');

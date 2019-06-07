@@ -67,7 +67,7 @@ class ConfotorMainScreenState extends State<ConfotorMainScreen> {
               child: Container(
                   //height: MediaQuery.of(context).size.height - (60 + 100),
                   color: Color(0xff303f62),
-                  child: Observer(builder: (_) => 
+                  child: Observer(builder: (_) =>
                       _toggleQrScan.value
                        ? QrScan(appState: appState)
                        : TicketListArea(appState: appState)))),

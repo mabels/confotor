@@ -6,7 +6,7 @@ import 'msgs/confotor-msg.dart';
 class ConfotorBus {
   final StreamController<ConfotorMsg> bus = StreamController();
   final Map<String, ConfotorMsg> persistMsgs = new Map();
-  Stream<ConfotorMsg> _stream; 
+  Stream<ConfotorMsg> _stream;
 
   ConfotorBus()  {
     this._stream = this.bus.stream.asBroadcastStream();

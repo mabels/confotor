@@ -1,33 +1,48 @@
+import 'package:flutter/cupertino.dart';
 import 'package:mobx/mobx.dart';
 
 import 'package:flutter/material.dart';
 
+part 'app-lifecycle-agent.g.dart';
 
-class AppLifecycleAgent with WidgetsBindingObserver, Store {
-  final Observable<AppLifecycleState> state = Observable(AppLifecycleState.inactive);
-  final WidgetsBinding binding = WidgetsBinding.instance;
-  final List<void a(AppLifecycleState state)> actions = [];
+class AppLifecycleAgent extends AppLifecycleAgentBase with _$AppLifecycleAgent {
+}
 
+class My extends WidgetsBindingObserver {
+  final void Function(AppLifecycleState state) _func;
+
+  My(void func(AppLifecycleState state)): _func = func;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    Action(() {
-      this.state.value = state;
-    })();
+    _func(state);
   }
 
-  void action(void a(AppLifecycleState state)) {
-    actions.add(a);
-    
+}
+
+abstract class AppLifecycleAgentBase with Store {
+  Observable<AppLifecycleState> _state = Observable(AppLifecycleState.inactive);
+  final WidgetsBinding _binding = WidgetsBinding.instance;
+  My _my;
+
+  AppLifecycleAgentBase() {
+    _my = My((state) => this.state = state);
   }
+
+  @computed
+  get state => _state.value;
+
+  @action
+  set state(AppLifecycleState state) => _state.value = state;
+
 
   AppLifecycleAgent start() {
-    binding.addObserver(this);
+    _binding.addObserver(_my);
     return this;
   }
 
   void stop() {
-    binding.removeObserver(this);
+    _binding.removeObserver(_my);
   }
 
 }

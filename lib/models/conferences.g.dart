@@ -44,7 +44,7 @@ mixin _$Conferences on ConferencesBase, Store {
   final _$updateFromUrlAsyncAction = AsyncAction('updateFromUrl');
 
   @override
-  Future updateFromUrl(String url, { BaseClient client }) {
+  Future updateFromUrl(String url, {BaseClient client}) {
     return _$updateFromUrlAsyncAction
         .run(() => super.updateFromUrl(url, client: client));
   }
