@@ -20,6 +20,7 @@ class FoundTickets extends ConfotorMsg {
     lane = lane,
     scan = scan;
 
+  @override
   bool operator ==(o) {
     return o is FoundTickets &&
       listEquals(conferenceTickets, o.conferenceTickets) &&

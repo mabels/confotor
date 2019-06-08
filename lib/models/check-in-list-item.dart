@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
+// import 'dart:io';
 import 'package:confotor/models/conference-key.dart';
 import 'package:http/http.dart';
 import 'package:meta/meta.dart';
@@ -14,7 +14,7 @@ class CheckInListItem {
   final String expiresAt;
   final String expiresAtTimestamp;
   final String ticketsUrl;
-  final String checkinListUrl;
+  final String checkInListUrl;
   final String syncUrl;
   final int totalPages;
   final int totalEntries;
@@ -33,7 +33,7 @@ class CheckInListItem {
         expiresAt = expiresAt,
         expiresAtTimestamp = expiresAtTimestamp,
         ticketsUrl = ticketsUrl,
-        checkinListUrl = checkinListUrl,
+        checkInListUrl = checkinListUrl,
         syncUrl = syncUrl,
         totalPages = totalPages,
         totalEntries = totalEntries;
@@ -45,7 +45,7 @@ class CheckInListItem {
     o.expiresAt == expiresAt &&
     o.expiresAtTimestamp == expiresAtTimestamp &&
     o.ticketsUrl == ticketsUrl &&
-    o.checkinListUrl == checkinListUrl &&
+    o.checkInListUrl == checkInListUrl &&
     o.syncUrl == syncUrl &&
     o.totalPages == totalPages &&
     o.totalEntries == totalEntries;
@@ -72,7 +72,7 @@ class CheckInListItem {
       "expires_at": expiresAt,
       "expires_at_timestamp": expiresAtTimestamp,
       "tickets_url": ticketsUrl,
-      "checkin_list_url": checkinListUrl,
+      "checkin_list_url": checkInListUrl,
       "sync_url": syncUrl,
       "total_pages": totalPages,
       "total_entries": totalEntries,
@@ -143,6 +143,5 @@ abstract class CheckInListBase extends ConferenceKey with Store {
     "url": url,
     "checkInListItem": _item.value
   };
-
 
 }

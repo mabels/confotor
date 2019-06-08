@@ -22,6 +22,7 @@ class CheckInItem {
         updatedAt = updatedAt,
         deletedAt = deletedAt;
 
+  @override
   bool operator ==(o) {
     return o is CheckInItem &&
        o.id == id &&

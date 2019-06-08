@@ -29,6 +29,7 @@ class Lane {
     start = fromStringToStart(range),
     end = fromStringToEnd(range);
 
+  @override
   bool operator ==(o) {
     return o is Lane && o.start == start && o.end == end;
   }
@@ -55,4 +56,5 @@ class Lane {
     }
     return toString();
   }
+
 }

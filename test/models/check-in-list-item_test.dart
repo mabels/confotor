@@ -34,7 +34,7 @@ void main() {
     expect(cil.item..expiresAt, refCil.item..expiresAt);
     expect(cil.item..expiresAtTimestamp, refCil.item..expiresAtTimestamp);
     expect(cil.item..ticketsUrl, refCil.item..ticketsUrl);
-    expect(cil.item..checkinListUrl, refCil.item..checkinListUrl);
+    expect(cil.item..checkInListUrl, refCil.item..checkInListUrl);
     expect(cil.item..syncUrl, refCil.item..syncUrl);
     expect(cil.item..totalPages, refCil.item..totalPages);
     expect(cil.item..totalEntries, refCil.item..totalEntries);
@@ -57,7 +57,7 @@ void main() {
     expect(cil.item.expiresAt, refCil.item.expiresAt);
     expect(cil.item.expiresAtTimestamp, refCil.item.expiresAtTimestamp);
     expect(cil.item.ticketsUrl, refCil.item.ticketsUrl);
-    expect(cil.item.checkinListUrl, refCil.item.checkinListUrl);
+    expect(cil.item.checkInListUrl, refCil.item.checkInListUrl);
     expect(cil.item.syncUrl, refCil.item.syncUrl);
     expect(cil.item.totalPages, refCil.item.totalPages);
     expect(cil.item.totalEntries, refCil.item.totalEntries);

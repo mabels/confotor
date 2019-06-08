@@ -7,7 +7,6 @@ import 'package:meta/meta.dart';
 enum TicketAndCheckInsState {
   Used,
   Issueable,
-  // Issued,
   Error
 }
 
@@ -41,6 +40,7 @@ class TicketAndCheckIns {
    }): checkInItems = checkInItems,
        ticket = ticket;
 
+  @override
   bool operator ==(o) {
     return o is TicketAndCheckIns &&
       listEquals(o.checkInItems, checkInItems) &&
@@ -94,8 +94,7 @@ class TicketAndCheckIns {
 
   Map<String, dynamic> toJson() => {
         "checkInItems": checkInItems,
-        // "checkInActions": checkInActions,
         "ticket": ticket,
-        // "state": ticketAndCheckInsStateToString(state)
       };
+
 }

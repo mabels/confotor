@@ -24,7 +24,7 @@ void main() {
     final str = json.encode(cir);
     var refCir = CheckedInResponse.fromJson(json.decode(str));
     expect(cir.id, refCir.id);
-    expect(cir.checkinListId, refCir.checkinListId);
+    expect(cir.checkInListId, refCir.checkInListId);
     expect(cir.ticketId, refCir.ticketId);
     expect(cir.createdAt, refCir.createdAt);
     expect(cir.updatedAt, refCir.updatedAt);
@@ -33,7 +33,7 @@ void main() {
     expect(cir.uuidBin, refCir.uuidBin);
     refCir = CheckedInResponse.fromResponse(Response(str, 200));
     expect(cir.id, refCir.id);
-    expect(cir.checkinListId, refCir.checkinListId);
+    expect(cir.checkInListId, refCir.checkInListId);
     expect(cir.ticketId, refCir.ticketId);
     expect(cir.createdAt, refCir.createdAt);
     expect(cir.updatedAt, refCir.updatedAt);

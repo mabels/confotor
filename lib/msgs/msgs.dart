@@ -1,5 +1,5 @@
-import 'dart:convert';
-import 'dart:ui';
+// import 'dart:convert';
+// import 'dart:ui';
 // import 'package:reflectable/reflectable.dart';
 
 import 'package:confotor/models/check-in-action.dart';
@@ -16,7 +16,7 @@ import 'package:confotor/msgs/confotor-msg.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:http/http.dart';
+// import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 import 'package:http/http.dart' as http;
 
@@ -282,6 +282,7 @@ class ConferenceTicket extends ConfotorMsg {
         ticketAndCheckIns = ticketAndCheckIns,
         actions = actions;
 
+  @override
   bool operator ==(o) {
     return o is ConferenceTicket &&
      o.checkInList == checkInList &&

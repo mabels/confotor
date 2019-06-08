@@ -9,6 +9,7 @@ class MyClient extends BaseClient {
   Future<StreamedResponse> send(BaseRequest request) {
     return _inner.send(request);
   }
+
 }
 
 final realHttp = MyClient();

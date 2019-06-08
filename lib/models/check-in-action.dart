@@ -5,15 +5,18 @@ class CheckInAction {
   final String  id;
   final int ticketId;
 
-  CheckInAction({@required id, @required int ticketId}): id = id, ticketId = ticketId;
+  CheckInAction({@required id, @required int ticketId}):
+        id = id,
+        ticketId = ticketId;
 
   static CheckInAction fromJson(dynamic json) {
-    return CheckInAction(id: json['id'], ticketId: json['ticket_id']); // .updateFromJson(json);
+    return CheckInAction(id: json['id'], ticketId: json['ticket_id']);
   }
 
-  update(CheckInAction oth) {
-    return this;
-  }
+  // .updateFromJson(json);
+  // update(CheckInAction oth) {
+  //   return this;
+  // }
 
   Map<String, dynamic> toJson() => {
     "id": id,

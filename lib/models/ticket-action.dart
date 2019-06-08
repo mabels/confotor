@@ -12,7 +12,7 @@ class TicketAction {
   final String type;
   TicketAction(String type) : type = type;
 
-  static Map<Type, Function> registered = Map();
+  static final Map<Type, Function> registered = Map();
 
   static TicketAction fromJson(dynamic json) {
     if (!(json['type'] is String)) {
@@ -33,8 +33,8 @@ class TicketAction {
     // return ta.fromJson(json);
   }
 
-  @mustCallSuper
   Map<String, dynamic> toJson() => {"type": type.toString()};
+
 }
 
 class AmbiguousAction extends TicketAction {
@@ -56,6 +56,7 @@ class AmbiguousAction extends TicketAction {
 class BarcodeScannedTicketAction extends TicketAction {
   final String barcode;
   final Lane lane;
+
   BarcodeScannedTicketAction({@required String barcode, @required Lane lane})
       : barcode = barcode,
         lane = lane,
@@ -72,10 +73,12 @@ class BarcodeScannedTicketAction extends TicketAction {
         "barcode": barcode,
         "lane": lane
       };
+
 }
 // registerTicketAction(type: BarcodeScannedTicketAction, fromJson);
 
 enum CheckInOutTransactionTicketActionStep { Started, Completed, Error }
+
 String asStringCheckInOutTransactionTicketActionStep(
     CheckInOutTransactionTicketActionStep step) {
   switch (step) {
@@ -106,6 +109,7 @@ abstract class StepTransactionTicketAction extends TicketAction {
   CheckInOutTransactionTicketActionStep step;
   http.Response res;
   dynamic error;
+
   StepTransactionTicketAction(
       {@required CheckInOutTransactionTicketActionStep step,
       @required String type})
@@ -118,6 +122,7 @@ abstract class StepTransactionTicketAction extends TicketAction {
         "error": error.toString(),
         "res": res.toString(),
       };
+
 }
 
 class CheckInTransactionTicketAction extends StepTransactionTicketAction {
@@ -153,10 +158,12 @@ class CheckInTransactionTicketAction extends StepTransactionTicketAction {
       this.error = e;
     });
   }
+
 }
 
 class CheckOutTransactionTicketAction extends StepTransactionTicketAction {
   final String uuid;
+
   CheckOutTransactionTicketAction({@required step, @required String uuid})
       : uuid = uuid,
         super(type: "CheckOutTransactionTicketAction", step: step);
@@ -184,4 +191,5 @@ class CheckOutTransactionTicketAction extends StepTransactionTicketAction {
   }
 
   Map<String, dynamic> toJson() => {...super.toJson(), "uuid": uuid};
+
 }

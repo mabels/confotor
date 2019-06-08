@@ -77,4 +77,5 @@ abstract class ConferencesBase with Store {
   }
 
   toJson() => _conferences.toList();
+
 }

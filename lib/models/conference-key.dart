@@ -3,9 +3,7 @@ import 'package:path/path.dart';
 abstract class ConferenceKey {
   final String url;
 
-  ConferenceKey(String url): url = url {
-    // print('ConferenceKey:$url');
-  }
+  ConferenceKey(String url): url = url;
 
   String get listId {
     final url = Uri.parse(this.url);
@@ -25,4 +23,5 @@ abstract class ConferenceKey {
   String checkOutUrl(String uuid) {
     return "https://checkin.tito.io/checkin_lists/$listId/checkins/$uuid";
   }
+
 }

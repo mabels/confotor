@@ -34,6 +34,7 @@ class Ticket {
         companyName = companyName,
         updatedAt = updatedAt;
 
+  @override
   bool operator ==(o) {
     return o is Ticket &&
       o.id == id &&
@@ -91,4 +92,5 @@ class Ticket {
         "created_at": createdAt,
         "updated_at": updatedAt,
       };
+
 }

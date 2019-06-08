@@ -69,4 +69,5 @@ abstract class ConferenceBase with Store {
         "ticketStore": ticketAndCheckInsList,
         "error": _error.value
       };
+
 }

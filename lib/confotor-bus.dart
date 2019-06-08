@@ -12,6 +12,10 @@ class ConfotorBus {
     this._stream = this.bus.stream.asBroadcastStream();
   }
 
+  dispose() {
+    bus.close();
+  }
+
   stop() {
     this.bus.close();
     this.persistMsgs.clear();

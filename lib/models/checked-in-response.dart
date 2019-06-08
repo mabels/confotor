@@ -5,7 +5,7 @@ import 'package:meta/meta.dart';
 
 class CheckedInResponse {
   final int id;
-  final int checkinListId;
+  final int checkInListId;
   final int ticketId;
   final String createdAt;
   final String updatedAt;
@@ -23,7 +23,7 @@ class CheckedInResponse {
       @required String uuidBin,
       @required String uuid})
       : id = id,
-        checkinListId = checkinListId,
+        checkInListId = checkinListId,
         ticketId = ticketId,
         createdAt = createdAt,
         updatedAt = updatedAt,
@@ -31,10 +31,11 @@ class CheckedInResponse {
         uuidBin = uuidBin,
         uuid = uuid;
 
+  @override
   bool operator ==(o) {
     return o is CheckedInResponse &&
      o.id == id &&
-     o.checkinListId == checkinListId &&
+     o.checkInListId == checkInListId &&
      o.ticketId == ticketId &&
      o.createdAt == createdAt &&
      o.updatedAt == updatedAt &&
@@ -57,7 +58,7 @@ class CheckedInResponse {
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'checkin_list_id': checkinListId,
+        'checkin_list_id': checkInListId,
         'ticket_id': ticketId,
         'created_at': createdAt,
         'updated_at': updatedAt,
