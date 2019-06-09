@@ -2,113 +2,20 @@ import 'dart:async';
 import 'dart:convert' as convert;
 import 'dart:ui';
 
+import 'package:confotor/agents/ticket-observer.dart';
 import 'package:confotor/components/confotor-app.dart';
+import 'package:confotor/models/conference.dart';
+import 'package:confotor/models/conferences.dart';
 import 'package:confotor/models/ticket.dart';
 import 'package:confotor/msgs/msgs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 import 'package:mobx/mobx.dart';
 
-enum TicketsStatus { Initial, Page, Ready, Error }
+import '../confotor-appstate.dart';
 
-class TicketObserver {
-  final ConfotorAppState _appState;
-  // final Observable<CheckInList> checkInList;
-  Timer _timer;
-
-  // static TicketObserver fetch(
-  //     {ConfotorAppState appState, ConferenceKey conference}) {
-  //   final tickets = TicketObserver(appState: appState, conference: conference);
-  //   tickets.getPages(0);
-  //   return tickets;
-  // }
-
-  TicketObserver({ConfotorAppState appState}) : _appState = appState;
-  // checkInList = checkInList;
-
-  getPages(int page, String transaction) {
-    final url = this.checkInList.ticketsUrl(page);
-    print('TicketAgent:getPages:$url:$page:$transaction');
-    http.get(url).then((response) {
-      print(
-          'TicketAgent:getPages:$url:$page:$transaction:${response.statusCode}');
-      if (200 <= response.statusCode && response.statusCode < 300) {
-        Iterable jsonResponse = convert.jsonDecode(response.body);
-        // this.tickets.addAll(tickets);
-        final items = jsonResponse.map((f) => Ticket.fromJson(f));
-        this._appState.bus.add(TicketPageMsg(
-            transaction: transaction,
-            checkInList: this.checkInList,
-            items: items.toList(),
-            page: page,
-            completed: items.isEmpty));
-
-        if (items.isNotEmpty) {
-          getPages(page + 1, transaction);
-        }
-      } else {
-        print(
-            "TicketsError:ResponseCode:getPage:${url}:${response.statusCode}");
-        this._appState.bus.add(TicketsError(
-            conference: this.checkInList,
-            url: url,
-            response: response,
-            error:
-                Exception("ResponseCode:getPage:${url}:${response.statusCode}"),
-            transaction: transaction));
-      }
-    }).catchError((e) {
-      print("TicketsError:ResponseCode:getPage:${url}:${e}");
-      this._appState.bus.add(TicketsError(
-          conference: this.checkInList,
-          url: url,
-          error: e,
-          transaction: transaction));
-    });
-  }
-
-  TicketObserver start({int hours = 4}) {
-    stop();
-    print('TicketObserver:start:$hours');
-    _timer = new Timer(Duration(hours: hours), () {
-      print('TicketObserver:start:$hours:getPages:');
-      getPages(1, _appState.uuid.v4()); // paged api triggered by page 1
-    });
-    return this;
-  }
-
-  stop() {
-    if (_timer != null) {
-      _timer.cancel();
-    }
-  }
-}
-
-// class FoundTicket {
-//   final TicketAndCheckIns ticketAndCheckIns;
-//   FoundTicket({@required TicketAndCheckIns ticketAndCheckIns}):
-//     ticketAndCheckIns = ticketAndCheckIns;
-
-//   get state {
-//     if (checkedIns.isEmpty) {
-//       return FoundTicketState.Issueable;
-//     }
-//     return FoundTicketState.Error;
-//     // if (checkedIns.last is CheckedTicketError) {
-//     //   return FoundTicketState.Error;
-//     // }
-//     // if (checkedIns.last is CheckedInTicket) {
-//     //   return FoundTicketState.CheckedIn;
-//     // }
-//     // if (checkedIns.last is CheckedOutTicket) {
-//     //   return FoundTicketState.CheckedOut;
-//     // }
-//   }
-//   get shortState {
-//     return state.toString().split(".").last;
-//   }
-// }
 
 class Transaction<T> {
   String transaction;
@@ -121,29 +28,32 @@ class Transaction<T> {
 
 class TicketsAgent {
   final ConfotorAppState _appState;
-  final Map<String /* url */, Transaction<TicketObserver>> _observers = Map();
+  final BaseClient _client;
+  final List<Transaction<TicketObserver>> observers = List();
 
   // StreamSubscription subscription;
 
-  TicketsAgent({@required ConfotorAppState appState}) : _appState = appState;
+  TicketsAgent({
+    @required ConfotorAppState appState,
+    BaseClient client}) : _appState = appState, _client = client;
 
   stop() {
     // subscription.cancel();
   }
 
-  start() {
-    print('TicketAgent:start');
+  TicketsAgent start() {
+    // print('TicketAgent:start');
     reaction((_) => _appState.appLifecycleAgent.state, (state) {
       switch (state) {
         // case AppLifecycleState.inactive:
         case AppLifecycleState.paused:
-          _observers.values.forEach((o) {
+          observers.forEach((o) {
             o.value.stop();
           });
           break;
         case AppLifecycleState.suspending:
         case AppLifecycleState.resumed:
-          _observers.values.forEach((o) {
+          observers.forEach((o) {
             o.value.start(hours: 0);
           });
           break;
@@ -151,11 +61,30 @@ class TicketsAgent {
           break;
       }
     });
-    reaction((_) => _appState.conferencesAgent.conferences.values, (vs) {
+    reaction<Iterable<Conference>>((_) => _appState.conferencesAgent.conferences.values, (vs) {
       final transaction = _appState.uuid.v4();
+      final List<Conference> confs = List.from(vs);
+      observers.forEach((obs) {
+        final preLength = confs.length;
+        confs.removeWhere((i) => obs.value.url == i.url); 
+        if (preLength != confs.length) {
+          // print('restart:${obs.value.url}');
+          obs.transaction = transaction;
+          obs.value.start(); // restart
+        }
+      });
+      confs.forEach((conf) {
+        // print('start:${conf.url}');
+        observers.add(Transaction(transaction: transaction, 
+          value: TicketObserver(appState: _appState, 
+            conference: conf,
+            client: _client
+          ).start()));
+      });
       // remove unsed
-      _observers.removeWhere((_, o) => o.transaction != transaction);
-    });
+      observers.removeWhere((o) => o.transaction != transaction);
+    }, fireImmediately: true);
+    return this;
   }
 
   // appState.checkInListAgent.

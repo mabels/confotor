@@ -34,6 +34,15 @@ class Ticket {
         companyName = companyName,
         updatedAt = updatedAt;
 
+  Ticket update(Ticket ticket) {
+    firstName = this.firstName;
+    lastName = this.lastName;
+    email = this.email;
+    companyName = this.companyName;
+    updatedAt = this.updatedAt;
+    return this;
+  }
+
   @override
   bool operator ==(o) {
     return o is Ticket &&

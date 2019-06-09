@@ -26,7 +26,9 @@ String ticketAndCheckInsStateToString(TicketAndCheckInsState s) {
     case TicketAndCheckInsState.Used: return "Used";
     case TicketAndCheckInsState.Issueable: return "Issueable";
     // case TicketAndCheckInsState.Issued: return "Issued";
-    case TicketAndCheckInsState.Error: return "Error";
+    case TicketAndCheckInsState.Error: 
+    default:
+      return "Error";
   }
 }
 
@@ -39,6 +41,16 @@ class TicketAndCheckIns {
     @required Ticket ticket,
    }): checkInItems = checkInItems,
        ticket = ticket;
+
+  int get ticketId {
+    if (ticket != null) {
+      return ticket.id;
+    }
+    if (checkInItems != null && checkInItems.isNotEmpty) {
+      return checkInItems.first.ticketId;
+    }
+    throw Exception("Ticket And CheckIns without Id");
+  }
 
   @override
   bool operator ==(o) {

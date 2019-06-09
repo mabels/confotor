@@ -1,4 +1,6 @@
+import 'package:confotor/agents/tickets-agent.dart';
 import 'package:confotor/models/ticket-and-checkins.dart';
+import 'package:confotor/models/ticket.dart';
 import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 import 'package:mobx/mobx.dart';
@@ -35,7 +37,8 @@ class Conference extends ConferenceBase with _$Conference {
 abstract class ConferenceBase with Store {
   final Observable<dynamic> _error;
   final CheckInList checkInList;
-  final ObservableList<TicketAndCheckIns> ticketAndCheckInsList;
+  final ObservableList<TicketAndCheckIns> _ticketAndCheckInsList;
+  final Map<int, Transaction<int>> _tacisIdx = Map();
 
   ConferenceBase(
       {@required CheckInList checkInList,
@@ -43,16 +46,45 @@ abstract class ConferenceBase with Store {
       dynamic error})
       : _error = Observable(error),
         checkInList = checkInList,
-        ticketAndCheckInsList = ObservableList.of(
+        _ticketAndCheckInsList = ObservableList.of(
             ticketAndCheckInsList == null ? [] : ticketAndCheckInsList);
 
   @computed
   get checkInItemLength {
-    final i = ticketAndCheckInsList.map((t) => t.checkInItems.length);
+    final i = _ticketAndCheckInsList.map((t) => t.checkInItems.length);
     if (i.isEmpty) {
       return 0;
     }
     return i.reduce((a, b) => a + b);
+  }
+
+  @computed
+  Iterable<TicketAndCheckIns> get ticketAndCheckInsList => _ticketAndCheckInsList;
+
+  @computed
+  get ticketAndCheckInsLength => _ticketAndCheckInsList.length;
+
+  @action
+  updateTickets(String transaction, Iterable<Ticket> tickets) {
+    if (tickets.isEmpty) {
+      _tacisIdx.values.toList().forEach((idx) {
+        if (idx.transaction != transaction) {
+          final tac = _ticketAndCheckInsList.removeAt(idx.value);
+          _tacisIdx.remove(tac.ticketId);
+        }
+      });
+      return;
+    }
+    tickets.forEach((ticket) {
+      final idx = _tacisIdx.putIfAbsent(ticket.id, () {
+        _ticketAndCheckInsList.add(TicketAndCheckIns(
+          ticket: ticket,
+          checkInItems: []
+        ));
+        return Transaction(transaction: transaction, value: _ticketAndCheckInsList.length -1);
+      });
+      _ticketAndCheckInsList[idx.value].ticket.update(ticket);
+    });
   }
 
   @computed
@@ -66,7 +98,7 @@ abstract class ConferenceBase with Store {
 
   toJson() => {
         "checkInListItem": checkInList,
-        "ticketStore": ticketAndCheckInsList,
+        "ticketStore": _ticketAndCheckInsList,
         "error": _error.value
       };
 

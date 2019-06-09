@@ -15,6 +15,12 @@ mixin _$Conference on ConferenceBase, Store {
   dynamic get checkInItemLength => (_$checkInItemLengthComputed ??=
           Computed<dynamic>(() => super.checkInItemLength))
       .value;
+  Computed<dynamic> _$ticketAndCheckInsLengthComputed;
+
+  @override
+  dynamic get ticketAndCheckInsLength => (_$ticketAndCheckInsLengthComputed ??=
+          Computed<dynamic>(() => super.ticketAndCheckInsLength))
+      .value;
   Computed<dynamic> _$urlComputed;
 
   @override
@@ -25,4 +31,17 @@ mixin _$Conference on ConferenceBase, Store {
   @override
   dynamic get error =>
       (_$errorComputed ??= Computed<dynamic>(() => super.error)).value;
+
+  final _$ConferenceBaseActionController =
+      ActionController(name: 'ConferenceBase');
+
+  @override
+  dynamic updateTickets(String transaction, Iterable<Ticket> tickets) {
+    final _$actionInfo = _$ConferenceBaseActionController.startAction();
+    try {
+      return super.updateTickets(transaction, tickets);
+    } finally {
+      _$ConferenceBaseActionController.endAction(_$actionInfo);
+    }
+  }
 }

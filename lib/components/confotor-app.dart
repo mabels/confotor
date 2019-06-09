@@ -6,9 +6,10 @@ import 'package:confotor/agents/tickets-agent.dart';
 import 'package:confotor/models/lane.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import '../confotor-bus.dart';
+import '../confotor-appstate.dart';
+// import '../confotor-bus.dart';
 import './confotor-main-screen.dart';
-import 'package:uuid/uuid.dart';
+// import 'package:uuid/uuid.dart';
 
 
 // Stream<ConfotorMsg> stream;
@@ -20,12 +21,12 @@ import 'package:uuid/uuid.dart';
 
 class ConfotorApp extends StatefulWidget {
   @override
-  ConfotorAppState createState() => new ConfotorAppState();
+  ConfotorAppStateImpl createState() => ConfotorAppStateImpl();
 }
 
-class ConfotorAppState extends State<ConfotorApp> {
-  final uuid = new Uuid();
-  final ConfotorBus bus = new ConfotorBus();
+class ConfotorAppStateImpl extends State<ConfotorApp> with ConfotorAppState {
+  // final uuid = Uuid();
+  // final ConfotorBus bus = ConfotorBus();
   AppLifecycleAgent appLifecycleAgent;
   ConferencesAgent conferencesAgent;
   TicketsAgent ticketsAgent;
@@ -45,7 +46,7 @@ class ConfotorAppState extends State<ConfotorApp> {
     this.conferencesAgent = ConferencesAgent(appState: this).start();
     this.ticketsAgent = TicketsAgent(appState: this).start();
     this.checkInListAgent = CheckInListAgent(appState: this).start();
-    this.checkInManager = CheckInManager(appState: this).start();
+    // this.checkInManager = CheckInManager(appState: this).start();
   }
 
   @override
@@ -56,7 +57,7 @@ class ConfotorAppState extends State<ConfotorApp> {
     this.conferencesAgent.stop();
     this.ticketsAgent.stop();
     this.checkInListAgent.stop();
-    this.checkInManager.stop();
+    // this.checkInManager.stop();
   }
 
   @override

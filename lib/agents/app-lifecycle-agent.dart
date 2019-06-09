@@ -37,12 +37,16 @@ abstract class AppLifecycleAgentBase with Store {
 
 
   AppLifecycleAgent start() {
-    _binding.addObserver(_my);
+    if (_binding != null) { // tests
+      _binding.addObserver(_my);
+    }
     return this;
   }
 
   void stop() {
-    _binding.removeObserver(_my);
+    if (_binding != null) { // tests
+      _binding.removeObserver(_my);
+    }
   }
 
 }

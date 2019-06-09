@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:fast_qr_reader_view/fast_qr_reader_view.dart';
 import 'package:mobx/mobx.dart';
 
+import '../confotor-appstate.dart';
 import 'confotor-app.dart';
 
 class RestartQRReaderController extends ConfotorMsg {

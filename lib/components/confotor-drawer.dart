@@ -7,6 +7,7 @@ import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import '../confotor-appstate.dart';
 import './confotor-app.dart';
 // import 'confotor-msg.dart';
 
@@ -52,7 +53,7 @@ class ConfotorDrawerState extends State<ConfotorDrawer> {
       confs.values.forEach((conf) => children.add(ListTile(
           key: Key(conf.checkInList.url),
           title: Text(
-              "${conf.checkInList.item.eventTitle}(${conf.ticketAndCheckInsList.length}-${conf.checkInItemLength})",
+              "${conf.checkInList.item.eventTitle}(${conf.ticketAndCheckInsLength}-${conf.checkInItemLength})",
               style: TextStyle(color: Colors.deepOrange)),
           onTap: () {
             appState.bus
@@ -81,7 +82,7 @@ class ConfotorDrawerState extends State<ConfotorDrawer> {
       confs.values.forEach((conf) => children.add(ListTile(
           key: Key(conf.checkInList.url),
           title: Text(
-              "${conf.checkInList.item.eventTitle}(${conf.ticketAndCheckInsList.length}-${conf.checkInItemLength})",
+              "${conf.checkInList.item.eventTitle}(${conf.ticketAndCheckInsLength}-${conf.checkInItemLength})",
               style: TextStyle(color: Colors.deepOrange)),
           onLongPress: () {
             appState.bus

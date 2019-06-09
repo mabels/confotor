@@ -7,6 +7,7 @@ import 'package:confotor/models/found-tickets.dart';
 import 'package:confotor/models/ticket-and-checkins.dart';
 import 'package:confotor/msgs/msgs.dart';
 
+import '../confotor-appstate.dart';
 import 'confotor-app.dart';
 
 class TicketListArea extends StatefulWidget {

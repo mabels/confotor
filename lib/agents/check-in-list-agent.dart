@@ -11,8 +11,10 @@ import 'dart:convert' as convert;
 
 import 'package:mobx/mobx.dart';
 
+import '../confotor-appstate.dart';
+
 class CheckInListObserver {
-  final ConfotorAppState appState;
+  final ConfotorAppState _appState;
   final Observable<CheckInList> checkInList;
   Timer timer;
   // int count = 0;
@@ -22,7 +24,7 @@ class CheckInListObserver {
   CheckInListObserver({
       @required ConfotorAppState appState,
       @required CheckInList checkInList})
-      : appState = appState,
+      : _appState = appState,
         checkInList = Observable(checkInList);
 
   getPage(CheckInList checkInList, int page, String transaction) {
@@ -46,7 +48,7 @@ class CheckInListObserver {
       if (items.isNotEmpty) {
         print('getPage:$url:$page:${items.length}');
       }
-      appState.bus.add(CheckInItemPageMsg(
+      _appState.bus.add(CheckInItemPageMsg(
         checkInList: checkInList,
         transaction: transaction,
         items: items.toList(),
@@ -64,7 +66,7 @@ class CheckInListObserver {
         start();
       }
     }).catchError((err) {
-      appState.bus.add(CheckInObserverError(
+      _appState.bus.add(CheckInObserverError(
           error: err, conference: checkInList, transaction: transaction));
     });
   }
@@ -72,7 +74,7 @@ class CheckInListObserver {
   CheckInListObserver start({int seconds = 5}) {
     stop();
     timer = new Timer(Duration(seconds: seconds), () {
-      getPage(this.checkInList.value, 1, appState.uuid.v4()); // paged api triggered by page 1
+      getPage(this.checkInList.value, 1, _appState.uuid.v4()); // paged api triggered by page 1
     });
     return this;
   }
@@ -119,32 +121,32 @@ class CheckInListAgent {
   }
 
 
-  addConference()
+  // addConference()
 
-    subscription = this.appState.bus.listen((msg) {
-      if (msg is UpdatedConference) {
-        // print('CheckInListAgent:UpdatedConference:${msg.checkInList.url}');
-        if (!observers.containsKey(msg.checkInList.url)) {
-          // print('CheckInListAgent:UpdatedConference:${msg.checkInList.url}:create');
-          observers[msg.checkInList.url] = CheckInListObserver(
-              appState: appState, checkInList: msg.checkInList);
-          observers[msg.checkInList.url].start(seconds: 0);
-        } else {
-          // reload list
-          // print('CheckInListAgent:UpdatedConference:${msg.checkInList.url}:refresh');
-          observers[msg.checkInList.url].stop();
-          observers[msg.checkInList.url].start(seconds: 0);
-        }
-      }
+  //   subscription = this.appState.bus.listen((msg) {
+  //     if (msg is UpdatedConference) {
+  //       // print('CheckInListAgent:UpdatedConference:${msg.checkInList.url}');
+  //       if (!observers.containsKey(msg.checkInList.url)) {
+  //         // print('CheckInListAgent:UpdatedConference:${msg.checkInList.url}:create');
+  //         observers[msg.checkInList.url] = CheckInListObserver(
+  //             appState: appState, checkInList: msg.checkInList);
+  //         observers[msg.checkInList.url].start(seconds: 0);
+  //       } else {
+  //         // reload list
+  //         // print('CheckInListAgent:UpdatedConference:${msg.checkInList.url}:refresh');
+  //         observers[msg.checkInList.url].stop();
+  //         observers[msg.checkInList.url].start(seconds: 0);
+  //       }
+  //     }
 
-      if (msg is RemovedConference) {
-        if (observers.containsKey(msg.checkInList.url)) {
-          observers[msg.checkInList.url].stop();
-          observers.remove(msg.checkInList.url);
-        }
-      }
+  //     if (msg is RemovedConference) {
+  //       if (observers.containsKey(msg.checkInList.url)) {
+  //         observers[msg.checkInList.url].stop();
+  //         observers.remove(msg.checkInList.url);
+  //       }
+  //     }
 
-    });
-    return this;
-  }
+  //   });
+  //  return this;
+  // }
 }

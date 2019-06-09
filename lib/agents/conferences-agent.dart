@@ -1,22 +1,25 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:confotor/components/confotor-app.dart';
 import 'package:confotor/models/conferences.dart';
 import 'package:confotor/msgs/scan-msg.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:mobx/mobx.dart';
 
+import '../confotor-appstate.dart';
+
 class ConferencesAgent {
   final ConfotorAppState appState;
   final Conferences conferences = Conferences(conferences: []);
   ReactionDisposer appLifecycleDisposer;
+  StreamSubscription busSubscription;
 
   ConferencesAgent({@required ConfotorAppState appState}) : appState = appState;
 
   stop() {
     appLifecycleDisposer();
+    busSubscription.cancel();
   }
 
   start() {
@@ -36,11 +39,12 @@ class ConferencesAgent {
     });
 
 
-    appState.bus.listen((msg) {
+    busSubscription = appState.bus.listen((msg) {
       if (msg is QrScanMsg) {
         conferences.updateFromUrl(msg.barcode);
       }
     });
+    return this;
   }
 
   //     if (msg is JsonObject) {

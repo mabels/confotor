@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
+import '../confotor-appstate.dart';
 import './confotor-app.dart';
 // import 'active-area.dart';
 import 'confotor-drawer.dart';
