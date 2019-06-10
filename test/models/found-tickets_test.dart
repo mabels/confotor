@@ -38,7 +38,7 @@ void main() {
     expect(ct is ConfotorMsg, true);
     final str = json.encode(ct);
     final refCt = ConferenceTicket.fromJson(json.decode(str));
-    expect(ct == refCt, true);
+    expect(ct, refCt);
   });
 
   test("FoundTickets", () {

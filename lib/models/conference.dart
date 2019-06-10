@@ -1,4 +1,5 @@
 import 'package:confotor/agents/tickets-agent.dart';
+import 'package:confotor/models/check-in-item.dart';
 import 'package:confotor/models/ticket-and-checkins.dart';
 import 'package:confotor/models/ticket.dart';
 import 'package:flutter/foundation.dart';
@@ -35,19 +36,75 @@ class Conference extends ConferenceBase with _$Conference {
 }
 
 abstract class ConferenceBase with Store {
+  final Map<int /* ticketId */, Transaction<int>> _tacisIdx = Map();
+  final ObservableList<TicketAndCheckIns> _ticketAndCheckInsList =
+      ObservableList();
   final Observable<dynamic> _error;
   final CheckInList checkInList;
-  final ObservableList<TicketAndCheckIns> _ticketAndCheckInsList;
-  final Map<int, Transaction<int>> _tacisIdx = Map();
 
   ConferenceBase(
       {@required CheckInList checkInList,
       @required Iterable<TicketAndCheckIns> ticketAndCheckInsList,
       dynamic error})
       : _error = Observable(error),
-        checkInList = checkInList,
-        _ticketAndCheckInsList = ObservableList.of(
-            ticketAndCheckInsList == null ? [] : ticketAndCheckInsList);
+        checkInList = checkInList {
+    final String transaction = 'constructor';
+    if (!(ticketAndCheckInsList is Iterable)) {
+      ticketAndCheckInsList = [];
+    }
+    updateTickets(transaction, ticketAndCheckInsList.map((i) => i.ticket));
+    updateCheckInItems(
+        transaction, ticketAndCheckInsList.expand((i) => i.checkInItems.iterable));
+  }
+
+  @action
+  void updateCheckInItems(
+    String transaction, Iterable<CheckInItem> checkInItems) {
+    checkInItems = checkInItems.where((i) => i != null);
+    checkInItems.forEach((cis) {
+      final idx = _manageTicketIndex(transaction, cis.ticketId, checkInItem: cis);
+      final checkInItem = _ticketAndCheckInsList[idx.value].checkInItems;
+      checkInItem.updateCheckInItem(cis);
+    });
+  }
+
+  void _cleanupTransaction(String transaction) {
+    _tacisIdx.values.toList().forEach((idx) {
+      if (idx.transaction != transaction) {
+        final tac = _ticketAndCheckInsList.removeAt(idx.value);
+        _tacisIdx.remove(tac.ticketId);
+      }
+    });
+  }
+
+  Transaction<int> _manageTicketIndex(String transaction, int ticketId, {
+    Ticket ticket,
+    CheckInItem checkInItem
+  }) {
+      final idx = _tacisIdx.putIfAbsent(ticketId, () {
+        _ticketAndCheckInsList
+            .add(TicketAndCheckIns(ticket: ticket, checkInItems: [checkInItem]));
+        return Transaction(
+            transaction: transaction, value: ticketAndCheckInsList.length - 1);
+      });
+      idx.transaction = transaction;
+      return idx;
+  }
+
+  @action
+  void updateTickets(String transaction, Iterable<Ticket> tickets) {
+    if (tickets == null) {
+      tickets = [];
+    } else {
+      tickets = tickets.where((i) => i != null);
+    }
+    tickets.forEach((ticket) {
+      final idx = _manageTicketIndex(transaction, ticket.id, ticket: ticket);
+      _ticketAndCheckInsList[idx.value].ticket.update(ticket);
+    });
+    _cleanupTransaction(transaction);
+    return;
+  }
 
   @computed
   get checkInItemLength {
@@ -59,33 +116,11 @@ abstract class ConferenceBase with Store {
   }
 
   @computed
-  Iterable<TicketAndCheckIns> get ticketAndCheckInsList => _ticketAndCheckInsList;
+  Iterable<TicketAndCheckIns> get ticketAndCheckInsList =>
+      _ticketAndCheckInsList;
 
   @computed
   get ticketAndCheckInsLength => _ticketAndCheckInsList.length;
-
-  @action
-  updateTickets(String transaction, Iterable<Ticket> tickets) {
-    if (tickets.isEmpty) {
-      _tacisIdx.values.toList().forEach((idx) {
-        if (idx.transaction != transaction) {
-          final tac = _ticketAndCheckInsList.removeAt(idx.value);
-          _tacisIdx.remove(tac.ticketId);
-        }
-      });
-      return;
-    }
-    tickets.forEach((ticket) {
-      final idx = _tacisIdx.putIfAbsent(ticket.id, () {
-        _ticketAndCheckInsList.add(TicketAndCheckIns(
-          ticket: ticket,
-          checkInItems: []
-        ));
-        return Transaction(transaction: transaction, value: _ticketAndCheckInsList.length -1);
-      });
-      _ticketAndCheckInsList[idx.value].ticket.update(ticket);
-    });
-  }
 
   @computed
   get url => checkInList.url;
@@ -101,5 +136,4 @@ abstract class ConferenceBase with Store {
         "ticketStore": _ticketAndCheckInsList,
         "error": _error.value
       };
-
 }

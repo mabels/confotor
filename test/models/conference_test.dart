@@ -3,11 +3,11 @@ import 'dart:convert';
 import 'package:confotor/models/check-in-list-item.dart';
 import 'package:confotor/models/conference-key.dart';
 import 'package:confotor/models/ticket-and-checkins.dart';
-import 'package:confotor/models/ticket.dart';
 import 'package:meta/meta.dart';
 import 'package:test_api/test_api.dart';
 
 import 'check-in-list-item_test.dart';
+import 'ticket_test.dart';
 
 class My extends ConferenceKey {
   My(String url) : super(url);
@@ -48,7 +48,7 @@ void main() {
         checkInList: testCheckInList(),
         ticketAndCheckInsList: [TicketAndCheckIns(
           checkInItems: [],
-          ticket: Ticket()
+          ticket: testTicket()
         )]);
     final str = json.encode(conf);
     var refConf = Conference.fromJson(json.decode(str));

@@ -15,6 +15,14 @@ mixin _$Conference on ConferenceBase, Store {
   dynamic get checkInItemLength => (_$checkInItemLengthComputed ??=
           Computed<dynamic>(() => super.checkInItemLength))
       .value;
+  Computed<Iterable<TicketAndCheckIns>> _$ticketAndCheckInsListComputed;
+
+  @override
+  Iterable<TicketAndCheckIns> get ticketAndCheckInsList =>
+      (_$ticketAndCheckInsListComputed ??=
+              Computed<Iterable<TicketAndCheckIns>>(
+                  () => super.ticketAndCheckInsList))
+          .value;
   Computed<dynamic> _$ticketAndCheckInsLengthComputed;
 
   @override
@@ -36,7 +44,18 @@ mixin _$Conference on ConferenceBase, Store {
       ActionController(name: 'ConferenceBase');
 
   @override
-  dynamic updateTickets(String transaction, Iterable<Ticket> tickets) {
+  void updateCheckInItems(
+      String transaction, Iterable<CheckInItem> checkInItems) {
+    final _$actionInfo = _$ConferenceBaseActionController.startAction();
+    try {
+      return super.updateCheckInItems(transaction, checkInItems);
+    } finally {
+      _$ConferenceBaseActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void updateTickets(String transaction, Iterable<Ticket> tickets) {
     final _$actionInfo = _$ConferenceBaseActionController.startAction();
     try {
       return super.updateTickets(transaction, tickets);

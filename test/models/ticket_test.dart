@@ -1,14 +1,10 @@
 import 'dart:convert';
 
 import 'package:confotor/models/ticket.dart';
-import 'package:meta/meta.dart';
 
 import 'package:test_api/test_api.dart';
 
-Ticket testTicket({int ticketId}) {
-  if (ticketId == null) {
-    ticketId = 4811;
-  }
+Ticket testTicket({int ticketId = 4811}) {
   return Ticket(
     id: ticketId,
     slug: 'slug$ticketId',

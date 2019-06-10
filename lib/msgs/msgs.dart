@@ -334,8 +334,6 @@ class ConferenceTicket extends ConfotorMsg {
     }, orElse: () => null) != null;
   }
 
-
-
   TicketAndCheckInsState get state {
     // ticketAndCheckIns.checkInItems.forEach((ci) => print('cii:${ticketAndCheckIns.ticket.reference}:${json.encode(ci)}'));
     final open = ticketAndCheckIns.checkInItems.firstWhere((i) => i.deletedAt == null, orElse: () => null);

@@ -8,11 +8,11 @@ import 'check-in-item_test.dart';
 import 'ticket_test.dart';
 
 TicketAndCheckIns testTicketAndCheckins({
-  int ticketId,
+  int ticketId = 4711,
   List<CheckInItem> checkInItems
 }) {
   if (checkInItems == null) {
-    checkInItems = [testCheckInItem()];
+    checkInItems = [testCheckInItem(ticketId: ticketId)];
   }
   return TicketAndCheckIns(checkInItems: checkInItems, ticket: testTicket(
     ticketId: ticketId
@@ -43,19 +43,37 @@ void main() {
     final tacis = testTicketAndCheckins();
     final str = json.encode(tacis);
     final refTacis = TicketAndCheckIns.fromJson(json.decode(str));
-    expect(tacis.checkInItems, refTacis.checkInItems);
-    expect(tacis.ticket, tacis.ticket);
+    expect(tacis, refTacis);
+  });
+  
+  test('Tacs ticket null exception', () {
+    expect(() => TicketAndCheckIns(ticket: null, checkInItems: null), throwsException);
   });
 
-  test("lastCheckIn", () {
-    final first = DateTime.now();
-    final next = DateTime.now();
-    final last = DateTime.now();
-    final tacis = testTicketAndCheckins(checkInItems: [
-      testCheckInItem(createdAt: last),
-      testCheckInItem(createdAt: next, deletedAt: last),
-      testCheckInItem(createdAt: first)
-    ]);
-    expect(tacis.lastCheckedIn, tacis.checkInItems.first);
+  test('Tacs ticket.id null exception', () {
+    expect(() => TicketAndCheckIns(ticket: testTicket(ticketId: null), checkInItems: null), throwsException);
   });
+
+  test('Tacs skip checkInItems with wrong id', () {
+    expect(() => TicketAndCheckIns(ticket: testTicket(ticketId: 4711), checkInItems: [
+      testCheckInItem(ticketId: 4977)
+    ]), throwsException);
+  });
+
+  test('Tacs TicketId from ticket', () {
+    final tacs = TicketAndCheckIns(ticket: testTicket(ticketId: 4711), checkInItems: null);
+    expect(tacs.ticketId, 4711);
+  });
+
+  test('Tacs TicketId from checkInItems', () {
+    final tacs = TicketAndCheckIns(ticket: null, checkInItems: [
+      testCheckInItem(ticketId: 4711)
+    ]);
+    expect(tacs.ticketId, 4711);
+  });
+
+  test('Tacs TicketId from empty checkInItems', () {
+    expect(() => TicketAndCheckIns(ticket: null, checkInItems: []), throwsException);
+  });
+
 }

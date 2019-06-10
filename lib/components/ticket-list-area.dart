@@ -92,7 +92,7 @@ class TicketListAreaState extends State<TicketListArea> {
                               RequestCheckOutTicket(ticket: conferenceTicket));
                         });
                   } else {
-                    final createdAt = conferenceTicket.ticketAndCheckIns.lastCheckedIn.createdAt;
+                    final createdAt = conferenceTicket.ticketAndCheckIns.checkInItems.lastCheckedIn.createdAt;
                     final ago = DateTime.now().difference(createdAt);
                     return RaisedButton(
                         textColor: Colors.white,

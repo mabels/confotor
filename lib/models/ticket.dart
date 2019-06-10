@@ -12,6 +12,20 @@ class Ticket {
   String companyName;
   String updatedAt;
 
+  static Ticket clone(Ticket oth) {
+    return Ticket(
+      id: oth.id,
+        slug: oth.slug,
+        reference: oth.reference,
+        registrationReference: oth.registrationReference,
+        createdAt: oth.createdAt,
+        firstName: oth.firstName,
+        lastName: oth.lastName,
+        email: oth.email,
+        companyName: oth.companyName,
+        updatedAt: oth.updatedAt);
+  }
+
   Ticket(
       {@required int id,
       @required String slug,

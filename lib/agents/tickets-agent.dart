@@ -1,15 +1,7 @@
-import 'dart:async';
-import 'dart:convert' as convert;
 import 'dart:ui';
 
 import 'package:confotor/agents/ticket-observer.dart';
-import 'package:confotor/components/confotor-app.dart';
 import 'package:confotor/models/conference.dart';
-import 'package:confotor/models/conferences.dart';
-import 'package:confotor/models/ticket.dart';
-import 'package:confotor/msgs/msgs.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 import 'package:mobx/mobx.dart';

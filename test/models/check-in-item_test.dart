@@ -4,14 +4,16 @@ import 'package:confotor/models/check-in-item.dart';
 import 'package:test_api/test_api.dart';
 
 CheckInItem testCheckInItem({
+  int ticketId,
+  String uuid,
   DateTime createdAt,
   DateTime updatedAt,
   DateTime deletedAt
 }) {
   return CheckInItem(
         id: 4711,
-        uuid: 'uuid',
-        ticketId: 44,
+        uuid: uuid == null ? 'uuid' : uuid,
+        ticketId: ticketId == null ? 44 : ticketId,
         createdAt: createdAt,
         updatedAt: updatedAt,
         deletedAt: deletedAt);  
