@@ -6,6 +6,10 @@
 version: 2
 jobs:
   build:
+    branches:
+      only:
+        - master
+        - chore/ui-cleanup
     docker:
       - image: cirrusci/flutter
     steps:
