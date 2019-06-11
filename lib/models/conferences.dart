@@ -7,7 +7,6 @@ import 'check-in-list-item.dart';
 
 part 'conferences.g.dart';
 
-// This is the class used by rest of your codebase
 class Conferences extends ConferencesBase with _$Conferences {
   Conferences({@required List<Conference> conferences})
       : super(conferences: conferences);

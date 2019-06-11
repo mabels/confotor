@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:confotor/models/conference-ticket.dart';
 import 'package:confotor/models/found-tickets.dart';
 import 'package:confotor/models/lane.dart';
 import 'package:confotor/msgs/confotor-msg.dart';

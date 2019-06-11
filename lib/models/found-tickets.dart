@@ -1,9 +1,9 @@
 
 import 'package:confotor/msgs/confotor-msg.dart';
-import 'package:confotor/msgs/msgs.dart';
 import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 
+import 'conference-ticket.dart';
 import 'lane.dart';
 
 class FoundTickets extends ConfotorMsg {
@@ -77,10 +77,12 @@ class LastFoundTickets extends ConfotorMsg {
   int _maxLen;
 
   LastFoundTickets({
-    @required List<FoundTickets> last,
+    List<FoundTickets> last,
     int maxLen = 20
     }) : _maxLen = maxLen {
-      last.reversed.forEach((fts) => append(fts));
+      if (last is List) {
+        last.reversed.forEach((fts) => append(fts));
+      }
     }
 
   LastFoundTickets clone() {

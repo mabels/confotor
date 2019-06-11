@@ -2,11 +2,13 @@ import 'package:meta/meta.dart';
 
 import 'confotor-msg.dart';
 
+/*
 class RequestQrScanMsg extends ConfotorMsg {
 }
 
 class StopQrScanMsg extends ConfotorMsg {
 }
+*/
 
 // class CloseQrScan extends ConfotorMsg {
 // }
@@ -21,6 +23,7 @@ class QrScanErrorMsg extends ConfotorMsg implements ConfotorErrorMsg {
   QrScanErrorMsg({@required dynamic error}) : error = error;
 }
 
+/*
 class ScanTicketMsg extends QrScanMsg {
   ScanTicketMsg({@required String barcode}) : super(barcode: barcode);
 }
@@ -28,3 +31,4 @@ class ScanTicketMsg extends QrScanMsg {
 class ScanCheckInListMsg extends QrScanMsg {
   ScanCheckInListMsg({@required String barcode}) : super(barcode: barcode);
 }
+*/

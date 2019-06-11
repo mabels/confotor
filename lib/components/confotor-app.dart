@@ -24,20 +24,9 @@ class ConfotorApp extends StatefulWidget {
   ConfotorAppStateImpl createState() => ConfotorAppStateImpl();
 }
 
-class ConfotorAppStateImpl extends State<ConfotorApp> with ConfotorAppState {
-  // final uuid = Uuid();
-  // final ConfotorBus bus = ConfotorBus();
-  AppLifecycleAgent appLifecycleAgent;
-  ConferencesAgent conferencesAgent;
-  TicketsAgent ticketsAgent;
-  CheckInItemsAgent checkInItemsAgent;
-  CheckInManager checkInManager;
-  Lane lane;
+class ConfotorAppStateImpl extends ConfotorAppState {
 
-  Future<String> getLocalPath() async {
-    final directory = await getApplicationDocumentsDirectory();
-    return directory.path;
-  }
+
 
   @override
   initState() {

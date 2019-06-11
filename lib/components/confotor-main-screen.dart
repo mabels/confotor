@@ -1,15 +1,10 @@
 import 'package:confotor/components/qr-scan.dart';
 import 'package:confotor/components/ticket-list-area.dart';
-import 'package:confotor/models/found-tickets.dart';
-import 'package:confotor/msgs/conference-msg.dart';
-import 'package:confotor/msgs/scan-msg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import '../confotor-appstate.dart';
-import './confotor-app.dart';
-// import 'active-area.dart';
 import 'confotor-drawer.dart';
 
 class ConfotorMainScreen extends StatefulWidget {
@@ -31,21 +26,21 @@ class ConfotorMainScreenState extends State<ConfotorMainScreen> {
   @override
   void initState() {
     super.initState();
-    appState.bus.listen((msg) {
-      if (msg is LastFoundTickets || msg is RequestUpdateConference) {
-        print('LastFoundTickets:toggleQrScan:$msg');
-        appState.bus.add(StopQrScanMsg());
-        setState(Action(() => _toggleQrScan.value = false));
-      }
-    });
+    // appState.bus.listen((msg) {
+    //   if (msg is LastFoundTickets || msg is RequestUpdateConference) {
+    //     print('LastFoundTickets:toggleQrScan:$msg');
+    //     appState.bus.add(StopQrScanMsg());
+    //     setState(Action(() => _toggleQrScan.value = false));
+    //   }
+    // });
   }
 
   _scanAction() {
     if (!_toggleQrScan.value) {
-      appState.bus.add(RequestQrScanMsg());
+      // appState.bus.add(RequestQrScanMsg());
       setState(Action(() => _toggleQrScan.value = true));
     } else {
-      appState.bus.add(StopQrScanMsg());
+      // appState.bus.add(StopQrScanMsg());
       setState(Action(() => _toggleQrScan.value = false));
     }
   }

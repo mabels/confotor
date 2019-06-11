@@ -7,14 +7,12 @@
 
 import 'dart:convert';
 
-import 'package:confotor/models/check-in-list-item.dart';
+import 'package:confotor/models/conference-ticket.dart';
 import 'package:confotor/models/found-tickets.dart';
 import 'package:confotor/models/lane.dart';
 import 'package:confotor/models/ticket-action.dart';
 import 'package:confotor/models/ticket-and-checkins.dart';
-import 'package:confotor/models/ticket.dart';
 import 'package:confotor/msgs/confotor-msg.dart';
-import 'package:confotor/msgs/msgs.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'check-in-list-item_test.dart';

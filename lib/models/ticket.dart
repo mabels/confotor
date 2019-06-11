@@ -12,9 +12,23 @@ class Ticket {
   String companyName;
   String updatedAt;
 
+  static Ticket fromJson(dynamic json) {
+    return Ticket(
+        id: json['id'],
+        slug: json['slug'],
+        firstName: json['first_name'],
+        lastName: json['last_name'],
+        email: json['email'],
+        companyName: json['company_name'],
+        reference: json['reference'],
+        registrationReference: json['registration_reference'],
+        createdAt: json['created_at'],
+        updatedAt: json['updated_at']);
+  }
+
   static Ticket clone(Ticket oth) {
     return Ticket(
-      id: oth.id,
+        id: oth.id,
         slug: oth.slug,
         reference: oth.reference,
         registrationReference: oth.registrationReference,
@@ -60,47 +74,16 @@ class Ticket {
   @override
   bool operator ==(o) {
     return o is Ticket &&
-      o.id == id &&
-      o.slug == slug &&
-      o.reference == reference &&
-      o.registrationReference == registrationReference &&
-      o.createdAt == createdAt &&
-      o.firstName == firstName &&
-      o.lastName == lastName  &&
-      o.email == email &&
-      o.companyName == companyName &&
-      o.updatedAt == updatedAt;
-  }
-
-  // update(Ticket oth) {
-  //   if (id != oth.id) {
-  //     // && slug == oth.slug && reference == oth.reference
-  //     // && registration_reference == oth.registration_reference)) {
-  //     throw Exception("try update Ticket does not match");
-  //   }
-  //   slug = oth.slug;
-  //   reference = oth.reference;
-  //   registrationReference = oth.registrationReference;
-  //   firstName = oth.firstName;
-  //   lastName = oth.lastName;
-  //   email = oth.email;
-  //   companyName = oth.companyName;
-  //   createdAt = oth.createdAt;
-  //   updatedAt = oth.updatedAt;
-  // }
-
-  static Ticket fromJson(dynamic json) {
-    return Ticket(
-        id: json['id'],
-        slug: json['slug'],
-        firstName: json['first_name'],
-        lastName: json['last_name'],
-        email: json['email'],
-        companyName: json['company_name'],
-        reference: json['reference'],
-        registrationReference: json['registration_reference'],
-        createdAt: json['created_at'],
-        updatedAt: json['updated_at']);
+        o.id == id &&
+        o.slug == slug &&
+        o.reference == reference &&
+        o.registrationReference == registrationReference &&
+        o.createdAt == createdAt &&
+        o.firstName == firstName &&
+        o.lastName == lastName &&
+        o.email == email &&
+        o.companyName == companyName &&
+        o.updatedAt == updatedAt;
   }
 
   Map<String, dynamic> toJson() => {
@@ -115,5 +98,4 @@ class Ticket {
         "created_at": createdAt,
         "updated_at": updatedAt,
       };
-
 }

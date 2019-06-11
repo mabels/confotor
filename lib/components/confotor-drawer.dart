@@ -7,6 +7,7 @@ import 'package:confotor/msgs/conference-msg.dart';
 import 'package:confotor/msgs/msgs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:mobx/mobx.dart';
 import '../confotor-appstate.dart';
 import './confotor-app.dart';
 // import 'confotor-msg.dart';
@@ -22,20 +23,11 @@ class ConfotorDrawer extends StatefulWidget {
   }
 }
 
-final List<Lane> lanes = [
-  Lane('a-c'),
-  Lane('d-h'),
-  Lane('i-k'),
-  Lane('l-m'),
-  Lane('n-r'),
-  Lane('s-z')
-];
-
 class ConfotorDrawerState extends State<ConfotorDrawer> {
-  final ConfotorAppState appState;
+  final ConfotorAppState _appState;
   // StreamSubscription subscription;
 
-  ConfotorDrawerState({ConfotorAppState appState}) : appState = appState;
+  ConfotorDrawerState({ConfotorAppState appState}) : _appState = appState;
 
   _refreshSection(
       {ConfotorAppState appState, List<Widget> drawer, Conferences confs}) {
@@ -135,17 +127,16 @@ class ConfotorDrawerState extends State<ConfotorDrawer> {
       //       scanCheckInListAction(bus: appState.bus);
       //     })
     ];
-    lanes.forEach((lane) {
+    _appState.lanes.forEach((lane) {
       ret.add(ListTile(
           key: Key('Lane ${lane.toString()}'),
           title: Text('Lane ${lane.toString()}',
               style: TextStyle(
                   color:
                       lane != selectedLane ? Colors.deepOrange : Colors.white)),
-          onTap: () {
-            appState.bus
-                .add(SelectLane(lane: lane == selectedLane ? null : lane));
-          }));
+          onTap: Action(() {
+            appState.lane = appState.lane == lane ? null : lane;
+          })));
     });
     return ret;
   }
@@ -180,12 +171,12 @@ class ConfotorDrawerState extends State<ConfotorDrawer> {
             color: Color(0xFF303f62),
             child: Observer(builder: (_) {
               final items = _staticDrawer(
-                  appState: appState, selectedLane: appState.lane);
-              final conferences = appState.conferencesAgent.conferences;
+                  appState: _appState, selectedLane: _appState.lane);
+              final conferences = _appState.conferencesAgent.conferences;
               _refreshSection(
-                  appState: appState, drawer: items, confs: conferences);
+                  appState: _appState, drawer: items, confs: conferences);
               _removeSection(
-                  appState: appState, drawer: items, confs: conferences);
+                  appState: _appState, drawer: items, confs: conferences);
               return ListView(children: items);
             })));
   }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:confotor/models/conference-ticket.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:intl/intl.dart';
@@ -144,6 +145,7 @@ class TicketListAreaState extends State<TicketListArea> {
                   return RaisedButton(
                       textColor: Colors.white,
                       splashColor: Colors.pinkAccent,
+                      onPressed: () => null,
                       child: _actionText(
                           conferenceTicket, conferenceTicket.shortState),
                       color: Colors.purple);

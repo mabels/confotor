@@ -20,6 +20,8 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:http/http.dart' as http;
 
+
+
 // class CheckInItemCompleteMsg extends ConfotorMsg implements ConfotorTransactionMsg {
 //   @override
 //   final String transaction;
@@ -41,8 +43,9 @@ import 'package:http/http.dart' as http;
 
 // }
 
-class RequestLastFoundTickets extends ConfotorMsg {}
+// class RequestLastFoundTickets extends ConfotorMsg {}
 
+/*
 class TicketError extends ConfotorMsg
     implements ConfotorErrorMsg, ConfotorTransactionMsg {
   @override
@@ -80,12 +83,14 @@ class CheckInObserverError extends ConfotorMsg
         conference = conference,
         transaction = transaction;
 }
+*/
 
 // class AppLifecycleMsg extends ConfotorMsg {
 //   final AppLifecycleState state;
 //   AppLifecycleMsg({@required AppLifecycleState state}) : state = state;
 // }
 
+/*
 class ConferencesMsg extends ConfotorMsg {
   final Conferences conferences;
   ConferencesMsg({@required Conferences conferences})
@@ -101,6 +106,7 @@ class ConferencesError extends ConfotorMsg implements ConfotorErrorMsg {
   final dynamic error;
   ConferencesError({@required error}) : error = error;
 }
+*/
 
 // class TicketsMsg {
 //   final TicketsStatus status;
@@ -120,6 +126,7 @@ class ConferencesError extends ConfotorMsg implements ConfotorErrorMsg {
 //         url = url;
 // }
 
+/*
 class PageMsg<T> extends ConfotorMsg {
   final String transaction;
   final CheckInList checkInList;
@@ -221,6 +228,7 @@ class CheckInListItemError extends ConferencesMsg implements ConfotorErrorMsg {
   final dynamic error;
   CheckInListItemError({@required dynamic error}) : error = error;
 }
+*/
 
 // class CheckInListScanMsg extends ConfotorMsg {}
 
@@ -258,6 +266,7 @@ class CheckInListItemError extends ConferencesMsg implements ConfotorErrorMsg {
 //     super(foundTicket: foundTicket, res: res);
 // }
 
+/*
 class AddCheckInAction extends ConfotorMsg {
   final CheckInAction item;
   AddCheckInAction({@required CheckInAction item}) : item = item;
@@ -268,94 +277,8 @@ class AddCheckInAction extends ConfotorMsg {
 //   FindTicket({@required String slug}): slug = slug;
 //}
 
-class ConferenceTicket extends ConfotorMsg {
-  final CheckInList checkInList;
-  final TicketAndCheckIns ticketAndCheckIns;
-  final List<TicketAction> actions;
-  // TicketAndCheckInsState state = TicketAndCheckInsState.Error;
-
-  ConferenceTicket(
-      {@required CheckInList checkInList,
-      @required TicketAndCheckIns ticketAndCheckIns,
-      @required List<TicketAction> actions})
-      : checkInList = checkInList,
-        ticketAndCheckIns = ticketAndCheckIns,
-        actions = actions;
-
-  @override
-  bool operator ==(o) {
-    return o is ConferenceTicket &&
-     o.checkInList == checkInList &&
-     o.ticketAndCheckIns == ticketAndCheckIns &&
-     listEquals(o.actions, actions);
-  }
-
-  static _actionsFromJson(dynamic actions) {
-    final List<TicketAction> my = [];
-    if (actions is List) {
-      actions.forEach((ajson) => my.add(TicketAction.fromJson(ajson)));
-    }
-    return my;
-  }
-
-  static ConferenceTicket fromJson(dynamic json) {
-    return ConferenceTicket(
-        checkInList: CheckInList.fromJson(json['checkInList']),
-        ticketAndCheckIns:
-            TicketAndCheckIns.fromJson(json['ticketAndCheckIns']),
-        actions: _actionsFromJson(json['actions']));
-  }
-
-  Map<String, dynamic> toJson() => {
-    "checkInList": checkInList,
-    "ticketAndCheckIns": ticketAndCheckIns,
-    "actions": actions
-  };
 
 
-  bool get issuedFromMe {
-    final action = actions.reversed.firstWhere((action) {
-      return action is CheckInTransactionTicketAction ||
-             action is CheckOutTransactionTicketAction;
-    }, orElse: () => null);
-    return action is CheckInTransactionTicketAction &&
-           action.step == CheckInOutTransactionTicketActionStep.Completed;
-  }
-
-  bool get runningAction {
-    return actions.firstWhere((action) {
-      if (action is CheckInTransactionTicketAction ||
-          action is CheckOutTransactionTicketAction) {
-            final StepTransactionTicketAction my  = action;
-            return !(my.step == CheckInOutTransactionTicketActionStep.Completed ||
-                     my.step == CheckInOutTransactionTicketActionStep.Error);
-          }
-      return false;
-    }, orElse: () => null) != null;
-  }
-
-  TicketAndCheckInsState get state {
-    // ticketAndCheckIns.checkInItems.forEach((ci) => print('cii:${ticketAndCheckIns.ticket.reference}:${json.encode(ci)}'));
-    final open = ticketAndCheckIns.checkInItems.firstWhere((i) => i.deletedAt == null, orElse: () => null);
-    if (open != null) {
-      return TicketAndCheckInsState.Used;
-    }
-    return TicketAndCheckInsState.Issueable;
-  }
-
-  String get shortState => state.toString().split(".").last;
-
-}
-
-class RequestCheckOutTicket extends ConfotorMsg {
-  final ConferenceTicket conferenceTicket;
-  RequestCheckOutTicket({@required ticket}) : conferenceTicket = ticket;
-}
-
-class RequestCheckInTicket extends ConfotorMsg {
-  final ConferenceTicket conferenceTicket;
-  RequestCheckInTicket({@required ticket}) : conferenceTicket = ticket;
-}
 
 abstract class FileName {
   final String fileName;
@@ -396,3 +319,4 @@ class SelectLane extends ConfotorMsg {
   final Lane lane;
   SelectLane({Lane lane}): lane = lane;
 }
+*/

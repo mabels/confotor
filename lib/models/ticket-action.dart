@@ -32,6 +32,9 @@ class TicketAction {
     // return ta.fromJson(json);
   }
 
+  @override
+  bool operator ==(o) => o is TicketAction && o.type == type;
+
   Map<String, dynamic> toJson() => {"type": type.toString()};
 
 }
@@ -44,6 +47,11 @@ class AmbiguousAction extends TicketAction {
 
   static AmbiguousAction fromJson(dynamic json) {
     return AmbiguousAction(barcode: json['barcode']);
+  }
+
+  @override
+  bool operator ==(o) {
+    return o is AmbiguousAction && o.barcode == barcode && super==o;
   }
 
   Map<String, dynamic> toJson() => {
@@ -60,6 +68,11 @@ class BarcodeScannedTicketAction extends TicketAction {
       : barcode = barcode,
         lane = lane,
         super("BarcodeScannedTicketAction");
+
+  @override
+  bool operator ==(o) {
+    return o is BarcodeScannedTicketAction && o.barcode == barcode && o.lane == lane && super==o;
+  } 
 
   static BarcodeScannedTicketAction fromJson(dynamic json) {
     return BarcodeScannedTicketAction(
@@ -115,6 +128,15 @@ abstract class StepTransactionTicketAction extends TicketAction {
       : step = step,
         super(type);
 
+  @override
+  bool operator ==(o) {
+    return o is StepTransactionTicketAction && 
+           o.step == step &&
+           o.res == res &&
+           o.error == error &&
+           super==o;
+  } 
+
   Map<String, dynamic> toJson() => {
         ...super.toJson(),
         "step": asStringCheckInOutTransactionTicketActionStep(step),
@@ -132,6 +154,11 @@ class CheckInTransactionTicketAction extends StepTransactionTicketAction {
     return CheckInTransactionTicketAction(
         step: fromStringCheckInOutTransactionTicketActionStep(json['step']));
   }
+
+  @override
+  bool operator ==(o) {
+    return o is CheckInTransactionTicketAction && super==o;
+  } 
 
   Future<dynamic> run(
       {@required String url, @required int ticketId, BaseClient client }) {
@@ -182,6 +209,11 @@ class CheckOutTransactionTicketAction extends StepTransactionTicketAction {
       this.error = e;
     });
   }
+
+  @override
+  bool operator ==(o) {
+    return o is CheckOutTransactionTicketAction && o.uuid == uuid && super==o;
+  } 
 
   static CheckOutTransactionTicketAction fromJson(dynamic json) {
     return CheckOutTransactionTicketAction(
