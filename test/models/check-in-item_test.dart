@@ -12,7 +12,7 @@ CheckInItem testCheckInItem({
 }) {
   return CheckInItem(
         id: 4711,
-        uuid: uuid == null ? 'uuid' : uuid,
+        uuid: uuid == null ? 'uuid$ticketId' : uuid,
         ticketId: ticketId == null ? 44 : ticketId,
         createdAt: createdAt,
         updatedAt: updatedAt,

@@ -2,26 +2,20 @@ import 'dart:ui';
 
 import 'package:confotor/agents/ticket-observer.dart';
 import 'package:confotor/models/conference.dart';
+import 'package:confotor/models/transaction.dart';
 import 'package:http/http.dart';
 import 'package:meta/meta.dart';
 import 'package:mobx/mobx.dart';
 
 import '../confotor-appstate.dart';
 
-
-class Transaction<T> {
-  String transaction;
-  final T value;
-  Transaction({
-    @required T value,
-    String transaction
-  }): value = value, transaction = transaction;
-}
-
 class TicketsAgent {
   final ConfotorAppState _appState;
   final BaseClient _client;
   final List<Transaction<TicketObserver>> observers = List();
+
+  ReactionDisposer _appLifecycle;
+  ReactionDisposer _conferences;
 
   // StreamSubscription subscription;
 
@@ -30,30 +24,35 @@ class TicketsAgent {
     BaseClient client}) : _appState = appState, _client = client;
 
   stop() {
+    observers.forEach((i) => i.value.stop());
+    observers.clear();
+    _appLifecycle();
+    _conferences();
     // subscription.cancel();
   }
 
   TicketsAgent start() {
+    final ticketRefresh = Duration(hours: 4);
     // print('TicketAgent:start');
-    reaction((_) => _appState.appLifecycleAgent.state, (state) {
+    _appLifecycle = reaction((_) => _appState.appLifecycleAgent.state, (state) {
       switch (state) {
         // case AppLifecycleState.inactive:
         case AppLifecycleState.paused:
+        case AppLifecycleState.suspending:
           observers.forEach((o) {
             o.value.stop();
           });
           break;
-        case AppLifecycleState.suspending:
         case AppLifecycleState.resumed:
           observers.forEach((o) {
-            o.value.start(hours: 0);
+            o.value.start(pollInterval: ticketRefresh);
           });
           break;
         case AppLifecycleState.inactive:
           break;
       }
     });
-    reaction<Iterable<Conference>>((_) => _appState.conferencesAgent.conferences.values, (vs) {
+    _conferences = reaction<Iterable<Conference>>((_) => _appState.conferencesAgent.conferences.values, (vs) {
       final transaction = _appState.uuid.v4();
       final List<Conference> confs = List.from(vs);
       observers.forEach((obs) {
@@ -62,16 +61,14 @@ class TicketsAgent {
         if (preLength != confs.length) {
           // print('restart:${obs.value.url}');
           obs.transaction = transaction;
-          obs.value.start(); // restart
+          obs.value.start(pollInterval: ticketRefresh); // restart
         }
       });
       confs.forEach((conf) {
         // print('start:${conf.url}');
         observers.add(Transaction(transaction: transaction, 
-          value: TicketObserver(appState: _appState, 
-            conference: conf,
-            client: _client
-          ).start()));
+          value: TicketObserver(appState: _appState, conference: conf, client: _client
+          ).start(pollInterval: ticketRefresh)));
       });
       // remove unsed
       observers.removeWhere((o) => o.transaction != transaction);

@@ -1,8 +1,8 @@
+import 'package:confotor/agents/check-in-items-agent.dart';
 import 'package:confotor/confotor-bus.dart';
 import 'package:uuid/uuid.dart';
 
 import 'agents/app-lifecycle-agent.dart';
-import 'agents/check-in-list-agent.dart';
 import 'agents/check-in-manager.dart';
 import 'agents/conferences-agent.dart';
 import 'agents/tickets-agent.dart';
@@ -14,7 +14,7 @@ abstract class ConfotorAppState {
   AppLifecycleAgent appLifecycleAgent;
   ConferencesAgent conferencesAgent;
   TicketsAgent ticketsAgent;
-  CheckInListAgent checkInListAgent;
+  CheckInItemsAgent checkInItemsAgent;
   CheckInManager checkInManager;
   Lane lane;
 }

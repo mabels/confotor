@@ -1,5 +1,5 @@
 import 'package:confotor/agents/app-lifecycle-agent.dart';
-import 'package:confotor/agents/check-in-list-agent.dart';
+import 'package:confotor/agents/check-in-items-agent.dart';
 import 'package:confotor/agents/check-in-manager.dart';
 import 'package:confotor/agents/conferences-agent.dart';
 import 'package:confotor/agents/tickets-agent.dart';
@@ -30,7 +30,7 @@ class ConfotorAppStateImpl extends State<ConfotorApp> with ConfotorAppState {
   AppLifecycleAgent appLifecycleAgent;
   ConferencesAgent conferencesAgent;
   TicketsAgent ticketsAgent;
-  CheckInListAgent checkInListAgent;
+  CheckInItemsAgent checkInItemsAgent;
   CheckInManager checkInManager;
   Lane lane;
 
@@ -45,7 +45,7 @@ class ConfotorAppStateImpl extends State<ConfotorApp> with ConfotorAppState {
     this.appLifecycleAgent = AppLifecycleAgent().start();
     this.conferencesAgent = ConferencesAgent(appState: this).start();
     this.ticketsAgent = TicketsAgent(appState: this).start();
-    this.checkInListAgent = CheckInListAgent(appState: this).start();
+    this.checkInItemsAgent = CheckInItemsAgent(appState: this).start();
     // this.checkInManager = CheckInManager(appState: this).start();
   }
 
@@ -56,7 +56,7 @@ class ConfotorAppStateImpl extends State<ConfotorApp> with ConfotorAppState {
     this.appLifecycleAgent.stop();
     this.conferencesAgent.stop();
     this.ticketsAgent.stop();
-    this.checkInListAgent.stop();
+    this.checkInItemsAgent.stop();
     // this.checkInManager.stop();
   }
 

@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 import 'package:mobx/mobx.dart';
 
 import 'check-in-list-item.dart';
+import 'transaction.dart';
 
 part 'conference.g.dart';
 
